@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ReflectionUtils</name>
+	<name>reflection-utils</name>
 	<comment>Java reflection utilities.</comment>
 	<projects>
 	</projects>
