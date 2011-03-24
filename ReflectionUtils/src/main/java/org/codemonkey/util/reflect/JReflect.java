@@ -40,13 +40,6 @@ import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
  * 
  * @author Benny Bottema
  */
-/**
- * @author Benny Bottema
- *
- */
-/**
- * @author Benny Bottema
- */
 public final class JReflect {
 
 	/**

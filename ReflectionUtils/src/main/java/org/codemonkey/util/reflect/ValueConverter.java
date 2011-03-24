@@ -3,10 +3,11 @@ package org.codemonkey.util.reflect;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
 /**
@@ -26,41 +27,66 @@ import org.apache.commons.lang.math.NumberUtils;
 public final class ValueConverter {
 
 	/**
+	 * List of common types that all other common types can always convert to. For example, <code>String</code> and <code>Integer</code> are
+	 * basic common types and can be converted to any other common type. A <code>Boolean</code> is not a basic common type, but can still be
+	 * converted to any basic type.
+	 */
+	private static final Class<?>[] basicCommonTypes = { String.class, Integer.class, int.class, Float.class, float.class, Double.class,
+			double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class };
+
+	/**
+	 * Combination of the basic common types and the extra common types only specific common types can convert to. For example, only
+	 * Strings, Number types and Character can be converted to a Boolean.
+	 */
+	private static final Class<?>[] allCommonTypes = (Class<?>[]) ArrayUtils.addAll(basicCommonTypes, new Class<?>[] { Boolean.class,
+			boolean.class, Character.class, char.class });
+
+	/**
+	 * Determines whether given type is a known common type.
+	 */
+	public static boolean isCommonType(final Class<?> c) {
+		return Arrays.asList(allCommonTypes).contains(c);
+	}
+
+	/**
 	 * Determines to which types the specified value (its type) can be converted to. Most common types can be converted to most other common
-	 * types and all types can be converted into a String using {@link Object#toString()}
+	 * types and all types can be converted into a String using {@link Object#toString()}.
+	 * <p>
+	 * TODO: check if this method wouldn't generate the exact same result if there is no distinction between basic and specific common
+	 * types.
 	 * 
 	 * @param c The input type to find compatible conversion output types for
 	 * @return The list with compatible conversion output types.
 	 */
 	public static Class<?>[] collectCompatibleTypes(final Class<?> c) {
-		// all common types can at least convert into any of these types
-		final Class<?>[] baselist = new Class<?>[] { String.class, Integer.class, int.class, Float.class, float.class, Double.class,
-				double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class };
-		final List<Class<?>> list = new LinkedList<Class<?>>(Arrays.asList(baselist));
-
-		// add whatever conversion can be applied to instances the specified class
-		if (c.equals(String.class)) {
-			list.add(Boolean.class);
-			list.add(boolean.class);
-			list.add(Character.class);
-			list.add(char.class);
-		} else if (Number.class.isAssignableFrom(c) || isPrimitiveNumber(c)) {
-			list.add(Boolean.class);
-			list.add(boolean.class);
-			list.add(Character.class);
-			list.add(char.class);
-		} else if (c.equals(Boolean.class) || c.equals(boolean.class)) {
-			list.add(Character.class);
-			list.add(char.class);
-		} else if (c.equals(Character.class) || c.equals(char.class)) {
-			list.add(Boolean.class);
-			list.add(boolean.class);
+		if (isCommonType(c)) {
+			final List<Class<?>> list = new ArrayList<Class<?>>(Arrays.asList(basicCommonTypes));
+			// add whatever conversion can be applied to instances the specified class
+			if (c.equals(String.class)) {
+				list.add(Boolean.class);
+				list.add(boolean.class);
+				list.add(Character.class);
+				list.add(char.class);
+			} else if (Number.class.isAssignableFrom(c) || isPrimitiveNumber(c)) {
+				list.add(Boolean.class);
+				list.add(boolean.class);
+				list.add(Character.class);
+				list.add(char.class);
+			} else if (c.equals(Boolean.class) || c.equals(boolean.class)) {
+				list.add(Character.class);
+				list.add(char.class);
+			} else if (c.equals(Character.class) || c.equals(char.class)) {
+				list.add(Boolean.class);
+				list.add(boolean.class);
+			} else {
+				throw new AssertionError("unknown common type!");
+			}
+			// return combined compatible types
+			return list.toArray(new Class[0]);
 		} else {
 			// not a common type, we only know we're able to convert to String
 			return new Class[] { String.class };
 		}
-		// return combined compatible types
-		return list.toArray(new Class[0]);
 	}
 
 	/**
@@ -99,28 +125,28 @@ public final class ValueConverter {
 		if (value == null) {
 			return null;
 		}
-		final Class<?> original = value.getClass();
+		final Class<?> valueType = value.getClass();
 
 		// 1. check if conversion is required to begin with
-		if (targetType.isAssignableFrom(original)) {
+		if (targetType.isAssignableFrom(valueType)) {
 			return value;
 			// 2. check if we can use Object.toString() implementation instead
 		} else if (targetType.equals(String.class)) {
 			return value.toString();
 			// 3. check if we can use a Number.xxxValue() implementation instead
-		} else if (original.equals(String.class)) {
+		} else if (valueType.equals(String.class)) {
 			return convert((String) value, targetType);
 			// 4. check if we can convert value from type Boolean
-		} else if (Number.class.isAssignableFrom(original) || isPrimitiveNumber(original)) {
+		} else if (Number.class.isAssignableFrom(valueType) || isPrimitiveNumber(valueType)) {
 			return convert((Number) value, targetType);
 			// 4. check if we can convert value from type Boolean
-		} else if (original.equals(Boolean.class) || original.equals(boolean.class)) {
+		} else if (valueType.equals(Boolean.class) || valueType.equals(boolean.class)) {
 			return convert((Boolean) value, targetType);
 			// 5. check if we can convert value from type Character
-		} else if (original.equals(Character.class) || original.equals(char.class)) {
+		} else if (valueType.equals(Character.class) || valueType.equals(char.class)) {
 			return convert((Character) value, targetType);
 		} else {
-			throw new IncompatibleTypeException(value, original.toString(), targetType.toString());
+			throw new IncompatibleTypeException(value, valueType.toString(), targetType.toString());
 		}
 	}
 
