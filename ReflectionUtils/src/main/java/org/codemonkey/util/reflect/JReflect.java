@@ -160,11 +160,20 @@ public final class JReflect {
 	 */
 	public static <T> T newInstanceSimple(final Class<T> _class) {
 		try {
-			return _class.newInstance();
-		} catch (final InstantiationException e) {
-			throw new RuntimeException(e);
-		} catch (final IllegalAccessException e) {
-			throw new RuntimeException(e);
+			return (T) _class.getConstructor().newInstance();
+		} catch (IllegalArgumentException e) {
+			assert false : "we don't pass in arguments";
+			throw new RuntimeException("unable to invoke parameterless constructor", e);
+		} catch (SecurityException e) {
+			throw new RuntimeException("unable to invoke parameterless constructor; security problem", e);
+		} catch (InstantiationException e) {
+			throw new RuntimeException("unable to complete instantiation of object", e);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException("unable to access parameterless constructor", e);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException("unable to invoke parameterless constructor", e);
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException("unable to find parameterless constructor (not public?)", e);
 		}
 	}
 
