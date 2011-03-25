@@ -748,15 +748,15 @@ public final class JReflect {
 	public static Class<?> widestNumberClass(final Number... numbers) {
 		// find widest number
 		Integer widest = 0;
-		Class<?> c = Byte.class;
-		for (final Number n : numbers) {
-			final Integer size = numSizes.get(n.getClass());
+		Class<?> widestNumberType = Byte.class;
+		for (final Number number : numbers) {
+			final Integer size = numSizes.get(number.getClass());
 			if (size > widest) {
-				c = n.getClass();
+				widestNumberType = number.getClass();
 				widest = size;
 			}
 		}
-		return c;
+		return widestNumberType;
 	}
 
 	/**
