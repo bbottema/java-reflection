@@ -237,7 +237,8 @@ public class FieldUtilsTest {
 	public void testResolvePrimitiveBooleanProperty()
 			throws SecurityException, NoSuchFieldException {
 		final Field field = BeanFields.class.getDeclaredField("primitiveBoolean");
-		assertNotNullProperty(FieldUtils.resolveBeanProperty(field, EnumSet.noneOf(BeanRestriction.class)), true, true);
+		final FieldWrapper resolvedBeanProperty = FieldUtils.resolveBeanProperty(field, EnumSet.noneOf(BeanRestriction.class));
+		assertNotNullProperty(resolvedBeanProperty, true, true);
 	}
 
 	private void assertNotNullProperty(final FieldWrapper resolvedBeanProperty, final boolean hasGetter, final boolean hasSetter) {
@@ -338,5 +339,5 @@ public class FieldUtilsTest {
 		public void setPrimitiveBoolean(final boolean primitiveBoolean) {
 			this.primitiveBoolean = primitiveBoolean;
 		}
-	};
+	}
 }
