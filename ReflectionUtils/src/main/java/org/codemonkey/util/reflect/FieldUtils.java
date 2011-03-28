@@ -18,7 +18,7 @@ import org.apache.commons.lang.StringUtils;
  * @author Benny Bottema
  * @see #collectFields(Class, Class, EnumSet, EnumSet)
  */
-public class FieldUtils {
+public final class FieldUtils {
 	private FieldUtils() {
 	}
 
@@ -96,7 +96,7 @@ public class FieldUtils {
 	 * @param visibility List of {@link Visibility} flags to test against.
 	 * @return Whether a given field has one of the specified visibility flags.
 	 */
-	protected static boolean meetsVisibilityRequirements(final Field field, final EnumSet<Visibility> visibility) {
+	static boolean meetsVisibilityRequirements(final Field field, final EnumSet<Visibility> visibility) {
 		for (final Visibility visibilityModifier : visibility) {
 			final int m = field.getModifiers();
 			if (!visibilityModifier.equals(Visibility.DEFAULT)) {
@@ -120,7 +120,7 @@ public class FieldUtils {
 	 * @param beanRestrictions The Bean restrictions to apply (should/shouldn't have setter/getter).
 	 * @return Whether the field fits the restrictions.
 	 */
-	protected static FieldWrapper resolveBeanProperty(final Field field, final EnumSet<BeanRestriction> beanRestrictions) {
+	static FieldWrapper resolveBeanProperty(final Field field, final EnumSet<BeanRestriction> beanRestrictions) {
 		if (beanRestrictions.containsAll(EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER)) //
 				|| beanRestrictions.containsAll(EnumSet.of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER))) {
 			throw new IllegalArgumentException("cannot both include and exclude a setter/getter requirement");
