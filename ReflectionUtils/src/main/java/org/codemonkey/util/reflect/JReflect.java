@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -16,15 +17,56 @@ import java.util.Map;
 import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
 
 /**
- * This class utilizes the functionality of the Java class <code>java.lang.reflect</code>. In addition to specific requirements for the
- * Nibble scriptengine, all sorts of little toolfunctions have been added to the reflect package.<br />
- * <br />
- * For example, an expanded version of <code>getConstructor</code> is implemented that tries to find a constructor of a given datatype, with
- * a given argument datatypelist, where types do not have to match formal types (auto-boxing, supertypes, implemented interfaces and type
- * conversions). This expanded version tries a simple call first and when it fails, it generates a list of datatype arrays with all possible
- * version of any type in the original list possible, and combinations thereof.<br />
- * <br />
- * Types that are candidates for Autoboxing:
+ * This class utilizes the functionality of the Java class <code>java.lang.reflect</code>. Specifically, this reflection tool is designed to
+ * perform advanced method or constructor lookups, using a combination of {@link LookupMode} values.
+ * <p>
+ * Aside from that there are some nifty methods for things such as:
+ * <ul>
+ * <li>finding out if a given string matches a package name ({@link #isPackage(String)}),</li>
+ * <li>returning the widest number type that will fit a any number on a given list of numbers ({@link #widestNumberClass(Number...)}),</li>
+ * <li>a method to autobox a given value to its counterpart ({@link #autobox(Class)}),</li>
+ * <li>A couple of methods to resolve a direct property of a given object (though they may move to {@link FieldUtils}),</li>
+ * <li>Various handy methods for collecting information on a given <code>Object</code>, such as list of methods, properties or types</li>
+ * <li><strong>An advanced <code>Class</code> lookup</strong> ({@link #locateClass(String, boolean, ExternalClassLoader)}), that allows a
+ * full scan (to try all packages known) and an optional {@link ExternalClassLoader} instance that is able to actually compile a .java file
+ * on the fly and load its compile .class file</li>
+ * </ul>
+ * <strong>About the method / constructor lookup facility:</strong>
+ * <p>
+ * An expanded version of <code>getConstructor</code> is implemented that tries to find a constructor of a given datatype, with a given
+ * argument datatypelist, where types do not have to match formal types (auto-boxing, supertypes, implemented interfaces and type
+ * conversions are allowed as they are included in the lookup cycles). This expanded version tries a simple call first (exact match, which
+ * is provided natively by the Java) and when this fails, it generates a list of datatype arrays (signatures) with all possible versions of
+ * any type in the original list possible, and combinations thereof.
+ * <p>
+ * <strong>Observe the following (trivial) example:</strong>
+ * 
+ * <pre>
+ * 	interface Foo {
+ * 		foo(Double value, Fruit fruit, char c);
+ * 	}
+ * 	abstract class A implements Foo {
+ * 	}
+ * 	abstract class B extends A {
+ * 	}
+ * 
+ * 	JReflect.findCompatibleJavaMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, pear.class, String.class)}
+ * </pre>
+ * 
+ * In the above example, the method foo will be found by finding all methods named "Foo" on the interfaces implemented by supertype
+ * <code>A</code>, and then foo's method signature will be matched using autoboxing on the <code>double</code> type, a cast to the
+ * <code>Fruit</code> supertype for the <code>Pear</code> type and finally by attempting a common conversion from <code>String</code> to
+ * <code>char</code>. This will give you a Java {@link Method}, but you won't be able to invoke it if it was found using a less strict
+ * lookup than one with a simple exact match. There are two ways to do this: use
+ * {@link #invokeCompatibleMethod(Object, Class, String, Object...)} instead or perform the conversion yourself using
+ * {@link ValueConverter#convert(Object[], Class[])} prior to invoking the method. <code>
+			ValueConverter.convert(args, method.getParameterTypes())</code>.
+ * <p>
+ * // TODO fix comment about switching the cache<br/>
+ * Because this lookup is potentially very expensive, a cache is present to store lookup results. This cache is turned on/off using the
+ * constructor.
+ * <p>
+ * <strong>Types that are candidates for Autoboxing:</strong>
  * <ul>
  * <li><strong>boolean</strong> <code>java.lang.Boolean</code></li>
  * <li><strong>char</strong> <code>java.lang.Character</code></li>
@@ -35,35 +77,54 @@ import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
  * <li><strong>float</strong> <code>java.lang.Float</code></li>
  * <li><strong>double</strong> <code>java.lang.Double</code></li>
  * </ul>
- * <br />
- * Also contains a classloader that can compile/load/cache java sourcefiles.
+ * <p>
+ * For types that are candidates for common conversion, please see {@link ValueConverter}.
  * 
  * @author Benny Bottema
+ * @see ValueConverter
+ * @see FieldUtils
+ * @see ExternalClassLoader FIXME make JReflect cache optional
  */
 public final class JReflect {
 
 	/**
-	 * bitflag; indicates that looking for methods includes trying to find compatible signatures by autoboxing the specified arguments.
+	 * Defines to allowed lookup modes for matching Java methods and constructors. Each time a lookup failed on signature type, a less
+	 * strict lookup is performed, in the following order (signature means: the list of parameters defined for a method or constructor):
+	 * <ol>
+	 * <li><strong>exact matching</strong>: the given type should exactly match the found types during lookup. This lookup cycle is always
+	 * performed first.</li>
+	 * <li><strong>autobox matching</strong>: the given type should match its boxed/unboxed version.</li>
+	 * <li><strong>polymorphic interface matching</strong>: the given type should match one of the implemented interfaces</li>
+	 * <li><strong>polymorphic superclass matching</strong>: the given type should match one of the super classes (for each superclass, the
+	 * cycle is repeated, so exact and interface matching come first again before the next superclass up in the chain)</li>
+	 * <li><strong>common conversion matching</strong>: if all other lookups fail, one last resort is to try to convert the given type, if a
+	 * common type, to any other common type and then try to find a matching method or constructor. See {@link ValueConverter} for more on
+	 * the possibilities.</li>
+	 * </ol>
+	 * 
+	 * @author Benny Bottema
 	 */
-	public static final int LM_AUTOBOX = 1;
-
-	/**
-	 * bitflag; indicates that looking for methods includes trying to find compatible signatures by casting the specified arguments to a
-	 * super type.
-	 */
-	public static final int LM_CASTSUPER = 2;
-
-	/**
-	 * bitflag; indicates that looking for methods includes trying to find compatible signatures by casting the specified arguments to an
-	 * implemented interface.
-	 */
-	public static final int LM_CASTINTERFACE = 4;
-
-	/**
-	 * bitflag; indicates that looking for methods includes trying to find compatible signatures by automatically convert the specified
-	 * arguments.
-	 */
-	public static final int LM_AUTOCONVERT = 8;
+	public enum LookupMode {
+		/**
+		 * Indicates that looking for methods includes trying to find compatible signatures by autoboxing the specified arguments.
+		 */
+		AUTOBOX,
+		/**
+		 * Indicates that looking for methods includes trying to find compatible signatures by casting the specified arguments to a super
+		 * type.
+		 */
+		CAST_TO_SUPER,
+		/**
+		 * Indicates that looking for methods includes trying to find compatible signatures by casting the specified arguments to an
+		 * implemented interface.
+		 */
+		CAST_TO_INTERFACE,
+		/**
+		 * Indicates that looking for methods includes trying to find compatible signatures by automatically convert the specified
+		 * arguments.
+		 */
+		COMMON_CONVERT;
+	}
 
 	/**
 	 * {@link Method} cache categorized by owning <code>Classes</code> (since several owners can have a method with the same name and
@@ -193,21 +254,21 @@ public final class JReflect {
 		final Class<?>[] signature = JReflect.collectTypes(args);
 
 		// setup lookup procedure starting with simple search mode
-		int lookupMode = LM_AUTOBOX | LM_CASTSUPER;
+		EnumSet<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
 		Method method;
 
 		// try to fina a compatible Java method using various lookup modes
 		try {
-			method = findCompatibleJavaMethod(datatype, identifier, signature, lookupMode);
+			method = findCompatibleJavaMethod(datatype, identifier, lookupMode, signature);
 		} catch (final NoSuchMethodException e1) {
 			try {
 				// moderate search mode
-				lookupMode |= LM_CASTINTERFACE;
-				method = findCompatibleJavaMethod(datatype, identifier, signature, lookupMode);
+				lookupMode.add(LookupMode.CAST_TO_INTERFACE);
+				method = findCompatibleJavaMethod(datatype, identifier, lookupMode, signature);
 			} catch (final NoSuchMethodException e2) {
 				// full searchmode
-				lookupMode |= LM_AUTOCONVERT;
-				method = findCompatibleJavaMethod(datatype, identifier, signature, lookupMode);
+				lookupMode.add(LookupMode.COMMON_CONVERT);
+				method = findCompatibleJavaMethod(datatype, identifier, lookupMode, signature);
 			}
 		}
 
@@ -215,8 +276,8 @@ public final class JReflect {
 		try {
 			return method.invoke(context, args);
 		} catch (final IllegalArgumentException e) {
-			ValueConverter.convert(args, method.getParameterTypes());
-			return method.invoke(context, args);
+			final Object[] convertedArgs = ValueConverter.convert(args, method.getParameterTypes());
+			return method.invoke(context, convertedArgs);
 		}
 	}
 
@@ -255,7 +316,7 @@ public final class JReflect {
 	public static <T> T invokeConstructor(final Class<T> datatype, final Class<?>[] signature, final Object[] args)
 			throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
 		// setup lookup procedure
-		int lookupMode = LM_AUTOBOX | LM_CASTSUPER;
+		EnumSet<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
 		Constructor<T> constructor;
 
 		// try to find a compatible Java constructor
@@ -265,11 +326,11 @@ public final class JReflect {
 		} catch (final NoSuchMethodException e1) {
 			try {
 				// moderate search mode
-				lookupMode |= LM_CASTINTERFACE;
+				lookupMode.add(LookupMode.CAST_TO_INTERFACE);
 				constructor = findCompatibleJavaConstructor(datatype, signature, lookupMode);
 			} catch (final NoSuchMethodException e2) {
 				// full searchmode
-				lookupMode |= LM_AUTOCONVERT;
+				lookupMode.add(LookupMode.COMMON_CONVERT);
 				constructor = findCompatibleJavaConstructor(datatype, signature, lookupMode);
 			}
 		}
@@ -278,8 +339,8 @@ public final class JReflect {
 		try {
 			return constructor.newInstance(args);
 		} catch (final IllegalArgumentException e) {
-			ValueConverter.convert(args, constructor.getParameterTypes());
-			return constructor.newInstance(args);
+			final Object[] convertedArgs = ValueConverter.convert(args, constructor.getParameterTypes());
+			return constructor.newInstance(convertedArgs);
 		}
 	}
 
@@ -310,7 +371,8 @@ public final class JReflect {
 	 * @exception NoSuchMethodException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> Constructor<T> findCompatibleJavaConstructor(final Class<T> datatype, final Class<?>[] types, final int lookupMode)
+	public static <T> Constructor<T> findCompatibleJavaConstructor(final Class<T> datatype, final Class<?>[] types,
+			final EnumSet<LookupMode> lookupMode)
 			throws NoSuchMethodException {
 		// first try to find the constructor in the method cache
 		Constructor<T> constructor = (Constructor<T>) getJavaMethodFromCache(datatype, datatype.getName(), types);
@@ -322,7 +384,7 @@ public final class JReflect {
 				constructor = datatype.getConstructor(types);
 			} catch (final NoSuchMethodException e) {
 				// failed, try all possible wraps/unwraps
-				final List<Class<?>[]> typeslist = generateCompatibleSignatures(types, lookupMode);
+				final List<Class<?>[]> typeslist = generateCompatibleSignatures(lookupMode, types);
 				for (final Class<?>[] aTypeslist : typeslist) {
 					try {
 						constructor = datatype.getConstructor(aTypeslist);
@@ -344,16 +406,16 @@ public final class JReflect {
 	}
 
 	/**
-	 * Delegates to {@link #findCompatibleJavaMethod(Class, String, Class[], int)}, using strict lookupmode (no autoboxing, casting etc.)
+	 * Delegates to {@link #findCompatibleJavaMethod(Class, String, int, Class[])}, using strict lookupmode (no autoboxing, casting etc.)
 	 * and optional signature.<br />
 	 * <br />
 	 * Returns <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
 	 * 
-	 * @see #findCompatibleJavaMethod(Class, String, Class[], int)
+	 * @see #findCompatibleJavaMethod(Class, String, EnumSet, Class...)
 	 */
 	public static Method findSimpleCompatibleJavaMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
 		try {
-			return findCompatibleJavaMethod(datatype, methodName, signature, 0);
+			return findCompatibleJavaMethod(datatype, methodName, EnumSet.noneOf(LookupMode.class), signature);
 		} catch (final NoSuchMethodException e) {
 			return null;
 		}
@@ -365,13 +427,13 @@ public final class JReflect {
 	 * 
 	 * @param datatype The class to get the constructor from.
 	 * @param name The name of the method to retrieve from the class.
-	 * @param signature The list of types as specified by the user.
 	 * @param lookupMode Combined bitflag indicating the search steps that need to be done.
+	 * @param signature The list of types as specified by the user.
 	 * @return The method if found, otherwise exception is thrown.
 	 * @exception NoSuchMethodException
 	 */
-	public static Method findCompatibleJavaMethod(final Class<?> datatype, final String name, final Class<?>[] signature,
-			final int lookupMode)
+	public static Method findCompatibleJavaMethod(final Class<?> datatype, final String name, final EnumSet<LookupMode> lookupMode,
+			final Class<?>... signature)
 			throws NoSuchMethodException {
 		// first try to find the method in the method cache
 		Method method = (Method) getJavaMethodFromCache(datatype, name, signature);
@@ -383,7 +445,7 @@ public final class JReflect {
 				method = getJavaMethod(datatype, name, signature);
 			} catch (final NoSuchMethodException e) {
 				// failed, try all possible wraps/unwraps
-				final List<Class<?>[]> signatures = generateCompatibleSignatures(signature, lookupMode);
+				final List<Class<?>[]> signatures = generateCompatibleSignatures(lookupMode, signature);
 				for (final Class<?>[] compatibleSignature : signatures) {
 					try {
 						method = getJavaMethod(datatype, name, compatibleSignature);
@@ -419,7 +481,7 @@ public final class JReflect {
 	 * @throws NoSuchMethodException
 	 * @see java.lang.Class#getMethod(String, Class[])
 	 */
-	public static Method getJavaMethod(final Class<?> datatype, final String name, final Class<?>[] signature)
+	public static Method getJavaMethod(final Class<?> datatype, final String name, final Class<?>... signature)
 			throws NoSuchMethodException {
 		for (final Class<?> iface : datatype.getInterfaces()) {
 			try {
@@ -434,13 +496,13 @@ public final class JReflect {
 	/**
 	 * Initializes the list with type-arrays and starts generating beginning from index 0. This method is used for (un)wrapping.
 	 * 
-	 * @param signature The list with original user specified types.
 	 * @param lookupMode Combined bitflag indicating the search steps that need to be done.
+	 * @param signature The list with original user specified types.
 	 * @return The list with converted type-arrays.
 	 */
-	private static List<Class<?>[]> generateCompatibleSignatures(final Class<?>[] signature, final int lookupMode) {
+	private static List<Class<?>[]> generateCompatibleSignatures(final EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
 		final List<Class<?>[]> signatures = new ArrayList<Class<?>[]>();
-		generateCompatibleSignatures(signatures, signature, 0, lookupMode);
+		generateCompatibleSignatures(0, lookupMode, signatures, signature);
 		return signatures;
 	}
 
@@ -457,13 +519,13 @@ public final class JReflect {
 	 * <li>conversions; if all else fails, try to convert the datatype for common types (ie. int to String)</li>
 	 * </ol>
 	 * 
-	 * @param signatures The central storage list for new type-arrays.
-	 * @param signature The list with current types, to mutate further upon.
 	 * @param index The current index to start mutating from.
 	 * @param lookupMode Combined bitflag indicating the search steps that need to be done.
+	 * @param signatures The central storage list for new type-arrays.
+	 * @param signature The list with current types, to mutate further upon.
 	 */
-	private static void generateCompatibleSignatures(final List<Class<?>[]> signatures, final Class<?>[] signature, final int index,
-			final int lookupMode) {
+	private static void generateCompatibleSignatures(final int index, final EnumSet<LookupMode> lookupMode,
+			final List<Class<?>[]> signatures, final Class<?>... signature) {
 		// if new type array is completed
 		if (index == signature.length) {
 			signatures.add(signature);
@@ -473,40 +535,40 @@ public final class JReflect {
 
 			// 1. don't generate compatible list; just try the normal type first
 			// remember, in combinations types should be allowed to be converted)
-			generateCompatibleSignatures(signatures, signature.clone(), index + 1, lookupMode);
+			generateCompatibleSignatures(index + 1, lookupMode, signatures, signature.clone());
 
 			// 2. generate type in which the original can be (un)wrapped
-			if ((lookupMode & JReflect.LM_AUTOBOX) != 0) {
+			if (lookupMode.contains(LookupMode.AUTOBOX)) {
 				final Class<?> autoboxed = autobox(original);
 				if (autoboxed != null) {
 					final Class<?>[] newSignature = replaceInArray(signature.clone(), index, autoboxed);
-					generateCompatibleSignatures(signatures, newSignature, index + 1, lookupMode);
+					generateCompatibleSignatures(index + 1, lookupMode, signatures, newSignature);
 				}
 			}
 
 			// autocast to supertype or interface?
-			if ((lookupMode & JReflect.LM_CASTINTERFACE) != 0) {
+			if (lookupMode.contains(LookupMode.CAST_TO_INTERFACE)) {
 				// 3. generate implemented interfaces the original value could be converted (cast) into
 				for (final Class<?> iface : original.getInterfaces()) {
 					final Class<?>[] newSignature = replaceInArray(signature.clone(), index, iface);
-					generateCompatibleSignatures(signatures, newSignature, index + 1, lookupMode);
+					generateCompatibleSignatures(index + 1, lookupMode, signatures, newSignature);
 				}
 			}
 
-			if ((lookupMode & JReflect.LM_CASTSUPER) != 0) {
+			if (lookupMode.contains(LookupMode.CAST_TO_SUPER)) {
 				// 4. generate supertypes the original value could be converted (cast) into
 				Class<?> supertype = original;
 				while ((supertype = supertype.getSuperclass()) != null) {
 					final Class<?>[] newSignature = replaceInArray(signature.clone(), index, supertype);
-					generateCompatibleSignatures(signatures, newSignature, index + 1, lookupMode);
+					generateCompatibleSignatures(index + 1, lookupMode, signatures, newSignature);
 				}
 			}
 
 			// 5. generate types the original value could be converted into
-			if ((lookupMode & JReflect.LM_AUTOCONVERT) != 0) {
+			if (lookupMode.contains(LookupMode.COMMON_CONVERT)) {
 				for (final Class<?> convert : ValueConverter.collectCompatibleTypes(original)) {
 					final Class<?>[] newSignature = replaceInArray(signature.clone(), index, convert);
-					generateCompatibleSignatures(signatures, newSignature, index + 1, lookupMode);
+					generateCompatibleSignatures(index + 1, lookupMode, signatures, newSignature);
 				}
 			}
 		}
@@ -518,7 +580,7 @@ public final class JReflect {
 	 * @param c The datatype to convert (autobox).
 	 * @return The converted version of the specified type, or null.
 	 */
-	private static Class<?> autobox(final Class<?> c) {
+	public static Class<?> autobox(final Class<?> c) {
 		// integer
 		if (c == Integer.class) {
 			return int.class;
@@ -613,20 +675,13 @@ public final class JReflect {
 
 	/**
 	 * Returns a method of the specified subject.
-	 * <ul>
-	 * <li>In case subject is a Java Object, returns a {@link ScopedJavaMethod}.</li>
-	 * <li>In case subject is a Dynamic, returns a {@link DefaultDynamicMethod}, unless the method required is defined by
-	 * {@link DynamicExposure}</li>
-	 * </ul>
 	 * 
 	 * @param o The reference to the object to fetch the method value from.
 	 * @param id The identifier or name of the member method.
 	 * @return {@link ScopedJavaMethod} or {@link DefaultDynamicMethod}.
 	 */
 	public static Method solveMethod(final Object o, final String id) {
-		// find Java Method
-		final Method[] methods = o.getClass().getMethods();
-		for (final Method m : methods) {
+		for (final Method m : o.getClass().getMethods()) {
 			if (m.getName().equals(id)) {
 				return m;
 			}
@@ -642,10 +697,10 @@ public final class JReflect {
 	 * @param signature The parameter list of the method we need to match if a method was found by name.
 	 * @return The <code>Method</code> found on the specified owner with matching name and signature.
 	 * @see JReflect#methodCache
-	 * @see JReflect#addJavaMethodToCache(Class, String, AccessibleObject, Class[])
+	 * @see JReflect#addJavaMethodToCache(Class, String, AccessibleObject, Class...)
 	 */
 	private final static <T> AccessibleObject getJavaMethodFromCache(final Class<T> datatype, final String method,
-			final Class<?>[] signature) {
+			final Class<?>... signature) {
 		final Map<String, Map<AccessibleObject, Class<?>[]>> owner = methodCache.get(datatype);
 		// we know only methods with parameter list are stored in the cache
 		if (signature.length > 0) {
@@ -673,10 +728,10 @@ public final class JReflect {
 	 * @param methodRef The <code>Method</code> reference that's actually being stored in the cache.
 	 * @param signature The parameter list of the <code>Method</code> being stored.
 	 * @see JReflect#methodCache
-	 * @see JReflect#getJavaMethodFromCache(Class, String, Class[])
+	 * @see JReflect#getJavaMethodFromCache(Class, String, Class...)
 	 */
 	private final static void addJavaMethodToCache(final Class<?> datatype, final String method, final AccessibleObject methodRef,
-			final Class<?>[] signature) {
+			final Class<?>... signature) {
 		// only store methods with a parameter list
 		if (signature.length > 0) {
 			// get or create owner entry

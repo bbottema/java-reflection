@@ -14,10 +14,10 @@ import org.apache.commons.lang.math.NumberUtils;
  * This reflection utility class predicts which types a specified value can be converted into. We can only do conversions of known types so
  * the common conversions include:
  * <ul>
- * <li>Any {@link Number} type (Integer, int, Double, double, etc.)</li>
- * <li>String</li>
- * <li>Boolean</li>
- * <li>Character</li>
+ * <li>Any {@link Number} type (Integer, Character, Double, byte, etc.)</li>
+ * <li><code>String</code></li>
+ * <li><code>Boolean</code></li>
+ * <li><code>Character</code></li>
  * </ul>
  * In addition to predicting compatible output types, this class can also actually perform those conversions.
  * 
@@ -94,13 +94,24 @@ public final class ValueConverter {
 	 * 
 	 * @param args The list with value to convert.
 	 * @param targetTypes The output types the specified values should be converted into.
+	 * @return Array containing converted values where it proved convertible or the original value otherwise.
 	 * @throws IncompatibleTypeException
 	 */
-	public static void convert(final Object[] args, final Class<?>[] targetTypes)
+	public static Object[] convert(final Object[] args, final Class<?>[] targetTypes)
 			throws IncompatibleTypeException {
-		for (int i = 0; i < targetTypes.length; i++) {
-			args[i] = convert(args[i], targetTypes[i]);
+		if (args.length != targetTypes.length) {
+			throw new IllegalStateException("number of target types should match the number of arguments");
 		}
+		final Object[] convertedValues = new Object[args.length];
+		for (int i = 0; i < targetTypes.length; i++) {
+			try {
+				convertedValues[i] = convert(args[i], targetTypes[i]);
+			} catch (IncompatibleTypeException e) {
+				// simply take over the original value and keep converting where possible
+				convertedValues[i] = args[i];
+			}
+		}
+		return convertedValues;
 	}
 
 	/**
@@ -283,7 +294,7 @@ public final class ValueConverter {
 		throw new IncompatibleTypeException(value, value.getClass().toString(), targetType.toString());
 	}
 
-	private static Object convertEnum(final String value, final Class<? super Enum<?>> targetType) {
+	public static Object convertEnum(final String value, final Class<? super Enum<?>> targetType) {
 		if (value == null) {
 			return null;
 		}
@@ -308,7 +319,7 @@ public final class ValueConverter {
 	 * 
 	 * @param value The string value which should be a number.
 	 * @param numberType The <code>Class</code> type that should be one of <code>Number</code>.
-	 * @return
+	 * @return A {@link Number} subtype value converted from <code>value</code> (or <code>null</code> if value is <code>null</code>).
 	 */
 	public static Object convertNumber(final String value, final Class<? super Number> numberType) {
 		if (value == null) {
@@ -348,7 +359,7 @@ public final class ValueConverter {
 	 * @param targetType The class to check whether it's a number.
 	 * @return Whether specified class is a primitive number.
 	 */
-	private final static boolean isPrimitiveNumber(final Class<?> targetType) {
+	public final static boolean isPrimitiveNumber(final Class<?> targetType) {
 		final Class<?>[] nums = new Class<?>[] { byte.class, short.class, int.class, long.class, float.class, double.class };
 		for (final Class<?> c : nums) {
 			if (targetType.equals(c)) {

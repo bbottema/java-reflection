@@ -58,12 +58,12 @@ public final class FieldUtils {
 	 * 
 	 * @param _class The class (and chain) to harvest fields from.
 	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that fields are collected from.
-	 * @param visibility A set of visiblity requirements (ie. {@link Visibility#PROTECTED} indicates a field is allowed to have
-	 *            <code>protected</code> visiblity).
+	 * @param visibility A set of visibility requirements (ie. {@link Visibility#PROTECTED} indicates a field is allowed to have
+	 *            <code>protected</code> visibility).
 	 * @param beanRestrictions A set of Bean restriction requirements indicating a field should or shouldn't have a setter, getter or both.
 	 * @return A Map per class in the chain with the fields declared by that class.
 	 * @see #meetsVisibilityRequirements(Field, EnumSet)
-	 * @see #meetsBeanRestrictions(Field, EnumSet)
+	 * @see #resolveBeanProperty(Field, EnumSet)
 	 */
 	public static Map<Class<?>, List<FieldWrapper>> collectFields(final Class<?> _class, final Class<?> boundaryMarker,
 			final EnumSet<Visibility> visibility, final EnumSet<BeanRestriction> beanRestrictions) {
