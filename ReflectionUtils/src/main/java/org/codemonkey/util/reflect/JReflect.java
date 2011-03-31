@@ -43,14 +43,14 @@ import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
  * 
  * <pre>
  * 	interface Foo {
- * 		foo(Double value, Fruit fruit, char c);
+ * 		void foo(Double value, Fruit fruit, char c);
  * 	}
  * 	abstract class A implements Foo {
  * 	}
  * 	abstract class B extends A {
  * 	}
  * 
- * 	JReflect.findCompatibleJavaMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, pear.class, String.class)}
+ * 	JReflect.findCompatibleJavaMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Pear.class, String.class)}
  * </pre>
  * 
  * In the above example, the method foo will be found by finding all methods named "Foo" on the interfaces implemented by supertype
@@ -142,18 +142,12 @@ public final class JReflect {
 	private final static Map<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>> methodCache = new LinkedHashMap<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>>();
 
 	/**
-	 * A list with Number types in ascending order to widenes (or size) of each type (ie. double is wider than integer).
+	 * A list with Number types in ascending order to wideness (or size) of each type (ie. double is wider than integer).
 	 */
 	private static final Map<Class<?>, Integer> numSizes;
 
 	static {
 		numSizes = new LinkedHashMap<Class<?>, Integer>();
-		numSizes.put(byte.class, 1);
-		numSizes.put(short.class, 2);
-		numSizes.put(int.class, 3);
-		numSizes.put(long.class, 4);
-		numSizes.put(float.class, 5);
-		numSizes.put(double.class, 6);
 		numSizes.put(Byte.class, 1);
 		numSizes.put(Short.class, 2);
 		numSizes.put(Integer.class, 3);
@@ -163,7 +157,7 @@ public final class JReflect {
 	}
 
 	/**
-	 * Private constrcutor to prevent creating instances of this class.
+	 * Private constructor to prevent creating instances of this class.
 	 */
 	private JReflect() {
 	}
@@ -192,7 +186,7 @@ public final class JReflect {
 	}
 
 	/**
-	 * This function dynamically tries to locate a class. First it searches the class cachelist, then it tries to get it from the Virtual
+	 * This function dynamically tries to locate a class. First it searches the class-cache list, then it tries to get it from the Virtual
 	 * Machine using {@code Class.forName(String)}.
 	 * 
 	 * @param fullClassName The <code>Class</code> that needs to be found.
@@ -322,16 +316,16 @@ public final class JReflect {
 		// try to find a compatible Java constructor
 		try {
 			// simple search mode
-			constructor = findCompatibleJavaConstructor(datatype, signature, lookupMode);
+			constructor = findCompatibleJavaConstructor(datatype, lookupMode, signature);
 		} catch (final NoSuchMethodException e1) {
 			try {
 				// moderate search mode
 				lookupMode.add(LookupMode.CAST_TO_INTERFACE);
-				constructor = findCompatibleJavaConstructor(datatype, signature, lookupMode);
+				constructor = findCompatibleJavaConstructor(datatype, lookupMode, signature);
 			} catch (final NoSuchMethodException e2) {
 				// full searchmode
 				lookupMode.add(LookupMode.COMMON_CONVERT);
-				constructor = findCompatibleJavaConstructor(datatype, signature, lookupMode);
+				constructor = findCompatibleJavaConstructor(datatype, lookupMode, signature);
 			}
 		}
 
@@ -346,6 +340,9 @@ public final class JReflect {
 
 	/**
 	 * Creates a new array of class objects harvested from an array of objects.
+	 * <p>
+	 * NOTE: this method will never return primitive classes (such as double.class, as you can't put primitive values into an array of
+	 * Objects (they will be autoboxes by the JVM).
 	 * 
 	 * @param objects The array of objects to harvest classtypes from.
 	 * @return The array with the harvested classtypes.
@@ -371,8 +368,8 @@ public final class JReflect {
 	 * @exception NoSuchMethodException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> Constructor<T> findCompatibleJavaConstructor(final Class<T> datatype, final Class<?>[] types,
-			final EnumSet<LookupMode> lookupMode)
+	public static <T> Constructor<T> findCompatibleJavaConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode,
+			final Class<?>... types)
 			throws NoSuchMethodException {
 		// first try to find the constructor in the method cache
 		Constructor<T> constructor = (Constructor<T>) getJavaMethodFromCache(datatype, datatype.getName(), types);
