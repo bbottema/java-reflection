@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <project name="ReflectionUtils" basedir="." default="jar">
 	<property name="application.name" value="reflection-utils" />
-  	<import file="../lib/master-build.xml"/>
+  	<import file="../lib/master-build.xml"/> 
 </project>
