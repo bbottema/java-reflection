@@ -1,5 +1,5 @@
-#Fri Mar 25 21:31:08 CET 2011
-block_filters=SourceDirective
+#Sat Apr 02 12:10:05 CEST 2011
+block_filters=SourceDirective, private_constructors
 eclipse.preferences.version=1
 flush_interval=1000
 flush_policy=0
@@ -13,6 +13,7 @@ instrumented_source_folder_patterns[1]=src/main/java\n**/*.java\n\nenabled
 output_root=.clover/bin
 output_root_same_as_project=true
 recreate_output_dirs=true
+regexp_filters[0]=true,0,-1,false,private_constructors,(.* )?private +[a-zA-Z0-9_$]+ *\\( *\\).*
 selected_test_source_folders[0]=src/test/java
 should_qualify_java_lang=true
 test_include_filter=**/*Test.java,**/Test*.java
