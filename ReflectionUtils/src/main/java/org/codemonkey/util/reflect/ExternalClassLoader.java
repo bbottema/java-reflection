@@ -129,7 +129,9 @@ public final class ExternalClassLoader extends ClassLoader {
 				// determine if the java sourcefile has been modified since last compile
 				// else check if the .class file has already been loaded
 				if (javaSource.lastModified() > javaClass.lastModified()) {
-					javaClass.delete();
+					if (!javaClass.delete()) {
+						throw new CompileException("runtime compiler: unable to removed outdated .class file");
+					}
 					classes.remove(className);
 				} else if (classes.get(className) == null) {
 					classes.put(className, loadClass(absoluteClassPath, className));
