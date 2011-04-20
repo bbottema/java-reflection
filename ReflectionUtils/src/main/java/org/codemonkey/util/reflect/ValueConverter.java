@@ -20,6 +20,7 @@ import org.apache.commons.lang.math.NumberUtils;
  * <li><code>Character</code></li>
  * </ul>
  * In addition to predicting compatible output types, this class can also actually perform those conversions.
+ * // FIXME add autobox conversion in here
  * 
  * @author Benny Bottema
  * @see IncompatibleTypeException
@@ -31,14 +32,14 @@ public final class ValueConverter {
 	 * basic common types and can be converted to any other common type. A <code>Boolean</code> is not a basic common type, but can still be
 	 * converted to any basic type.
 	 */
-	private static final Class<?>[] basicCommonTypes = { String.class, Integer.class, int.class, Float.class, float.class, Double.class,
+	static final Class<?>[] basicCommonTypes = { String.class, Integer.class, int.class, Float.class, float.class, Double.class,
 			double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class };
 
 	/**
 	 * Combination of the basic common types and the extra common types only specific common types can convert to. For example, only
 	 * Strings, Number types and Character can be converted to a Boolean.
 	 */
-	private static final Class<?>[] allCommonTypes = (Class<?>[]) ArrayUtils.addAll(basicCommonTypes, new Class<?>[] { Boolean.class,
+	static final Class<?>[] allCommonTypes = (Class<?>[]) ArrayUtils.addAll(basicCommonTypes, new Class<?>[] { Boolean.class,
 			boolean.class, Character.class, char.class });
 
 	/**
@@ -231,7 +232,9 @@ public final class ValueConverter {
 		if (value == null) {
 			return null;
 		}
-		if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
+		if (targetType.equals(char.class)) {
+			return (char) value;
+		} else if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
 			// convert Character to Number
 			return Integer.parseInt(value.toString());
 		} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {

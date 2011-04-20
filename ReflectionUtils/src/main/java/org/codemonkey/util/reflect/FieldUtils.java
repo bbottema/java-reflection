@@ -135,8 +135,8 @@ public final class FieldUtils {
 		} else {
 			getterName = "get" + StringUtils.capitalize(field.getName());
 		}
-		final Method writeMethod = JReflect.findSimpleCompatibleJavaMethod(field.getDeclaringClass(), setterName, field.getType());
-		final Method readMethod = JReflect.findSimpleCompatibleJavaMethod(field.getDeclaringClass(), getterName);
+		final Method writeMethod = JReflect.findSimpleCompatibleMethod(field.getDeclaringClass(), setterName, field.getType());
+		final Method readMethod = JReflect.findSimpleCompatibleMethod(field.getDeclaringClass(), getterName);
 
 		if (!((readMethod != null && beanRestrictions.contains(BeanRestriction.NO_GETTER)) //
 				|| (!(readMethod != null) && beanRestrictions.contains(BeanRestriction.YES_GETTER)) //

@@ -14,8 +14,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
-
 /**
  * This class utilizes the functionality of the Java class <code>java.lang.reflect</code>. Specifically, this reflection tool is designed to
  * perform advanced method or constructor lookups, using a combination of {@link LookupMode} values.
@@ -136,8 +134,8 @@ public final class JReflect {
 	 * become a real problem. The more frequently a method is being called the larger the performance gain, especially for methods with long
 	 * parameter lists
 	 * 
-	 * @see JReflect#addJavaMethodToCache(Class, String, AccessibleObject, Class[])
-	 * @see JReflect#getJavaMethodFromCache(Class, String, Class[])
+	 * @see JReflect#addMethodToCache(Class, String, AccessibleObject, Class[])
+	 * @see JReflect#getMethodFromCache(Class, String, Class[])
 	 */
 	private final static Map<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>> methodCache = new LinkedHashMap<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>>();
 
@@ -195,9 +193,16 @@ public final class JReflect {
 	 */
 	public static Class<?> locateClass(final String fullClassName, final ExternalClassLoader classLoader) {
 		try {
-			// try user class-cache or the standard approach otherwise\
-			final Class<?> c = classLoader != null ? classLoader.loadClass(fullClassName) : null;
-			return c != null ? c : Class.forName(fullClassName, false, null);
+			Class<?> _class = null;
+			// /CLOVER:OFF
+			if (classLoader != null) {
+				_class = classLoader.loadClass(fullClassName);
+			}
+			// /CLOVER:ON
+			if (_class == null) {
+				_class = Class.forName(fullClassName);
+			}
+			return _class;
 		} catch (final ClassNotFoundException e) {
 			return null;
 		}
@@ -207,8 +212,11 @@ public final class JReflect {
 	 * Simply calls {@link Class#newInstance()} and hides the exception handling boilerplate code.
 	 */
 	public static <T> T newInstanceSimple(final Class<T> _class) {
+		// /CLOVER:OFF
 		try {
+			// /CLOVER:ON
 			return (T) _class.getConstructor().newInstance();
+			// /CLOVER:OFF
 		} catch (IllegalArgumentException e) {
 			assert false : "we don't pass in arguments";
 			throw new RuntimeException("unable to invoke parameterless constructor", e);
@@ -223,6 +231,7 @@ public final class JReflect {
 		} catch (NoSuchMethodException e) {
 			throw new RuntimeException("unable to find parameterless constructor (not public?)", e);
 		}
+		// /CLOVER:ON
 	}
 
 	/**
@@ -253,16 +262,16 @@ public final class JReflect {
 
 		// try to fina a compatible Java method using various lookup modes
 		try {
-			method = findCompatibleJavaMethod(datatype, identifier, lookupMode, signature);
+			method = findCompatibleMethod(datatype, identifier, lookupMode, signature);
 		} catch (final NoSuchMethodException e1) {
 			try {
 				// moderate search mode
 				lookupMode.add(LookupMode.CAST_TO_INTERFACE);
-				method = findCompatibleJavaMethod(datatype, identifier, lookupMode, signature);
+				method = findCompatibleMethod(datatype, identifier, lookupMode, signature);
 			} catch (final NoSuchMethodException e2) {
 				// full searchmode
 				lookupMode.add(LookupMode.COMMON_CONVERT);
-				method = findCompatibleJavaMethod(datatype, identifier, lookupMode, signature);
+				method = findCompatibleMethod(datatype, identifier, lookupMode, signature);
 			}
 		}
 
@@ -316,16 +325,16 @@ public final class JReflect {
 		// try to find a compatible Java constructor
 		try {
 			// simple search mode
-			constructor = findCompatibleJavaConstructor(datatype, lookupMode, signature);
+			constructor = findCompatibleConstructor(datatype, lookupMode, signature);
 		} catch (final NoSuchMethodException e1) {
 			try {
 				// moderate search mode
 				lookupMode.add(LookupMode.CAST_TO_INTERFACE);
-				constructor = findCompatibleJavaConstructor(datatype, lookupMode, signature);
+				constructor = findCompatibleConstructor(datatype, lookupMode, signature);
 			} catch (final NoSuchMethodException e2) {
 				// full searchmode
 				lookupMode.add(LookupMode.COMMON_CONVERT);
-				constructor = findCompatibleJavaConstructor(datatype, lookupMode, signature);
+				constructor = findCompatibleConstructor(datatype, lookupMode, signature);
 			}
 		}
 
@@ -368,11 +377,11 @@ public final class JReflect {
 	 * @exception NoSuchMethodException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> Constructor<T> findCompatibleJavaConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode,
+	public static <T> Constructor<T> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode,
 			final Class<?>... types)
 			throws NoSuchMethodException {
 		// first try to find the constructor in the method cache
-		Constructor<T> constructor = (Constructor<T>) getJavaMethodFromCache(datatype, datatype.getName(), types);
+		Constructor<T> constructor = (Constructor<T>) getMethodFromCache(datatype, datatype.getName(), types);
 		if (constructor != null) {
 			return constructor;
 		} else {
@@ -395,7 +404,7 @@ public final class JReflect {
 
 		// if a constructor was found (and it wasn't in the cache, because method would've returned already)
 		if (constructor != null) {
-			addJavaMethodToCache(datatype, datatype.getName(), constructor, types);
+			addMethodToCache(datatype, datatype.getName(), constructor, types);
 			return constructor;
 		} else {
 			throw new NoSuchMethodException();
@@ -403,16 +412,16 @@ public final class JReflect {
 	}
 
 	/**
-	 * Delegates to {@link #findCompatibleJavaMethod(Class, String, int, Class[])}, using strict lookupmode (no autoboxing, casting etc.)
-	 * and optional signature.<br />
+	 * Delegates to {@link #findCompatibleMethod(Class, String, int, Class[])}, using strict lookupmode (no autoboxing, casting etc.) and
+	 * optional signature.<br />
 	 * <br />
 	 * Returns <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
 	 * 
-	 * @see #findCompatibleJavaMethod(Class, String, EnumSet, Class...)
+	 * @see #findCompatibleMethod(Class, String, EnumSet, Class...)
 	 */
-	public static Method findSimpleCompatibleJavaMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
+	public static Method findSimpleCompatibleMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
 		try {
-			return findCompatibleJavaMethod(datatype, methodName, EnumSet.noneOf(LookupMode.class), signature);
+			return findCompatibleMethod(datatype, methodName, EnumSet.noneOf(LookupMode.class), signature);
 		} catch (final NoSuchMethodException e) {
 			return null;
 		}
@@ -429,23 +438,23 @@ public final class JReflect {
 	 * @return The method if found, otherwise exception is thrown.
 	 * @exception NoSuchMethodException
 	 */
-	public static Method findCompatibleJavaMethod(final Class<?> datatype, final String name, final EnumSet<LookupMode> lookupMode,
+	public static Method findCompatibleMethod(final Class<?> datatype, final String name, final EnumSet<LookupMode> lookupMode,
 			final Class<?>... signature)
 			throws NoSuchMethodException {
 		// first try to find the method in the method cache
-		Method method = (Method) getJavaMethodFromCache(datatype, name, signature);
+		Method method = (Method) getMethodFromCache(datatype, name, signature);
 		if (method != null) {
 			return method;
 		} else {
 			try {
 				// try standard call
-				method = getJavaMethod(datatype, name, signature);
+				method = getMethod(datatype, name, signature);
 			} catch (final NoSuchMethodException e) {
 				// failed, try all possible wraps/unwraps
 				final List<Class<?>[]> signatures = generateCompatibleSignatures(lookupMode, signature);
 				for (final Class<?>[] compatibleSignature : signatures) {
 					try {
-						method = getJavaMethod(datatype, name, compatibleSignature);
+						method = getMethod(datatype, name, compatibleSignature);
 						break;
 					} catch (final NoSuchMethodException x) {
 						// do nothing
@@ -456,7 +465,7 @@ public final class JReflect {
 
 		// if a method was found (and it wasn't in the cache, because method would've returned already)
 		if (method != null) {
-			addJavaMethodToCache(datatype, name, method, signature);
+			addMethodToCache(datatype, name, method, signature);
 			return method;
 		} else {
 			throw new NoSuchMethodException();
@@ -478,7 +487,7 @@ public final class JReflect {
 	 * @throws NoSuchMethodException
 	 * @see java.lang.Class#getMethod(String, Class[])
 	 */
-	public static Method getJavaMethod(final Class<?> datatype, final String name, final Class<?>... signature)
+	public static Method getMethod(final Class<?> datatype, final String name, final Class<?>... signature)
 			throws NoSuchMethodException {
 		for (final Class<?> iface : datatype.getInterfaces()) {
 			try {
@@ -617,36 +626,6 @@ public final class JReflect {
 	}
 
 	/**
-	 * Overloaded version of <code>solveProperty(Object, String)</code>, where a property of type <code>Object</code> is attempted to be
-	 * converted to a string for property name first.
-	 * 
-	 * @throws IllegalAccessException
-	 * @throws IncompatibleTypeException
-	 * @throws IllegalArgumentException
-	 * @see JReflect#solveProperty(Object, String)
-	 */
-	public static Object solveProperty(final Object o, final Object property)
-			throws IllegalArgumentException, IncompatibleTypeException, IllegalAccessException {
-		return solveProperty(o, (String) ValueConverter.convert(property, String.class));
-	}
-
-	/**
-	 * Solves a property field with specified identifier <code>id</code> on object <code>o</code>. First fetches the field object and then
-	 * returns contentvalue, projected on object <code>o</code>. If no field found, a method with name <code>id</code> will be searched for.
-	 * 
-	 * @param o The reference to the object to fetch the propertyvalue from.
-	 * @param id The identifier or name of the member field.
-	 * @return The value contained in the field on the specified object.
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 */
-	public static Object solveProperty(final Object o, final String id)
-			throws IllegalArgumentException, IllegalAccessException {
-		final Object value = solveField(o, id);
-		return value != null ? ((Field) value).get(o) : solveMethod(o, id);
-	}
-
-	/**
 	 * <ul>
 	 * <li>In case subject is a Java Object, returns the value of {@link Field}.</li>
 	 * <li>In case subject is a {@link AbstractDynamic}, returns a property.</li>
@@ -656,7 +635,7 @@ public final class JReflect {
 	 * @param id The identifier or name of the member field/property.
 	 * @return The value of the <code>Field</code> or in case of a Dynamic the property value.
 	 */
-	public static Object solveField(final Object o, final String id) {
+	public static Field solveField(final Object o, final String id) {
 		try {
 			if (o.getClass().equals(Class.class)) {
 				// Java static field
@@ -665,25 +644,9 @@ public final class JReflect {
 				// Java instance field
 				return o.getClass().getField(id);
 			}
-		} catch (final NoSuchFieldException e) {
+		} catch (NoSuchFieldException e) {
 			return null;
 		}
-	}
-
-	/**
-	 * Returns a method of the specified subject.
-	 * 
-	 * @param o The reference to the object to fetch the method value from.
-	 * @param id The identifier or name of the member method.
-	 * @return {@link ScopedJavaMethod} or {@link DefaultDynamicMethod}.
-	 */
-	public static Method solveMethod(final Object o, final String id) {
-		for (final Method m : o.getClass().getMethods()) {
-			if (m.getName().equals(id)) {
-				return m;
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -694,10 +657,9 @@ public final class JReflect {
 	 * @param signature The parameter list of the method we need to match if a method was found by name.
 	 * @return The <code>Method</code> found on the specified owner with matching name and signature.
 	 * @see JReflect#methodCache
-	 * @see JReflect#addJavaMethodToCache(Class, String, AccessibleObject, Class...)
+	 * @see JReflect#addMethodToCache(Class, String, AccessibleObject, Class...)
 	 */
-	private final static <T> AccessibleObject getJavaMethodFromCache(final Class<T> datatype, final String method,
-			final Class<?>... signature) {
+	private final static <T> AccessibleObject getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
 		final Map<String, Map<AccessibleObject, Class<?>[]>> owner = methodCache.get(datatype);
 		// we know only methods with parameter list are stored in the cache
 		if (signature.length > 0) {
@@ -725,9 +687,9 @@ public final class JReflect {
 	 * @param methodRef The <code>Method</code> reference that's actually being stored in the cache.
 	 * @param signature The parameter list of the <code>Method</code> being stored.
 	 * @see JReflect#methodCache
-	 * @see JReflect#getJavaMethodFromCache(Class, String, Class...)
+	 * @see JReflect#getMethodFromCache(Class, String, Class...)
 	 */
-	private final static void addJavaMethodToCache(final Class<?> datatype, final String method, final AccessibleObject methodRef,
+	private final static void addMethodToCache(final Class<?> datatype, final String method, final AccessibleObject methodRef,
 			final Class<?>... signature) {
 		// only store methods with a parameter list
 		if (signature.length > 0) {
@@ -747,38 +709,32 @@ public final class JReflect {
 	}
 
 	/**
-	 * Overloaded version of <code>assignToField(Object, String, Object)</code>, where a property of type <code>Object</code> is attempted
-	 * to be converted to a string for property name first.
+	 * Assigns a value to a field <code>id</code> on the given object <code>o</code>. If a simple assignment fails, a common conversion will
+	 * be attempted.
 	 * 
-	 * @see JReflect#assignToField(Object, String, Object)
-	 */
-	public static void assignToField(final Object o, final Object property, final Object value)
-			throws IllegalAccessException {
-		final String propName = (String) ValueConverter.convert(property, String.class);
-		assignToField(o, propName, value);
-	}
-
-	/**
-	 * Assigns a value to a field <code>id</code> on the given object <code>o</code>.<br />
-	 * If object <code>o</code> is a {@link AbstractDynamic}, the value can be either a dynamic property or a {@link DynamicMethod}.
-	 * 
-	 * @param o The object to locate the field on.
-	 * @param property The name of the field to locate.
-	 * @param value The value to assign to the field.
-	 * @return The actual value that was assigned.
-	 * @throws IllegalAccessException
+	 * @param o The object to find the field on.
+	 * @param property The name of the field we're assigning the value to.
+	 * @param value The value to assign to the field, may be converted to the field's type through common conversion.
+	 * @return The actual value that was assigned (the original or the converted value).
+	 * @throws IllegalAccessException Thrown by {@link Field#set(Object, Object)}
+	 * @throws NoSuchFieldException
+	 * @see {@link ValueConverter#convert(Object, Class)}
 	 */
 	public static Object assignToField(final Object o, final String property, final Object value)
-			throws IllegalAccessException {
+			throws IllegalAccessException, NoSuchFieldException {
 		Object assignedValue = value;
 		final Field field = (Field) solveField(o, property);
-		try {
-			field.set(o, value);
-		} catch (final IllegalArgumentException ie) {
-			assignedValue = ValueConverter.convert(value, field.getType());
-			field.set(o, assignedValue);
+		if (field != null) {
+			try {
+				field.set(o, value);
+			} catch (final IllegalArgumentException ie) {
+				assignedValue = ValueConverter.convert(value, field.getType());
+				field.set(o, assignedValue);
+			}
+			return assignedValue;
+		} else {
+			throw new NoSuchFieldException();
 		}
-		return assignedValue;
 	}
 
 	/**
@@ -812,11 +768,10 @@ public final class JReflect {
 	}
 
 	/**
-	 * Returns a list of names that represent the fields on an <code>Object</code>. For Dynamics, the stored properties are returned (not
-	 * the Java fields of the class Dynamic).
+	 * Returns a list of names that represent the fields on an <code>Object</code>.
 	 * 
-	 * @param subject The <code>Object</code> or <code>Dynamic</code> who's properties/fields need to be reflected.
-	 * @return A list of names that represent the fields on an <code>Object</code>.
+	 * @param subject The <code>Object</code> who's properties/fields need to be reflected.
+	 * @return A list of names that represent the fields on the given <code>Object</code>.
 	 */
 	public static Collection<String> collectProperties(final Object subject) {
 		final Collection<String> properties = new LinkedHashSet<String>();
