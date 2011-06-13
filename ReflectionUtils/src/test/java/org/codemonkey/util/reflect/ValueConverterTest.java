@@ -109,17 +109,97 @@ public class ValueConverterTest {
 
 	@Test
 	public void testConvertObjectClassOfQ() {
-		fail("Not yet implemented");
+		// test null value
+		assertNull(ValueConverter.convert((Object) null, Number.class));
+		// test integer -> number (allowed)
+		Integer integer = 50;
+		assertSame(integer, ValueConverter.convert((Object) integer, Number.class));
+		// test with exact same type (allowed, should return the original value)
+		Calendar calendar = Calendar.getInstance();
+		assertSame(calendar, ValueConverter.convert((Object) calendar, Calendar.class));
+		// test number -> integer (not allowed)
+		Number number = 100.5f;
+		Object o = ValueConverter.convert((Object) number, Integer.class);
+		assertNotSame(number, o);
+		assertEquals(100, o);
+		// test to string conversion
+		assertEquals("a value", ValueConverter.convert((Object) "a value", String.class));
+		assertEquals("100.5", ValueConverter.convert((Object) number, String.class));
+		// test from string to anything else conversion
+		assertEquals("a value", ValueConverter.convert((Object) "a value", String.class));
+		assertFalse((Boolean) ValueConverter.convert((Object) "false", boolean.class));
+		assertEquals(33f, ValueConverter.convert((Object) "33", float.class));
+		// test from character
+		Character chara = '5';
+		char charb = '8';
+		assertEquals(5, ValueConverter.convert((Object) chara, Number.class));
+		assertEquals(8f, ValueConverter.convert((Object) charb, float.class));
+		// test from boolean
+		Boolean boola = false;
+		boolean boolb = true;
+		assertEquals(0, ValueConverter.convert((Object) boola, Number.class));
+		assertEquals(1f, ValueConverter.convert((Object) boolb, float.class));
+		assertEquals("false", ValueConverter.convert((Object) boola, String.class));
+		assertEquals("true", ValueConverter.convert((Object) boolb, String.class));
+		// test for incompatibility error
+		try {
+			ValueConverter.convert((Object) false, Calendar.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convert((Object) Calendar.getInstance(), Number.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
 	}
 
 	@Test
 	public void testConvertNumberClassOfQ() {
-		fail("Not yet implemented");
+		assertNull(ValueConverter.convert((Number) null, boolean.class));
+		assertFalse((Boolean) ValueConverter.convert(0, boolean.class));
+		assertTrue((Boolean) ValueConverter.convert(1, boolean.class));
+		assertTrue((Boolean) ValueConverter.convert(50, boolean.class));
+		assertEquals(50f, ValueConverter.convert(50, float.class));
+		assertEquals(50d, ValueConverter.convert(50, double.class));
+		assertEquals(50l, ValueConverter.convert(50, long.class));
+		assertEquals(50, ValueConverter.convert(50, Integer.class));
+		assertEquals((byte) 50, ValueConverter.convert(50, byte.class));
+		assertEquals((short) 50, ValueConverter.convert(50, short.class));
+		assertEquals('5', ValueConverter.convert(5, char.class));
+		assertEquals("50", ValueConverter.convert(50, String.class));
+
+		try {
+			ValueConverter.convert(50, Calendar.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
 	}
 
 	@Test
 	public void testConvertBooleanClassOfQ() {
-		fail("Not yet implemented");
+		assertNull(ValueConverter.convert((Boolean) null, Calendar.class));
+		assertFalse((Boolean) ValueConverter.convert(false, boolean.class));
+		assertTrue((Boolean) ValueConverter.convert(true, boolean.class));
+		assertTrue((Boolean) ValueConverter.convert(true, boolean.class));
+		assertEquals("true", ValueConverter.convert(true, String.class));
+		assertEquals("false", ValueConverter.convert(false, String.class));
+		assertEquals(1, ValueConverter.convert(true, Integer.class));
+		assertEquals(1f, ValueConverter.convert(true, Float.class));
+		assertEquals(1, ValueConverter.convert(true, Number.class));
+		assertEquals(0d, ValueConverter.convert(false, double.class));
+		assertEquals('0', ValueConverter.convert(false, Character.class));
+		assertEquals('1', ValueConverter.convert(true, Character.class));
+
+		try {
+			ValueConverter.convert(false, Calendar.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
 	}
 
 	@Test

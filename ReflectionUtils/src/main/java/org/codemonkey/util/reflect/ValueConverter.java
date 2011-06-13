@@ -149,19 +149,19 @@ public final class ValueConverter {
 		// 1. check if conversion is required to begin with
 		if (targetType.isAssignableFrom(valueType)) {
 			return value;
-			// 2. check if we can use Object.toString() implementation instead
+			// 2. check if we can simply use Object.toString() implementation
 		} else if (targetType.equals(String.class)) {
 			return value.toString();
-			// 3. check if we can use a Number.xxxValue() implementation instead
+			// 3. check if we can reuse conversion from String
 		} else if (valueType.equals(String.class)) {
 			return convert((String) value, targetType);
-			// 4. check if we can convert value from type Boolean
+			// 4. check if we can reuse conversion from a Number subtype
 		} else if (Number.class.isAssignableFrom(valueType) || isPrimitiveNumber(valueType)) {
 			return convert((Number) value, targetType);
-			// 4. check if we can convert value from type Boolean
+			// 4. check if we can reuse conversion from boolean value
 		} else if (valueType.equals(Boolean.class) || valueType.equals(boolean.class)) {
 			return convert((Boolean) value, targetType);
-			// 5. check if we can convert value from type Character
+			// 5. check if we can reuse conversion from character
 		} else if (valueType.equals(Character.class) || valueType.equals(char.class)) {
 			return convert((Character) value, targetType);
 		} else {
@@ -171,6 +171,9 @@ public final class ValueConverter {
 
 	/**
 	 * Attempts to convert a {@link Number} to the target datatype.
+	 * <p>
+	 * <strong>NOTE: </strong> precision may be lost when converting from a wide number to a narrower number (say float to integer). These
+	 * conversions are done by simply calling {@link Number#intValue()} and {@link Number#floatValue()} etc.
 	 * 
 	 * @param value The number to convert.
 	 * @param targetType The target datatype the number should be converted into.
@@ -182,7 +185,9 @@ public final class ValueConverter {
 		if (value == null) {
 			return null;
 		}
-		if (targetType.equals(Integer.class) || targetType.equals(int.class)) {
+		if (targetType.equals(String.class)) {
+			return value.toString();
+		} else if (targetType.equals(Integer.class) || targetType.equals(int.class)) {
 			return value.intValue();
 		} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
 			// any non-zero number converts to true
@@ -198,10 +203,10 @@ public final class ValueConverter {
 		} else if (targetType.equals(Short.class) || targetType.equals(short.class)) {
 			return value.shortValue();
 		} else if (targetType.equals(Character.class) || targetType.equals(char.class)) {
-			// any non-zero number converts to true
 			return Character.forDigit(value.intValue(), 10);
+		} else {
+			throw new IncompatibleTypeException(value, value.getClass().toString(), targetType.toString());
 		}
-		throw new IncompatibleTypeException(value, Boolean.class.toString(), targetType.toString());
 	}
 
 	/**
@@ -212,13 +217,18 @@ public final class ValueConverter {
 	 * @return The converted boolean.
 	 * @throws IncompatibleTypeException
 	 */
+	@SuppressWarnings("unchecked")
 	public static Object convert(final Boolean value, final Class<?> targetType)
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
 		}
-		if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
-			return value ? 1 : 0;
+		if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
+			return value;
+		} else if (targetType.equals(String.class)) {
+			return value.toString();
+		} else if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
+			return convertNumber(value ? "1" : "0", (Class<Number>) targetType);
 		} else if (targetType.equals(Character.class) || targetType.equals(char.class)) {
 			return value ? '1' : '0';
 		}
@@ -234,6 +244,7 @@ public final class ValueConverter {
 	 * @return The converted character.
 	 * @throws IncompatibleTypeException
 	 */
+	@SuppressWarnings("unchecked")
 	public static Object convert(final Character value, final Class<?> targetType)
 			throws IncompatibleTypeException {
 		if (value == null) {
@@ -243,7 +254,7 @@ public final class ValueConverter {
 			return (char) value;
 		} else if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
 			// convert Character to Number
-			return Integer.parseInt(value.toString());
+			return convertNumber(String.valueOf(value), (Class<Number>) targetType);
 		} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
 			// convert Character to Boolean
 			if (value.equals('0')) {
@@ -337,7 +348,7 @@ public final class ValueConverter {
 		}
 		assert Number.class.isAssignableFrom(numberType) || isPrimitiveNumber(numberType);
 		if (NumberUtils.isNumber(value)) {
-			if (Integer.class.equals(numberType) || int.class.equals(numberType)) {
+			if (Integer.class.equals(numberType) || int.class.equals(numberType) || Number.class.equals(numberType)) {
 				return Integer.parseInt(value);
 			} else if (Byte.class.equals(numberType) || byte.class.equals(numberType)) {
 				return Byte.parseByte(value);
