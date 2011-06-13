@@ -57,7 +57,7 @@ import java.util.Map;
  * <code>char</code>. This will give you a Java {@link Method}, but you won't be able to invoke it if it was found using a less strict
  * lookup than one with a simple exact match. There are two ways to do this: use
  * {@link #invokeCompatibleMethod(Object, Class, String, Object...)} instead or perform the conversion yourself using
- * {@link ValueConverter#convert(Object[], Class[])} prior to invoking the method. <code>
+ * {@link ValueConverter#convert(Object[], Class[], boolean)} prior to invoking the method. <code>
 			ValueConverter.convert(args, method.getParameterTypes())</code>.
  * <p>
  * // TODO fix comment about switching the cache<br/>
@@ -279,7 +279,7 @@ public final class JReflect {
 		try {
 			return method.invoke(context, args);
 		} catch (final IllegalArgumentException e) {
-			final Object[] convertedArgs = ValueConverter.convert(args, method.getParameterTypes());
+			final Object[] convertedArgs = ValueConverter.convert(args, method.getParameterTypes(), true);
 			return method.invoke(context, convertedArgs);
 		}
 	}
@@ -342,7 +342,7 @@ public final class JReflect {
 		try {
 			return constructor.newInstance(args);
 		} catch (final IllegalArgumentException e) {
-			final Object[] convertedArgs = ValueConverter.convert(args, constructor.getParameterTypes());
+			final Object[] convertedArgs = ValueConverter.convert(args, constructor.getParameterTypes(), true);
 			return constructor.newInstance(convertedArgs);
 		}
 	}

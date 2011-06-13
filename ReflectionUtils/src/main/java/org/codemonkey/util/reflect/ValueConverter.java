@@ -19,8 +19,8 @@ import org.apache.commons.lang.math.NumberUtils;
  * <li><code>Boolean</code></li>
  * <li><code>Character</code></li>
  * </ul>
- * In addition to predicting compatible output types, this class can also actually perform those conversions.
- * // FIXME add autobox conversion in here
+ * In addition to predicting compatible output types, this class can also actually perform those conversions. <p>// FIXME add autobox
+ * conversion in here
  * 
  * @author Benny Bottema
  * @see IncompatibleTypeException
@@ -95,10 +95,12 @@ public final class ValueConverter {
 	 * 
 	 * @param args The list with value to convert.
 	 * @param targetTypes The output types the specified values should be converted into.
+	 * @param useOriginalValueWhenIncompatible Indicates whether an exception should be thrown for inconvertible values or that the original
+	 *            value should be used instead.
 	 * @return Array containing converted values where it proved convertible or the original value otherwise.
 	 * @throws IncompatibleTypeException
 	 */
-	public static Object[] convert(final Object[] args, final Class<?>[] targetTypes)
+	public static Object[] convert(final Object[] args, final Class<?>[] targetTypes, boolean useOriginalValueWhenIncompatible)
 			throws IncompatibleTypeException {
 		if (args.length != targetTypes.length) {
 			throw new IllegalStateException("number of target types should match the number of arguments");
@@ -108,8 +110,12 @@ public final class ValueConverter {
 			try {
 				convertedValues[i] = convert(args[i], targetTypes[i]);
 			} catch (IncompatibleTypeException e) {
-				// simply take over the original value and keep converting where possible
-				convertedValues[i] = args[i];
+				if (useOriginalValueWhenIncompatible) {
+					// simply take over the original value and keep converting where possible
+					convertedValues[i] = args[i];
+				} else {
+					throw e;
+				}
 			}
 		}
 		return convertedValues;
