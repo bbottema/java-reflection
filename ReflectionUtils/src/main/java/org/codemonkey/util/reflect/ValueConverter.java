@@ -19,8 +19,9 @@ import org.apache.commons.lang.math.NumberUtils;
  * <li><code>Boolean</code></li>
  * <li><code>Character</code></li>
  * </ul>
- * In addition to predicting compatible output types, this class can also actually perform those conversions. <p>// FIXME add autobox
- * conversion in here
+ * In addition to predicting compatible output types, this class can also actually perform those conversions.
+ * <p>
+ * // FIXME add autobox conversion in here
  * 
  * @author Benny Bottema
  * @see IncompatibleTypeException
