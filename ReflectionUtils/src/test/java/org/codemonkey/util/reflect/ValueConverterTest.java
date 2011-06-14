@@ -204,7 +204,28 @@ public class ValueConverterTest {
 
 	@Test
 	public void testConvertCharacterClassOfQ() {
-		fail("Not yet implemented");
+		assertNull(ValueConverter.convert((Character) null, Object.class));
+		assertEquals('5', ValueConverter.convert('5', char.class));
+		assertEquals("h", ValueConverter.convert('h', String.class));
+		assertTrue((Boolean) ValueConverter.convert('1', Boolean.class));
+		assertFalse((Boolean) ValueConverter.convert('0', Boolean.class));
+		assertEquals(9, ValueConverter.convert('9', Integer.class));
+		assertEquals(9, ValueConverter.convert('9', Number.class));
+		assertEquals(9d, ValueConverter.convert('9', Double.class));
+
+		try {
+			ValueConverter.convert('5', Calendar.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+
+		try {
+			ValueConverter.convert('h', Boolean.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
 	}
 
 	@Test

@@ -250,7 +250,9 @@ public final class ValueConverter {
 		if (value == null) {
 			return null;
 		}
-		if (targetType.equals(char.class)) {
+		if (targetType.equals(String.class)) {
+			return value.toString();
+		} else if (targetType.equals(char.class)) {
 			return (char) value;
 		} else if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
 			// convert Character to Number
@@ -303,9 +305,9 @@ public final class ValueConverter {
 			return convertNumber(value, (Class<? super Number>) targetType);
 		} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
 			// convert String to Boolean
-			if (value.equalsIgnoreCase("false")) {
+			if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("0")) {
 				return false;
-			} else if (value.equalsIgnoreCase("true")) {
+			} else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("1")) {
 				return true;
 			} else {
 				// String incompatible with type Boolean
