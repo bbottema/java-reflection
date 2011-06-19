@@ -3,11 +3,10 @@ package org.codemonkey.util.reflect;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 
 /**
@@ -20,8 +19,6 @@ import org.apache.commons.lang.math.NumberUtils;
  * <li><code>Character</code></li>
  * </ul>
  * In addition to predicting compatible output types, this class can also actually perform those conversions.
- * <p>
- * // FIXME add autobox conversion in here
  * 
  * @author Benny Bottema
  * @see IncompatibleTypeException
@@ -30,61 +27,35 @@ public final class ValueConverter {
 
 	/**
 	 * List of common types that all other common types can always convert to. For example, <code>String</code> and <code>Integer</code> are
-	 * basic common types and can be converted to any other common type. A <code>Boolean</code> is not a basic common type, but can still be
-	 * converted to any basic type.
+	 * basic common types and can be converted to any other common type.
 	 */
-	static final Class<?>[] basicCommonTypes = { String.class, Integer.class, int.class, Float.class, float.class, Double.class,
-			double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class };
+	static final Class<?>[] commonTypes = new Class<?>[] { String.class, Integer.class, int.class, Float.class, float.class, Double.class,
+			double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class, Boolean.class, boolean.class,
+			Character.class, char.class };
 
 	/**
-	 * Combination of the basic common types and the extra common types only specific common types can convert to. For example, only
-	 * Strings, Number types and Character can be converted to a Boolean.
+	 * A list of all primitive number types.
 	 */
-	static final Class<?>[] allCommonTypes = (Class<?>[]) ArrayUtils.addAll(basicCommonTypes, new Class<?>[] { Boolean.class,
-			boolean.class, Character.class, char.class });
+	static final List<Class<?>> primitiveNumberTypes = Arrays.asList(new Class<?>[] { byte.class, short.class, int.class, long.class,
+			float.class, double.class });
 
 	/**
 	 * Determines whether given type is a known common type.
 	 */
 	public static boolean isCommonType(final Class<?> c) {
-		return Arrays.asList(allCommonTypes).contains(c);
+		return Arrays.asList(commonTypes).contains(c);
 	}
 
 	/**
 	 * Determines to which types the specified value (its type) can be converted to. Most common types can be converted to most other common
 	 * types and all types can be converted into a String using {@link Object#toString()}.
-	 * <p>
-	 * TODO: check if this method wouldn't generate the exact same result if there is no distinction between basic and specific common
-	 * types.
 	 * 
 	 * @param c The input type to find compatible conversion output types for
 	 * @return The list with compatible conversion output types.
 	 */
 	public static Class<?>[] collectCompatibleTypes(final Class<?> c) {
 		if (isCommonType(c)) {
-			final List<Class<?>> list = new ArrayList<Class<?>>(Arrays.asList(basicCommonTypes));
-			// add whatever conversion can be applied to instances the specified class
-			if (c.equals(String.class)) {
-				list.add(Boolean.class);
-				list.add(boolean.class);
-				list.add(Character.class);
-				list.add(char.class);
-			} else if (Number.class.isAssignableFrom(c) || isPrimitiveNumber(c)) {
-				list.add(Boolean.class);
-				list.add(boolean.class);
-				list.add(Character.class);
-				list.add(char.class);
-			} else if (c.equals(Boolean.class) || c.equals(boolean.class)) {
-				list.add(Character.class);
-				list.add(char.class);
-			} else if (c.equals(Character.class) || c.equals(char.class)) {
-				list.add(Boolean.class);
-				list.add(boolean.class);
-			} else {
-				throw new AssertionError("unknown common type!");
-			}
-			// return combined compatible types
-			return list.toArray(new Class[0]);
+			return commonTypes;
 		} else {
 			// not a common type, we only know we're able to convert to String
 			return new Class[] { String.class };
@@ -252,8 +223,8 @@ public final class ValueConverter {
 		}
 		if (targetType.equals(String.class)) {
 			return value.toString();
-		} else if (targetType.equals(char.class)) {
-			return (char) value;
+		} else if (targetType.equals(char.class) || targetType.equals(Character.class)) {
+			return value;
 		} else if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
 			// convert Character to Number
 			return convertNumber(String.valueOf(value), (Class<Number>) targetType);
@@ -284,45 +255,44 @@ public final class ValueConverter {
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
-		}
-		if (targetType.equals(String.class)) {
+		} else if (targetType.equals(String.class)) {
 			return value;
-		}
-		if (targetType.isEnum()) {
-			return convertEnum(value, (Class<? super Enum<?>>) targetType);
-		}
-		if (value.length() == 0) {
-			// can't convert the String value to anything else
-		} else if (value.length() == 1) {
-			// Convert String as Character
-			if (targetType.equals(Character.class)) {
-				return value.charAt(0);
-			} else {
-				return convert(value.charAt(0), targetType);
-			}
-		}
-		if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
-			return convertNumber(value, (Class<? super Number>) targetType);
-		} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
-			// convert String to Boolean
-			if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("0")) {
-				return false;
-			} else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("1")) {
-				return true;
-			} else {
-				// String incompatible with type Boolean
+		} else if (targetType.isEnum()) {
+			return convertEnum(value, (Class<? extends Enum<?>>) targetType);
+		} else if (value.length() > 0) {
+			if (value.length() == 1) {
+				// Convert String as Character
+				if (targetType.equals(Character.class) || targetType.equals(char.class)) {
+					return value.charAt(0);
+				} else {
+					return convert(value.charAt(0), targetType);
+				}
+			} else if (Number.class.isAssignableFrom(targetType) || isPrimitiveNumber(targetType)) {
+				return convertNumber(value, (Class<? extends Number>) targetType);
+			} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
+				// convert String to Boolean
+				if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("0")) {
+					return false;
+				} else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("1")) {
+					return true;
+				} else {
+					// String incompatible with type Boolean
+				}
 			}
 		}
 		// String value incompatible with targetType
 		throw new IncompatibleTypeException(value, value.getClass().toString(), targetType.toString());
 	}
 
-	public static Object convertEnum(final String value, final Class<? super Enum<?>> targetType) {
+	public static Object convertEnum(final String value, final Class<? extends Enum<?>> targetType) {
 		if (value == null) {
 			return null;
 		}
+		// /CLOVER:OFF
 		try {
+			// /CLOVER:ON
 			return targetType.getMethod("valueOf", String.class).invoke(null, value);
+			// /CLOVER:OFF
 		} catch (final IllegalArgumentException e) {
 			throw new IncompatibleTypeException(value, Enum.class.toString(), targetType.toString(), e);
 		} catch (final SecurityException e) {
@@ -334,6 +304,7 @@ public final class ValueConverter {
 		} catch (final NoSuchMethodException e) {
 			throw new IncompatibleTypeException(value, Enum.class.toString(), targetType.toString(), e);
 		}
+		// /CLOVER:ON
 
 	}
 
@@ -344,11 +315,11 @@ public final class ValueConverter {
 	 * @param numberType The <code>Class</code> type that should be one of <code>Number</code>.
 	 * @return A {@link Number} subtype value converted from <code>value</code> (or <code>null</code> if value is <code>null</code>).
 	 */
-	public static Object convertNumber(final String value, final Class<? super Number> numberType) {
+	public static Object convertNumber(final String value, final Class<? extends Number> numberType) {
 		if (value == null) {
 			return null;
 		}
-		assert Number.class.isAssignableFrom(numberType) || isPrimitiveNumber(numberType);
+		Validate.isTrue(Number.class.isAssignableFrom(numberType) || isPrimitiveNumber(numberType));
 		if (NumberUtils.isNumber(value)) {
 			if (Integer.class.equals(numberType) || int.class.equals(numberType) || Number.class.equals(numberType)) {
 				return Integer.parseInt(value);
@@ -377,19 +348,13 @@ public final class ValueConverter {
 	}
 
 	/**
-	 * Returns whethe a {@link Class} is a primitive number.
+	 * Returns whether a {@link Class} is a primitive number.
 	 * 
 	 * @param targetType The class to check whether it's a number.
 	 * @return Whether specified class is a primitive number.
 	 */
 	public final static boolean isPrimitiveNumber(final Class<?> targetType) {
-		final Class<?>[] nums = new Class<?>[] { byte.class, short.class, int.class, long.class, float.class, double.class };
-		for (final Class<?> c : nums) {
-			if (targetType.equals(c)) {
-				return true;
-			}
-		}
-		return false;
+		return primitiveNumberTypes.contains(targetType);
 	}
 
 	/**

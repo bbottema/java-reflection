@@ -26,39 +26,31 @@ public final class ExternalClassLoader extends ClassLoader {
 	/**
 	 * List of classes. These are non-instances of a class, of which instances can be spawn.
 	 */
-	public static final Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
+	protected final Map<String, Class<?>> classes;
 
 	/**
 	 * The exception that was thrown when the class was actually found but some other error occurred.
 	 */
-	public CompileException exception;
+	protected CompileException exception;
 
 	/**
 	 * Constructor which initializes all properties.
 	 */
 	public ExternalClassLoader() {
 		super(ExternalClassLoader.class.getClassLoader());
-		classes.clear();
+		classes = new HashMap<String, Class<?>>();
 	}
 
 	/**
-	 * Sets the base path this classloader will look for classes in.
+	 * Loads a class from the classes cache if available. Delegates to {@link #findClass(String)} otherwise.
 	 * 
-	 * @param path A folder path to look for classes.
-	 */
-	public void setBasepath(final String path) {
-		basepath = path;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.ClassLoader#loadClass(java.lang.String)
+	 * @see ClassLoader#loadClass(String)
 	 */
 	@Override
 	public final Class<?> loadClass(final String className)
 			throws ClassNotFoundException {
-		exception = null;
-		return findClass(className);
+		final Class<?> c = classes.get(className);
+		return (c != null) ? c : findClass(className);
 	}
 
 	/**
@@ -67,9 +59,9 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * <li>looks for the java source and if available, checks whether it needs to be compiled</li>
 	 * <li>if no .java or .class file found, try to find it in the VM</li>
 	 * </ol>
-	 * If the class ultimately wasn't found a <code>ClassNotFoundException</code> is being thrown. If class was found, but an error occured,
-	 * store exception for later review and return null. This is done so because the overridden method can't throw any other
-	 * <code>Exception</code>. <i>Note: The caller needs to be aware of this mechanism.</i>
+	 * If the class ultimately wasn't found a <code>ClassNotFoundException</code> is being thrown. If class was found, but an error
+	 * occurred, store exception for later review and return <code>null</code>. This is done so because the overridden method can't throw an
+	 * exception other than <code>ClassNotFoundException</code>.
 	 * 
 	 * @param className The path and name to the classfile.
 	 * @return The requested class reference.
@@ -78,6 +70,7 @@ public final class ExternalClassLoader extends ClassLoader {
 	@Override
 	public final Class<?> findClass(final String className)
 			throws ClassNotFoundException {
+		exception = null;
 		try {
 			// try to load, cache and return the class from compiled .class file
 			checkForFile(basepath, className);
@@ -89,7 +82,7 @@ public final class ExternalClassLoader extends ClassLoader {
 			} else {
 				throw new ClassNotFoundException();
 			}
-		} catch (final ClassNotFoundException e1) {
+		} catch (final ClassNotFoundException e) {
 			// - see if class can be found in the VM
 			// - this check must come last, else you won't detect whether a classfile has been recompiled
 			final Class<?> c = findSystemClass(className);
@@ -199,5 +192,18 @@ public final class ExternalClassLoader extends ClassLoader {
 			super(reason + "\n	" + cause.toString());
 			setStackTrace(cause.getStackTrace());
 		}
+	}
+
+	/**
+	 * Sets the base path this classloader will look for classes in.
+	 * 
+	 * @param path A folder path to look for classes.
+	 */
+	public void setBasepath(final String basepath) {
+		this.basepath = basepath;
+	}
+
+	public String getBasepath() {
+		return basepath;
 	}
 }

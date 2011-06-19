@@ -1,14 +1,28 @@
 package org.codemonkey.util.reflect;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Calendar;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
 
 public class ValueConverterTest {
+
+	enum TestEnum {
+		ONE, TWO, THREE
+	}
 
 	@Test
 	public void testIsCommonType() {
@@ -41,26 +55,18 @@ public class ValueConverterTest {
 	@Test
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
-		for (Class<?> basicCommonType : ValueConverter.basicCommonTypes) {
-			assertContainsAll(ValueConverter.collectCompatibleTypes(basicCommonType), ValueConverter.basicCommonTypes);
+		for (Class<?> basicCommonType : ValueConverter.commonTypes) {
+			assertContainsAll(ValueConverter.collectCompatibleTypes(basicCommonType), ValueConverter.commonTypes);
 		}
 
 		Class<?>[] types = ValueConverter.collectCompatibleTypes(String.class);
-		assertContainsAll(types, ValueConverter.basicCommonTypes);
-		ArrayUtils.contains(types, char.class);
-		ArrayUtils.contains(types, Character.class);
-		ArrayUtils.contains(types, boolean.class);
-		ArrayUtils.contains(types, Boolean.class);
+		assertContainsAll(types, ValueConverter.commonTypes);
 
 		types = ValueConverter.collectCompatibleTypes(boolean.class);
-		assertContainsAll(types, ValueConverter.basicCommonTypes);
-		ArrayUtils.contains(types, char.class);
-		ArrayUtils.contains(types, Character.class);
+		assertContainsAll(types, ValueConverter.commonTypes);
 
 		types = ValueConverter.collectCompatibleTypes(Character.class);
-		assertContainsAll(types, ValueConverter.basicCommonTypes);
-		ArrayUtils.contains(types, boolean.class);
-		ArrayUtils.contains(types, Boolean.class);
+		assertContainsAll(types, ValueConverter.commonTypes);
 
 		types = ValueConverter.collectCompatibleTypes(Calendar.class);
 		assertEquals(1, types.length);
@@ -230,22 +236,143 @@ public class ValueConverterTest {
 
 	@Test
 	public void testConvertStringClassOfQ() {
-		fail("Not yet implemented");
+		assertEquals(0, ValueConverter.convert("0", Integer.class));
+		assertNull(ValueConverter.convert((String) null, Integer.class));
+		assertEquals(10, ValueConverter.convert("10", Integer.class));
+		assertEquals(0f, ValueConverter.convert("0", Float.class));
+		assertEquals(10f, ValueConverter.convert("10", Float.class));
+		assertEquals(0d, ValueConverter.convert("0", double.class));
+		assertEquals(10d, ValueConverter.convert("10", double.class));
+		assertEquals(0, ValueConverter.convert("0", Number.class));
+		assertEquals(10, ValueConverter.convert("10", Number.class));
+		assertFalse((Boolean) ValueConverter.convert("0", Boolean.class));
+		assertTrue((Boolean) ValueConverter.convert("1", Boolean.class));
+		assertTrue((Boolean) ValueConverter.convert("true", Boolean.class));
+		assertFalse((Boolean) ValueConverter.convert("false", Boolean.class));
+		assertEquals('h', ValueConverter.convert("h", char.class));
+		assertEquals("h", ValueConverter.convert("h", String.class));
+		assertSame(TestEnum.ONE, ValueConverter.convert("ONE", TestEnum.class));
+		try {
+			ValueConverter.convert("h", Boolean.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convert("falsef", Boolean.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convert("h", Calendar.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convert("hello", Calendar.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convert("", int.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
 	}
 
 	@Test
 	public void testConvertEnum() {
-		fail("Not yet implemented");
+		assertNull(ValueConverter.convertEnum(null, TestEnum.class));
+		assertSame(TestEnum.ONE, ValueConverter.convertEnum("ONE", TestEnum.class));
+		try {
+			ValueConverter.convertEnum("5", TestEnum.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testConvertNumber() {
-		fail("Not yet implemented");
+		assertNull(ValueConverter.convertNumber(null, Integer.class));
+		assertEquals(1, ValueConverter.convertNumber("1", Integer.class));
+		assertEquals(1f, ValueConverter.convertNumber("1", Float.class));
+		assertEquals(1d, ValueConverter.convertNumber("1", Double.class));
+		assertEquals((byte) 1, ValueConverter.convertNumber("1", Byte.class));
+		assertEquals(1, ValueConverter.convertNumber("1", Number.class));
+		assertEquals((short) 1, ValueConverter.convertNumber("1", short.class));
+		assertEquals(1l, ValueConverter.convertNumber("1", long.class));
+		assertEquals(BigDecimal.valueOf(1), ValueConverter.convertNumber("1", BigDecimal.class));
+		assertEquals(BigInteger.valueOf(1), ValueConverter.convertNumber("1", BigInteger.class));
+		try {
+			ValueConverter.convertNumber("", Integer.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convertNumber("d", Integer.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convertNumber("1", (Class<Integer>) (Object) Calendar.class);
+			fail("should not be able to convert value");
+		} catch (IllegalArgumentException e) {
+			// OK
+		}
+		try {
+			ValueConverter.convertNumber("1", CustomNumber.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+	}
+
+	@SuppressWarnings("serial")
+	private static class CustomNumber extends Number {
+
+		@Override
+		public int intValue() {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public long longValue() {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public float floatValue() {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public double doubleValue() {
+			throw new NotImplementedException();
+		}
 	}
 
 	@Test
 	public void testIsPrimitiveNumber() {
-		fail("Not yet implemented");
+		assertFalse(ValueConverter.isPrimitiveNumber(char.class));
+		assertTrue(ValueConverter.isPrimitiveNumber(int.class));
+		assertTrue(ValueConverter.isPrimitiveNumber(float.class));
+		assertTrue(ValueConverter.isPrimitiveNumber(double.class));
+		assertTrue(ValueConverter.isPrimitiveNumber(long.class));
+		assertTrue(ValueConverter.isPrimitiveNumber(byte.class));
+		assertTrue(ValueConverter.isPrimitiveNumber(short.class));
+		assertFalse(ValueConverter.isPrimitiveNumber(boolean.class));
+		assertFalse(ValueConverter.isPrimitiveNumber(Calendar.class));
+		assertFalse(ValueConverter.isPrimitiveNumber(Boolean.class));
+		assertFalse(ValueConverter.isPrimitiveNumber(Character.class));
+		assertFalse(ValueConverter.isPrimitiveNumber(Integer.class));
+		assertFalse(ValueConverter.isPrimitiveNumber(Number.class));
 	}
-
 }
