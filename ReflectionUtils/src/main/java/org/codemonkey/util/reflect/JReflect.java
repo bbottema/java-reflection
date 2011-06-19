@@ -413,7 +413,7 @@ public final class JReflect {
 
 	/**
 	 * Delegates to {@link #findCompatibleMethod(Class, String, int, Class[])}, using strict lookupmode (no autoboxing, casting etc.) and
-	 * optional signature.<br />
+	 * optional signature parameters.<br />
 	 * <br />
 	 * Returns <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
 	 * 
@@ -433,7 +433,7 @@ public final class JReflect {
 	 * 
 	 * @param datatype The class to get the constructor from.
 	 * @param name The name of the method to retrieve from the class.
-	 * @param lookupMode Combined bitflag indicating the search steps that need to be done.
+	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param signature The list of types as specified by the user.
 	 * @return The method if found, otherwise exception is thrown.
 	 * @exception NoSuchMethodException
@@ -502,7 +502,7 @@ public final class JReflect {
 	/**
 	 * Initializes the list with type-arrays and starts generating beginning from index 0. This method is used for (un)wrapping.
 	 * 
-	 * @param lookupMode Combined bitflag indicating the search steps that need to be done.
+	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param signature The list with original user specified types.
 	 * @return The list with converted type-arrays.
 	 */
@@ -526,7 +526,7 @@ public final class JReflect {
 	 * </ol>
 	 * 
 	 * @param index The current index to start mutating from.
-	 * @param lookupMode Combined bitflag indicating the search steps that need to be done.
+	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param signatures The central storage list for new type-arrays.
 	 * @param signature The list with current types, to mutate further upon.
 	 */
@@ -626,23 +626,21 @@ public final class JReflect {
 	}
 
 	/**
-	 * <ul>
-	 * <li>In case subject is a Java Object, returns the value of {@link Field}.</li>
-	 * <li>In case subject is a {@link AbstractDynamic}, returns a property.</li>
-	 * </ul>
+	 * Returns a field from the given object that goes by the name of <code>fieldName</code>. If <code>o</code> is a Class object, a static
+	 * field will be returned.
 	 * 
 	 * @param o The reference to the object to fetch the property value from.
-	 * @param id The identifier or name of the member field/property.
+	 * @param fieldName The identifier or name of the member field/property.
 	 * @return The value of the <code>Field</code> or in case of a Dynamic the property value.
 	 */
-	public static Field solveField(final Object o, final String id) {
+	public static Field solveField(final Object o, final String fieldName) {
 		try {
 			if (o.getClass().equals(Class.class)) {
 				// Java static field
-				return ((Class<?>) o).getField(id);
+				return ((Class<?>) o).getField(fieldName);
 			} else {
 				// Java instance field
-				return o.getClass().getField(id);
+				return o.getClass().getField(fieldName);
 			}
 		} catch (NoSuchFieldException e) {
 			return null;

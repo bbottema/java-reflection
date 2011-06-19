@@ -57,7 +57,8 @@ public final class FieldUtils {
 	 * against the given visibility and Bean restriction requirements.
 	 * 
 	 * @param _class The class (and chain) to harvest fields from.
-	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that fields are collected from.
+	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that fields are collected from. Can
+	 *            be used to prevent finding fields on a supper class.
 	 * @param visibility A set of visibility requirements (ie. {@link Visibility#PROTECTED} indicates a field is allowed to have
 	 *            <code>protected</code> visibility).
 	 * @param beanRestrictions A set of Bean restriction requirements indicating a field should or shouldn't have a setter, getter or both.
