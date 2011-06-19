@@ -10,15 +10,14 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 
 /**
- * This reflection utility class predicts which types a specified value can be converted into. We can only do conversions of known types so
- * the common conversions include:
+ * This reflection utility class predicts (and converts) which types a specified value can be converted into. It can only do conversions of
+ * known 'common' types, which include:
  * <ul>
  * <li>Any {@link Number} type (Integer, Character, Double, byte, etc.)</li>
  * <li><code>String</code></li>
  * <li><code>Boolean</code></li>
  * <li><code>Character</code></li>
  * </ul>
- * In addition to predicting compatible output types, this class can also actually perform those conversions.
  * 
  * @author Benny Bottema
  * @see IncompatibleTypeException
@@ -69,7 +68,7 @@ public final class ValueConverter {
 	 * @param targetTypes The output types the specified values should be converted into.
 	 * @param useOriginalValueWhenIncompatible Indicates whether an exception should be thrown for inconvertible values or that the original
 	 *            value should be used instead.
-	 * @return Array containing converted values where it proved convertible or the original value otherwise.
+	 * @return Array containing converted values where convertible or the original value otherwise.
 	 * @throws IncompatibleTypeException
 	 */
 	public static Object[] convert(final Object[] args, final Class<?>[] targetTypes, boolean useOriginalValueWhenIncompatible)
