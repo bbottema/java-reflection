@@ -216,7 +216,7 @@ public final class JReflect {
 		// /CLOVER:OFF
 		try {
 			// /CLOVER:ON
-			return (T) _class.getConstructor().newInstance();
+			return _class.getConstructor().newInstance();
 			// /CLOVER:OFF
 		} catch (IllegalArgumentException e) {
 			assert false : "we don't pass in arguments";
@@ -722,7 +722,7 @@ public final class JReflect {
 	public static Object assignToField(final Object o, final String property, final Object value)
 			throws IllegalAccessException, NoSuchFieldException {
 		Object assignedValue = value;
-		final Field field = (Field) solveField(o, property);
+		final Field field = solveField(o, property);
 		if (field != null) {
 			try {
 				field.set(o, value);
