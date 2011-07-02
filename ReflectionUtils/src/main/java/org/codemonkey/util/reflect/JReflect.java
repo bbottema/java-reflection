@@ -146,12 +146,13 @@ public final class JReflect {
 
 	static {
 		numSizes = new LinkedHashMap<Class<?>, Integer>();
-		numSizes.put(Byte.class, 1);
-		numSizes.put(Short.class, 2);
-		numSizes.put(Integer.class, 3);
-		numSizes.put(Long.class, 4);
-		numSizes.put(Float.class, 5);
-		numSizes.put(Double.class, 6);
+		int size = 0;
+		numSizes.put(Byte.class, ++size);
+		numSizes.put(Short.class, ++size);
+		numSizes.put(Integer.class, ++size);
+		numSizes.put(Long.class, ++size);
+		numSizes.put(Float.class, ++size);
+		numSizes.put(Double.class, ++size);
 	}
 
 	/**

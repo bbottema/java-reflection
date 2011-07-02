@@ -12,6 +12,7 @@ import static org.junit.Assert.fail;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
+import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.NotImplementedException;
@@ -55,27 +56,27 @@ public class ValueConverterTest {
 	@Test
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
-		for (Class<?> basicCommonType : ValueConverter.commonTypes) {
-			assertContainsAll(ValueConverter.collectCompatibleTypes(basicCommonType), ValueConverter.commonTypes);
+		for (Class<?> basicCommonType : ValueConverter.COMMON_TYPES) {
+			assertContainsAll(ValueConverter.collectCompatibleTypes(basicCommonType), ValueConverter.COMMON_TYPES);
 		}
 
-		Class<?>[] types = ValueConverter.collectCompatibleTypes(String.class);
-		assertContainsAll(types, ValueConverter.commonTypes);
+		List<Class<?>> types = ValueConverter.collectCompatibleTypes(String.class);
+		assertContainsAll(types, ValueConverter.COMMON_TYPES);
 
 		types = ValueConverter.collectCompatibleTypes(boolean.class);
-		assertContainsAll(types, ValueConverter.commonTypes);
+		assertContainsAll(types, ValueConverter.COMMON_TYPES);
 
 		types = ValueConverter.collectCompatibleTypes(Character.class);
-		assertContainsAll(types, ValueConverter.commonTypes);
+		assertContainsAll(types, ValueConverter.COMMON_TYPES);
 
 		types = ValueConverter.collectCompatibleTypes(Calendar.class);
-		assertEquals(1, types.length);
-		ArrayUtils.contains(types, String.class);
+		assertEquals(1, types.size());
+		assertTrue(types.contains(String.class));
 	}
 
-	private void assertContainsAll(Class<?>[] types, Class<?>[] basiccommontypes) {
+	private void assertContainsAll(List<Class<?>> types, List<Class<?>> basiccommontypes) {
 		for (Class<?> basicCommonType : basiccommontypes) {
-			assertTrue(ArrayUtils.contains(types, basicCommonType));
+			assertTrue(types.contains(basicCommonType));
 		}
 	}
 

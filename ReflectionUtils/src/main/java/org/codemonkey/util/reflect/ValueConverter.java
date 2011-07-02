@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -28,21 +29,29 @@ public final class ValueConverter {
 	 * List of common types that all other common types can always convert to. For example, <code>String</code> and <code>Integer</code> are
 	 * basic common types and can be converted to any other common type.
 	 */
-	static final Class<?>[] commonTypes = new Class<?>[] { String.class, Integer.class, int.class, Float.class, float.class, Double.class,
-			double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class, Boolean.class, boolean.class,
-			Character.class, char.class };
+	static final List<Class<?>> COMMON_TYPES = Arrays.asList(new Class<?>[] { String.class, Integer.class, int.class, Float.class,
+			float.class, Double.class, double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class,
+			Boolean.class, boolean.class, Character.class, char.class });
 
 	/**
 	 * A list of all primitive number types.
 	 */
-	static final List<Class<?>> primitiveNumberTypes = Arrays.asList(new Class<?>[] { byte.class, short.class, int.class, long.class,
+	static final List<Class<?>> PRIMITIVE_NUMBER_TYPES = Arrays.asList(new Class<?>[] { byte.class, short.class, int.class, long.class,
 			float.class, double.class });
 
 	/**
-	 * Determines whether given type is a known common type.
+	 * @param c The class to inspect.
+	 * @return whether given type is a known common type.
 	 */
 	public static boolean isCommonType(final Class<?> c) {
-		return Arrays.asList(commonTypes).contains(c);
+		return COMMON_TYPES.contains(c);
+	}
+
+	/**
+	 * Private constructor prevents from instantiating this utility class.
+	 */
+	private ValueConverter() {
+		// utility class
 	}
 
 	/**
@@ -52,12 +61,12 @@ public final class ValueConverter {
 	 * @param c The input type to find compatible conversion output types for
 	 * @return The list with compatible conversion output types.
 	 */
-	public static Class<?>[] collectCompatibleTypes(final Class<?> c) {
+	public static List<Class<?>> collectCompatibleTypes(final Class<?> c) {
 		if (isCommonType(c)) {
-			return commonTypes;
+			return Collections.unmodifiableList(COMMON_TYPES);
 		} else {
 			// not a common type, we only know we're able to convert to String
-			return new Class[] { String.class };
+			return Arrays.asList(new Class<?>[] { String.class });
 		}
 	}
 
@@ -69,7 +78,7 @@ public final class ValueConverter {
 	 * @param useOriginalValueWhenIncompatible Indicates whether an exception should be thrown for inconvertible values or that the original
 	 *            value should be used instead.
 	 * @return Array containing converted values where convertible or the original value otherwise.
-	 * @throws IncompatibleTypeException
+	 * @throws IncompatibleTypeException Thrown when unable to convert and not use the original value.
 	 */
 	public static Object[] convert(final Object[] args, final Class<?>[] targetTypes, boolean useOriginalValueWhenIncompatible)
 			throws IncompatibleTypeException {
@@ -353,7 +362,7 @@ public final class ValueConverter {
 	 * @return Whether specified class is a primitive number.
 	 */
 	public final static boolean isPrimitiveNumber(final Class<?> targetType) {
-		return primitiveNumberTypes.contains(targetType);
+		return PRIMITIVE_NUMBER_TYPES.contains(targetType);
 	}
 
 	/**
