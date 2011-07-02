@@ -1,8 +1,9 @@
-package org.codemonkey.util.reflect;
+package org.codemonkey.javareflection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import org.codemonkey.javareflection.ExternalClassLoader;
 import org.junit.Test;
 
 public class ExternalClassLoaderTest {

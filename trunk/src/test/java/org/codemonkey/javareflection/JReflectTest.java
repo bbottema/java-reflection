@@ -1,4 +1,4 @@
-package org.codemonkey.util.reflect;
+package org.codemonkey.javareflection;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -18,8 +18,9 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.EnumSet;
 
-import org.codemonkey.util.reflect.JReflect.LookupMode;
-import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
+import org.codemonkey.javareflection.JReflect;
+import org.codemonkey.javareflection.JReflect.LookupMode;
+import org.codemonkey.javareflection.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
 
 public class JReflectTest {

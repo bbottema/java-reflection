@@ -1,4 +1,4 @@
-package org.codemonkey.util.reflect;
+package org.codemonkey.javareflection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -15,7 +15,8 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
+import org.codemonkey.javareflection.ValueConverter;
+import org.codemonkey.javareflection.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
 
 public class ValueConverterTest {

@@ -1,4 +1,4 @@
-package org.codemonkey.util.reflect;
+package org.codemonkey.javareflection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
