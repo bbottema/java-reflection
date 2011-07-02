@@ -18,8 +18,8 @@
 <FONT color="green">015</FONT>    import java.util.Map;<a name="line.15"></a>
 <FONT color="green">016</FONT>    <a name="line.16"></a>
 <FONT color="green">017</FONT>    /**<a name="line.17"></a>
-<FONT color="green">018</FONT>     * This class utilizes the functionality of the Java class &lt;code&gt;java.lang.reflect&lt;/code&gt;. Specifically, this reflection tool is designed to<a name="line.18"></a>
-<FONT color="green">019</FONT>     * perform advanced method or constructor lookups, using a combination of {@link LookupMode} values.<a name="line.19"></a>
+<FONT color="green">018</FONT>     * This class utilizes functionality of the Java class &lt;code&gt;java.lang.reflect&lt;/code&gt;. Specifically, this reflection tool is designed to<a name="line.18"></a>
+<FONT color="green">019</FONT>     * perform advanced method or constructor lookups, using a combination of {@link LookupMode} strategies.<a name="line.19"></a>
 <FONT color="green">020</FONT>     * &lt;p&gt;<a name="line.20"></a>
 <FONT color="green">021</FONT>     * Aside from that there are some nifty methods for things such as:<a name="line.21"></a>
 <FONT color="green">022</FONT>     * &lt;ul&gt;<a name="line.22"></a>
@@ -28,7 +28,7 @@
 <FONT color="green">025</FONT>     * &lt;li&gt;a method to autobox a given value to its counterpart ({@link #autobox(Class)}),&lt;/li&gt;<a name="line.25"></a>
 <FONT color="green">026</FONT>     * &lt;li&gt;A couple of methods to resolve a direct property of a given object (though they may move to {@link FieldUtils}),&lt;/li&gt;<a name="line.26"></a>
 <FONT color="green">027</FONT>     * &lt;li&gt;Various handy methods for collecting information on a given &lt;code&gt;Object&lt;/code&gt;, such as list of methods, properties or types&lt;/li&gt;<a name="line.27"></a>
-<FONT color="green">028</FONT>     * &lt;li&gt;&lt;strong&gt;An advanced &lt;code&gt;Class&lt;/code&gt; lookup&lt;/strong&gt; ({@link #locateClass(String, boolean, ExternalClassLoader)}), that allows a<a name="line.28"></a>
+<FONT color="green">028</FONT>     * &lt;li&gt;An advanced &lt;code&gt;Class&lt;/code&gt; lookup ({@link #locateClass(String, boolean, ExternalClassLoader)}), that allows a<a name="line.28"></a>
 <FONT color="green">029</FONT>     * full scan (to try all packages known) and an optional {@link ExternalClassLoader} instance that is able to actually compile a .java file<a name="line.29"></a>
 <FONT color="green">030</FONT>     * on the fly and load its compile .class file&lt;/li&gt;<a name="line.30"></a>
 <FONT color="green">031</FONT>     * &lt;/ul&gt;<a name="line.31"></a>
