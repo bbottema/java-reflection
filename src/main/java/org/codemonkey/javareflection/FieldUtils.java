@@ -14,6 +14,14 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * A {@link Field} shorthand utility class mainly used to collect fields from classes meeting certain restrictions/requirements.
+ * <p>
+ * With this utility class you can perform field lookups, by combining lookup restriction criteria. A trivial example is find all fields on
+ * a class <em>Apple</em>, not looking at its super classes, which should be protected, have a getter method, but not a setter method:
+ * 
+ * <pre>
+ * FieldUtils.collectFields(Apple.class, Apple.class, EnumSet.of(Visibility.PROTECTED),
+ * 		EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER));
+ * </pre>
  * 
  * @author Benny Bottema
  * @see #collectFields(Class, Class, EnumSet, EnumSet)
@@ -79,6 +87,9 @@ public final class FieldUtils {
 	/**
 	 * Returns a pool of {@link Field} wrappers including optional relevant setter/getter methods, collected from the given class tested
 	 * against the given visibility and Bean restriction requirements.
+	 * <p>
+	 * The returned fields are mapped against the classes they were found on, since field names can be declared multiple times with the same
+	 * name.
 	 * 
 	 * @param _class The class (and chain) to harvest fields from.
 	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that fields are collected from. Can
