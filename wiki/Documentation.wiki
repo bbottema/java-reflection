@@ -7,7 +7,7 @@ Because of the size and nature of this little project, about four utility classe
 [http://code.google.com/p/java-reflection/source/browse/trunk/javadoc/users/src-html/org/codemonkey/javareflection/FieldUtils.html FieldUtils] | 
 [http://code.google.com/p/java-reflection/source/browse/trunk/javadoc/users/src-html/org/codemonkey/javareflection/ExternalClassLoader.html ExternalClassLoader]
 
-FIXME: for some reason I can't get Google Code to show the JavaDoc as html (the svn:mime-type should be right).
+_FIXME: for some reason I can't get Google Code to show the JavaDoc as html (the svn:mime-type should be right)._
 
 Here's a summary about what's inside:
 
