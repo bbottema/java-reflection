@@ -1,4 +1,4 @@
-package org.codemonkey.util.reflect;
+package org.codemonkey.javareflection;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

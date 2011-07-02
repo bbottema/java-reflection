@@ -1,4 +1,4 @@
-package org.codemonkey.util.reflect;
+package org.codemonkey.javareflection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,8 +12,10 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
-import org.codemonkey.util.reflect.FieldUtils.BeanRestriction;
-import org.codemonkey.util.reflect.FieldUtils.Visibility;
+import org.codemonkey.javareflection.FieldUtils;
+import org.codemonkey.javareflection.FieldWrapper;
+import org.codemonkey.javareflection.FieldUtils.BeanRestriction;
+import org.codemonkey.javareflection.FieldUtils.Visibility;
 import org.junit.Test;
 
 /**
@@ -22,7 +24,7 @@ import org.junit.Test;
 public class FieldUtilsTest {
 
 	/**
-	 * Test method for {@link org.codemonkey.util.reflect.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
+	 * Test method for {@link org.codemonkey.javareflection.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
 	 */
 	@Test
 	public void testCollectFieldsInheritanceAndOnlyGetters() {
@@ -109,7 +111,7 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link org.codemonkey.util.reflect.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
+	 * Test method for {@link org.codemonkey.javareflection.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
 	 */
 	@Test
 	public void testCollectFieldsSimplButOnlySetter() {
@@ -133,7 +135,7 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link org.codemonkey.util.reflect.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
+	 * Test method for {@link org.codemonkey.javareflection.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
 	 */
 	@Test
 	public void testMeetVisibilityRequirements()
@@ -180,7 +182,7 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link org.codemonkey.util.reflect.FieldUtils#resolveBeanProperty(Field, EnumSet)}.
+	 * Test method for {@link org.codemonkey.javareflection.FieldUtils#resolveBeanProperty(Field, EnumSet)}.
 	 */
 	@Test
 	public void testResolveBeanProperty()
@@ -231,7 +233,7 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link org.codemonkey.util.reflect.FieldUtils#resolveBeanProperty(Field, EnumSet)}.
+	 * Test method for {@link org.codemonkey.javareflection.FieldUtils#resolveBeanProperty(Field, EnumSet)}.
 	 */
 	@Test
 	public void testResolvePrimitiveBooleanProperty()
@@ -249,7 +251,7 @@ public class FieldUtilsTest {
 
 	/**
 	 * Test method for
-	 * {@link org.codemonkey.util.reflect.FieldUtils#meetsBeanRestrictions(Field, org.codemonkey.util.reflect.FieldUtils.BeanRestriction)}.
+	 * {@link org.codemonkey.javareflection.FieldUtils#meetsBeanRestrictions(Field, org.codemonkey.javareflection.FieldUtils.BeanRestriction)}.
 	 */
 	@Test
 	public void testResolveBeanPropertyExceptions()
