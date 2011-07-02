@@ -197,7 +197,7 @@ public final class ExternalClassLoader extends ClassLoader {
 	/**
 	 * Sets the base path this classloader will look for classes in.
 	 * 
-	 * @param path A folder path to look for classes.
+	 * @param basepath A folder path to look for classes.
 	 */
 	public void setBasepath(final String basepath) {
 		this.basepath = basepath;
