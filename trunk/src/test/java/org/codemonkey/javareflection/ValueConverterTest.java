@@ -15,16 +15,21 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.codemonkey.javareflection.ValueConverter;
 import org.codemonkey.javareflection.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
 
+/**
+ * Junit test for {@link ValueConverter}.
+ */
 public class ValueConverterTest {
 
 	enum TestEnum {
 		ONE, TWO, THREE
 	}
 
+	/**
+	 * Test for {@link ValueConverter#isCommonType(Class)}.
+	 */
 	@Test
 	public void testIsCommonType() {
 		// basic commons
@@ -53,6 +58,9 @@ public class ValueConverterTest {
 		assertFalse(ValueConverter.isCommonType(Calendar.class));
 	}
 
+	/**
+	 * Test for {@link ValueConverter#collectCompatibleTypes(Class)}.
+	 */
 	@Test
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
@@ -80,6 +88,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convert(Object[], Class[], boolean)}.
+	 */
 	@Test
 	public void testConvertObjectArrayClassOfQArray() {
 		// empty list
@@ -114,6 +125,9 @@ public class ValueConverterTest {
 		assertFalse((Boolean) result[3]);
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convert(Object, Class)}.
+	 */
 	@Test
 	public void testConvertObjectClassOfQ() {
 		// test null value
@@ -163,6 +177,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convert(Number, Class)}.
+	 */
 	@Test
 	public void testConvertNumberClassOfQ() {
 		assertNull(ValueConverter.convert((Number) null, boolean.class));
@@ -186,6 +203,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convert(Boolean, Class)}.
+	 */
 	@Test
 	public void testConvertBooleanClassOfQ() {
 		assertNull(ValueConverter.convert((Boolean) null, Calendar.class));
@@ -209,6 +229,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convert(Character, Class)}.
+	 */
 	@Test
 	public void testConvertCharacterClassOfQ() {
 		assertNull(ValueConverter.convert((Character) null, Object.class));
@@ -235,6 +258,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convert(String, Class)}.
+	 */
 	@Test
 	public void testConvertStringClassOfQ() {
 		assertEquals(0, ValueConverter.convert("0", Integer.class));
@@ -285,6 +311,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convertEnum(String, Class)}.
+	 */
 	@Test
 	public void testConvertEnum() {
 		assertNull(ValueConverter.convertEnum(null, TestEnum.class));
@@ -297,6 +326,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#convertNumber(String, Class)}.
+	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testConvertNumber() {
@@ -360,6 +392,9 @@ public class ValueConverterTest {
 		}
 	}
 
+	/**
+	 * Test for {@link ValueConverter#isPrimitiveNumber(Class)}.
+	 */
 	@Test
 	public void testIsPrimitiveNumber() {
 		assertFalse(ValueConverter.isPrimitiveNumber(char.class));
