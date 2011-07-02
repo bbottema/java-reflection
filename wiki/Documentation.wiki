@@ -3,7 +3,7 @@
 Because of the size and nature of this little project, about four utility classes with only `static` methods, I will refer to the JavaDoc for all documentation.
 
 [http://code.google.com/p/java-reflection/source/browse/trunk/javadoc/users/src-html/org/codemonkey/javareflection/JReflect.html JReflect] | 
-[ttp://code.google.com/p/java-reflection/source/browse/trunk/javadoc/users/src-html/org/codemonkey/javareflection/ValueConverter.html ValueConverter] | 
+[http://code.google.com/p/java-reflection/source/browse/trunk/javadoc/users/src-html/org/codemonkey/javareflection/ValueConverter.html ValueConverter] | 
 [http://code.google.com/p/java-reflection/source/browse/trunk/javadoc/users/src-html/org/codemonkey/javareflection/FieldUtils.html FieldUtils] | 
 [http://code.google.com/p/java-reflection/source/browse/trunk/javadoc/users/src-html/org/codemonkey/javareflection/ExternalClassLoader.html ExternalClassLoader]
 
