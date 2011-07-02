@@ -7,4 +7,7 @@
   
   This product uses no commercial products.
   
-  This product uses no external (Open Source) libraries.
+  This product uses the following external (Open Source) libraries:
+  
+    - Apache commons-lang-2.5.jar (http://commons.apache.org/lang/)
+    - junit-4.8.1.jar (http://www.junit.org/)
