@@ -23,15 +23,26 @@ import org.codemonkey.javareflection.JReflect.LookupMode;
 import org.codemonkey.javareflection.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
 
+/**
+ * Junit test for {@link JReflect}.
+ */
 public class JReflectTest {
 	/**
-	 * We'll believe all the catch exceptions, they are not there to provide function, but to hide boilerplate code. just test happy code.
+	 * Test for {@link JReflect#newInstanceSimple(Class)}.
+	 * <p>
+	 * We'll ignore all the catch exceptions here, which are not there to provide function: only to hide boilerplate code). Just test happy
+	 * flow here.
 	 */
 	@Test
 	public void testNewInstanceSimple() {
 		assertSame(Object.class, JReflect.newInstanceSimple(Object.class).getClass());
 	}
 
+	/**
+	 * Test for {@link JReflect#findCompatibleMethod(Class, String, EnumSet, Class...)}.
+	 * 
+	 * @throws NoSuchMethodException Thrown by tested method.
+	 */
 	@Test
 	public void testFindCompatibleMethod()
 			throws NoSuchMethodException {
@@ -71,6 +82,11 @@ public class JReflectTest {
 		}
 	}
 
+	/**
+	 * Test for {@link JReflect#findCompatibleConstructor(Class, EnumSet, Class...)}.
+	 * 
+	 * @throws NoSuchMethodException Thrown by tested method.
+	 */
 	@Test
 	public void testFindCompatibleConstructor()
 			throws NoSuchMethodException {
@@ -112,6 +128,14 @@ public class JReflectTest {
 		}
 	}
 
+	/**
+	 * Test for {@link JReflect#invokeCompatibleMethod(Object, Class, String, Object...)}.
+	 * 
+	 * @throws NoSuchMethodException Thrown by tested method.
+	 * @throws IllegalArgumentException Thrown by tested method.
+	 * @throws IllegalAccessException Thrown by tested method.
+	 * @throws InvocationTargetException Thrown by tested method.
+	 */
 	@Test
 	public void testInvokeCompatibleMethod()
 			throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
@@ -139,6 +163,15 @@ public class JReflectTest {
 		}
 	}
 
+	/**
+	 * Test for {@link JReflect#invokeCompatibleConstructor(Class, Object...)}.
+	 * 
+	 * @throws NoSuchMethodException Thrown by tested method.
+	 * @throws IllegalArgumentException Thrown by tested method.
+	 * @throws IllegalAccessException Thrown by tested method.
+	 * @throws InvocationTargetException Thrown by tested method.
+	 * @throws InstantiationException Thrown by tested method.
+	 */
 	@Test
 	public void testInvokeCompatibleConstructor()
 			throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -165,6 +198,9 @@ public class JReflectTest {
 		}
 	}
 
+	/**
+	 * Test for {@link JReflect#autobox(Class)}.
+	 */
 	@Test
 	public void testAutobox() {
 		assertSame(Boolean.class, JReflect.autobox(boolean.class));
@@ -186,6 +222,9 @@ public class JReflectTest {
 		assertNull(JReflect.autobox(Fruit.class));
 	}
 
+	/**
+	 * Test for {@link JReflect#collectTypes(Object[])}.
+	 */
 	@Test
 	public void testCollectTypes() {
 		final Class<?>[] expectedTypeList = new Class[] { Pear.class, String.class, Object.class, Double.class };
@@ -193,6 +232,9 @@ public class JReflectTest {
 		assertArrayEquals(expectedTypeList, JReflect.collectTypes(objectList));
 	}
 
+	/**
+	 * Test for {@link JReflect#isPackage(String)}.
+	 */
 	@Test
 	public void testIsPackage() {
 		assertTrue(JReflect.isPackage("java"));
@@ -201,6 +243,9 @@ public class JReflectTest {
 		assertFalse(JReflect.isPackage("org.codemonkey"));
 	}
 
+	/**
+	 * Test for {@link JReflect#widestNumberClass(Number...)}.
+	 */
 	@Test
 	public void testWidestNumberClass() {
 		byte b = 1;
@@ -224,6 +269,9 @@ public class JReflectTest {
 		assertSame(Double.class, JReflect.widestNumberClass(i, D));
 	}
 
+	/**
+	 * Test for {@link JReflect#replaceInArray(Object[], int, Object)}.
+	 */
 	@Test
 	public void testReplaceInArray() {
 		Integer[] initial = new Integer[] { 1, 2, 3, 4 };
@@ -232,6 +280,12 @@ public class JReflectTest {
 		assertArrayEquals(new Integer[] { 1, 2, 2, 4 }, second);
 	}
 
+	/**
+	 * Test for {@link JReflect#assignToField(Object, String, Object)}.
+	 * 
+	 * @throws IllegalAccessException Thrown by tested method.
+	 * @throws NoSuchFieldException Thrown by tested method.
+	 */
 	@Test
 	public void testAssignToField()
 			throws IllegalAccessException, NoSuchFieldException {
@@ -252,6 +306,9 @@ public class JReflectTest {
 		}
 	}
 
+	/**
+	 * Test for {@link JReflect#collectProperties(Object)}.
+	 */
 	@Test
 	public void testCollectProperties() {
 		Collection<String> properties = JReflect.collectProperties(new C(new Pear()));
@@ -263,6 +320,9 @@ public class JReflectTest {
 		assertTrue(properties.contains("numberC"));
 	}
 
+	/**
+	 * Test for {@link JReflect#collectMethods(Object)}.
+	 */
 	@Test
 	public void testCollectMethods() {
 		Collection<String> oProperties = JReflect.collectMethods(new Object());
@@ -275,6 +335,11 @@ public class JReflectTest {
 		assertTrue(cProperties.contains("foo"));
 	}
 
+	/**
+	 * Test for {@link JReflect#solveField(Object, String)}.
+	 * 
+	 * @throws NoSuchFieldException Thrown by tested method.
+	 */
 	@Test
 	public void testSolveField()
 			throws NoSuchFieldException {
@@ -286,6 +351,9 @@ public class JReflectTest {
 		assertEquals(C.class.getField("numberB_static"), f2);
 	}
 
+	/**
+	 * Test for {@link JReflect#locateClass(String, boolean, ExternalClassLoader)}.
+	 */
 	@Test
 	public void testLocateClass() {
 		assertSame(Math.class, JReflect.locateClass("Math", false, null));

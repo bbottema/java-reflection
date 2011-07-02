@@ -184,10 +184,19 @@ public final class ExternalClassLoader extends ClassLoader {
 	public static class CompileException extends ScriptException {
 		private static final long serialVersionUID = -7210219718456902667L;
 
+		/**
+		 * @param reason The description of the cause of the exception.
+		 */
 		public CompileException(final String reason) {
 			super(reason);
 		}
 
+		/**
+		 * Used to create an exception with a copies stacktrace (using {@link #setStackTrace(StackTraceElement[])}).
+		 * 
+		 * @param reason The description of the cause of the exception.
+		 * @param cause A thrown exception that is the cause.
+		 */
 		public CompileException(final String reason, final Throwable cause) {
 			super(reason + "\n	" + cause.toString());
 			setStackTrace(cause.getStackTrace());
@@ -203,6 +212,9 @@ public final class ExternalClassLoader extends ClassLoader {
 		this.basepath = basepath;
 	}
 
+	/**
+	 * @return {@link #basepath}
+	 */
 	public String getBasepath() {
 		return basepath;
 	}

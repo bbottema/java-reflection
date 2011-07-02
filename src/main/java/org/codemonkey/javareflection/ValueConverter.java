@@ -292,6 +292,14 @@ public final class ValueConverter {
 		throw new IncompatibleTypeException(value, value.getClass().toString(), targetType.toString());
 	}
 
+	/**
+	 * Attempts to convert a <code>String</code> to an Enum instance, by mapping to the enum's name using
+	 * {@link Enum#valueOf(Class, String)}.
+	 * 
+	 * @param value The value, which should be the name of one instance of the given enum.
+	 * @param targetType The enum type to which which we'll try to convert.
+	 * @return An enum of the given type, or <code>null</code> otherwise.
+	 */
 	public static Object convertEnum(final String value, final Class<? extends Enum<?>> targetType) {
 		if (value == null) {
 			return null;
@@ -377,14 +385,23 @@ public final class ValueConverter {
 
 		private static final String pattern = "error: unable to convert value '%s': '%s' to '%s'";
 
+		/**
+		 * @see RuntimeException#RuntimeException(String, Throwable)
+		 */
 		public IncompatibleTypeException(final String message, final Exception e) {
 			super(message, e);
 		}
 
+		/**
+		 * @see RuntimeException#RuntimeException(String)
+		 */
 		public IncompatibleTypeException(final Object value, final String className, final String targetName) {
 			super(String.format(pattern, value, className, targetName));
 		}
 
+		/**
+		 * @see RuntimeException#RuntimeException(String, Throwable)
+		 */
 		public IncompatibleTypeException(final Object value, final String className, final String targetName,
 				final Exception nestedException) {
 			super(String.format(pattern, value, className, targetName), nestedException);

@@ -28,9 +28,21 @@ public final class FieldUtils {
 	 * @author Benny Bottema
 	 */
 	public enum Visibility {
-		PRIVATE(Modifier.PRIVATE), //
+		/**
+		 * Visibility flag that corresponds with java's keyword <code>private</code>.
+		 */
+		PRIVATE(Modifier.PRIVATE),
+		/**
+		 * Visibility flag that corresponds with java's visibility modifier <code>default</code> (package protected).
+		 */
 		DEFAULT(-1), // no Java equivalent
-		PROTECTED(Modifier.PROTECTED), //
+		/**
+		 * Visibility flag that corresponds with java's keyword <code>protected</code>.
+		 */
+		PROTECTED(Modifier.PROTECTED),
+		/**
+		 * Visibility flag that corresponds with java's keyword <code>public</code>.
+		 */
 		PUBLIC(Modifier.PUBLIC);
 		private int modifierFlag;
 
@@ -46,10 +58,22 @@ public final class FieldUtils {
 	 * @author Benny Bottema
 	 */
 	public enum BeanRestriction {
-		YES_GETTER, // getter required
-		YES_SETTER, // setter required
-		NO_SETTER, // setter not allowed
-		NO_GETTER; // getter not allowed
+		/**
+		 * Restriction flag that indicates a <em>getter</em> method is required.
+		 */
+		YES_GETTER,
+		/**
+		 * Restriction flag that indicates a <em>setter</em> method is required.
+		 */
+		YES_SETTER,
+		/**
+		 * Restriction flag that indicates no <em>setter</em> must be available.
+		 */
+		NO_SETTER,
+		/**
+		 * Restriction flag that indicates a <em>getter</em> must be available.
+		 */
+		NO_GETTER;
 	}
 
 	/**

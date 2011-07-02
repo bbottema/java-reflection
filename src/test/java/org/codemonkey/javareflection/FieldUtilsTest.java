@@ -19,12 +19,12 @@ import org.codemonkey.javareflection.FieldUtils.Visibility;
 import org.junit.Test;
 
 /**
- * @author Benny Bottema
+ * Junit test for {@link FieldUtils}.
  */
 public class FieldUtilsTest {
 
 	/**
-	 * Test method for {@link org.codemonkey.javareflection.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
+	 * Test method for {@link FieldUtils#collectFields(Class, Class, EnumSet, EnumSet)}.
 	 */
 	@Test
 	public void testCollectFieldsInheritanceAndOnlyGetters() {
@@ -58,6 +58,9 @@ public class FieldUtilsTest {
 		assertNotNull(fieldWrappers.get(1).getGetter());
 	}
 
+	/**
+	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
+	 */
 	public class FieldsTestClassGrandparent {
 		protected Object field1; // yes
 		protected Object field2; // no, has setter
@@ -80,6 +83,9 @@ public class FieldUtilsTest {
 		}
 	}
 
+	/**
+	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
+	 */
 	public class FieldsTestClassParent extends FieldsTestClassGrandparent {
 		protected Object field2; // no, parent has setter
 		protected Object field3; // no, no getter
@@ -101,6 +107,9 @@ public class FieldUtilsTest {
 		}
 	}
 
+	/**
+	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
+	 */
 	public class FieldsTestClass extends FieldsTestClassParent {
 		protected Object field5; // yes
 		public Object field6; // no, not protected
@@ -111,7 +120,7 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link org.codemonkey.javareflection.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
+	 * Test method for {@link FieldUtils#collectFields(Class, Class, EnumSet, EnumSet)}.
 	 */
 	@Test
 	public void testCollectFieldsSimplButOnlySetter() {
@@ -135,7 +144,10 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link org.codemonkey.javareflection.JReflect#meetsVisibilityRequirements(java.lang.reflect.Field, java.util.EnumSet)}.
+	 * Test method for {@link FieldUtils#meetsVisibilityRequirements(Field, EnumSet)}.
+	 * 
+	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
+	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
 	 */
 	@Test
 	public void testMeetVisibilityRequirements()
@@ -182,7 +194,10 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link org.codemonkey.javareflection.FieldUtils#resolveBeanProperty(Field, EnumSet)}.
+	 * Test method for {@link FieldUtils#resolveBeanProperty(Field, EnumSet)}.
+	 * 
+	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
+	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
 	 */
 	@Test
 	public void testResolveBeanProperty()
@@ -231,9 +246,11 @@ public class FieldUtilsTest {
 		assertNull(FieldUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER)));
 		assertNull(FieldUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER)));
 	}
-
 	/**
-	 * Test method for {@link org.codemonkey.javareflection.FieldUtils#resolveBeanProperty(Field, EnumSet)}.
+	 * Test method for {@link FieldUtils#resolveBeanProperty(Field, EnumSet)}.
+	 * 
+	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
+	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
 	 */
 	@Test
 	public void testResolvePrimitiveBooleanProperty()
@@ -250,8 +267,10 @@ public class FieldUtilsTest {
 	}
 
 	/**
-	 * Test method for
-	 * {@link org.codemonkey.javareflection.FieldUtils#meetsBeanRestrictions(Field, org.codemonkey.javareflection.FieldUtils.BeanRestriction)}.
+	 * Test method for {@link FieldUtils#resolveBeanProperty(Field, EnumSet)}.
+	 * 
+	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
+	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
 	 */
 	@Test
 	public void testResolveBeanPropertyExceptions()

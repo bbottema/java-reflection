@@ -14,20 +14,36 @@ public class FieldWrapper {
 	private final Method getter;
 	private final Method setter;
 
+	/**
+	 * Initializes the wrapper with field, getter and setter, all optional.
+	 * 
+	 * @param field
+	 * @param getter
+	 * @param setter
+	 */
 	public FieldWrapper(final Field field, final Method getter, final Method setter) {
 		this.field = field;
 		this.getter = getter;
 		this.setter = setter;
 	}
 
+	/**
+	 * @return {@link #field}.
+	 */
 	public Field getField() {
 		return field;
 	}
 
+	/**
+	 * @return {@link #getter}.
+	 */
 	public Method getGetter() {
 		return getter;
 	}
 
+	/**
+	 * @return {@link #setter}.
+	 */
 	public Method getSetter() {
 		return setter;
 	}
