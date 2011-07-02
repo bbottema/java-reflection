@@ -211,6 +211,10 @@ public final class JReflect {
 
 	/**
 	 * Simply calls {@link Class#newInstance()} and hides the exception handling boilerplate code.
+	 * 
+	 * @param _class The datatype for which we need to create a new instance of.
+	 * @param <T> Type used to parameterize the return instance.
+	 * @return A new parameterized instance of the given type.
 	 */
 	public static <T> T newInstanceSimple(final Class<T> _class) {
 		// /CLOVER:OFF
@@ -286,8 +290,9 @@ public final class JReflect {
 	}
 
 	/**
-	 * Locates and invokes a {@link Constructor}.
+	 * Locates and invokes a {@link Constructor}using {@link #invokeConstructor(Class, Class[], Object[])}
 	 * 
+	 * @param <T> Used to parameterize the returned object so that the caller doesn't need to cast.
 	 * @param datatype The class to find the constructor for.
 	 * @param args A list of [non-formal] arguments.
 	 * @return The instantiated object of class datatype.
@@ -307,6 +312,7 @@ public final class JReflect {
 	 * Locates and invokes a {@link Constructor}, using a customized typelist. Avoids dynamically trying to find correct parameter type
 	 * list. Can also be used to force up/down casting (ie. passing a specific type of <code>List</code> into a generic type)
 	 * 
+	 * @param <T> Used to parameterize the returned object so that the caller doesn't need to cast.
 	 * @param datatype The class to find the constructor for.
 	 * @param signature The typelist used to find correct constructor.
 	 * @param args A list of [non-formal] arguments.
@@ -372,7 +378,9 @@ public final class JReflect {
 	 * simpletypes. This expanded version tries a simple call first and when it fails, it generates a list of type arrays with all possible
 	 * (un)wraps of any type in the original list possible, and combinations thereof.
 	 * 
+	 * @param <T> Used to parameterize the returned constructor.
 	 * @param datatype The class to get the constructor from.
+	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param types The list of types as specified by the user.
 	 * @return The constructor if found, otherwise exception is thrown.
 	 * @exception NoSuchMethodException
@@ -413,11 +421,13 @@ public final class JReflect {
 	}
 
 	/**
-	 * Delegates to {@link #findCompatibleMethod(Class, String, int, Class[])}, using strict lookupmode (no autoboxing, casting etc.) and
-	 * optional signature parameters.<br />
-	 * <br />
-	 * Returns <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
+	 * Delegates to {@link #findCompatibleMethod(Class, String, EnumSet, Class...)}, using strict lookupmode (no autoboxing, casting etc.)
+	 * and optional signature parameters.
 	 * 
+	 * @param datatype The class to get the constructor from.
+	 * @param methodName The name of the method to retrieve from the class.
+	 * @param signature The list of types as specified by the user.
+	 * @return <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
 	 * @see #findCompatibleMethod(Class, String, EnumSet, Class...)
 	 */
 	public static Method findSimpleCompatibleMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
@@ -433,29 +443,29 @@ public final class JReflect {
 	 * should be located.
 	 * 
 	 * @param datatype The class to get the constructor from.
-	 * @param name The name of the method to retrieve from the class.
+	 * @param methodName The name of the method to retrieve from the class.
 	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param signature The list of types as specified by the user.
 	 * @return The method if found, otherwise exception is thrown.
 	 * @exception NoSuchMethodException
 	 */
-	public static Method findCompatibleMethod(final Class<?> datatype, final String name, final EnumSet<LookupMode> lookupMode,
+	public static Method findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
 			final Class<?>... signature)
 			throws NoSuchMethodException {
 		// first try to find the method in the method cache
-		Method method = (Method) getMethodFromCache(datatype, name, signature);
+		Method method = (Method) getMethodFromCache(datatype, methodName, signature);
 		if (method != null) {
 			return method;
 		} else {
 			try {
 				// try standard call
-				method = getMethod(datatype, name, signature);
+				method = getMethod(datatype, methodName, signature);
 			} catch (final NoSuchMethodException e) {
 				// failed, try all possible wraps/unwraps
 				final List<Class<?>[]> signatures = generateCompatibleSignatures(lookupMode, signature);
 				for (final Class<?>[] compatibleSignature : signatures) {
 					try {
-						method = getMethod(datatype, name, compatibleSignature);
+						method = getMethod(datatype, methodName, compatibleSignature);
 						break;
 					} catch (final NoSuchMethodException x) {
 						// do nothing
@@ -466,7 +476,7 @@ public final class JReflect {
 
 		// if a method was found (and it wasn't in the cache, because method would've returned already)
 		if (method != null) {
-			addMethodToCache(datatype, name, method, signature);
+			addMethodToCache(datatype, methodName, method, signature);
 			return method;
 		} else {
 			throw new NoSuchMethodException();
@@ -717,7 +727,7 @@ public final class JReflect {
 	 * @return The actual value that was assigned (the original or the converted value).
 	 * @throws IllegalAccessException Thrown by {@link Field#set(Object, Object)}
 	 * @throws NoSuchFieldException
-	 * @see {@link ValueConverter#convert(Object, Class)}
+	 * @see ValueConverter#convert(Object, Class)
 	 */
 	public static Object assignToField(final Object o, final String property, final Object value)
 			throws IllegalAccessException, NoSuchFieldException {
