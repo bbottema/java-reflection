@@ -81,14 +81,14 @@
 		<attribute name="private" />
 		<sequential>
 			<mkdir dir="@{dest.dir}"/>
-			<javadoc packagenames="org.codemonkey.simplejavamail.*"
+			<javadoc packagenames="org.codemonkey.javareflection.*"
 		           classpathref="compiletime-libraries"
 		           sourcepath="${src.dir}"
 		           destdir="@{dest.dir}"
 		           author="true"
 		           version="true"
 		           use="true"
-		           windowtitle="Simple Java Mail API"
+		           windowtitle="Java Reflection Utilities"
 							 linksource="true"
 							 Private="@{private}">
 		    <doctitle><![CDATA[<h1>Simple Java Mail</h1>]]></doctitle>
