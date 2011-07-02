@@ -14,7 +14,6 @@ import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.List;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.codemonkey.util.reflect.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
