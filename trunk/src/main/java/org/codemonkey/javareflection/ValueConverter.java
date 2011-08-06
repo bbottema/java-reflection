@@ -388,6 +388,7 @@ public final class ValueConverter {
 		/**
 		 * @see RuntimeException#RuntimeException(String, Throwable)
 		 */
+		@SuppressWarnings("javadoc")
 		public IncompatibleTypeException(final String message, final Exception e) {
 			super(message, e);
 		}
@@ -395,6 +396,7 @@ public final class ValueConverter {
 		/**
 		 * @see RuntimeException#RuntimeException(String)
 		 */
+		@SuppressWarnings("javadoc")
 		public IncompatibleTypeException(final Object value, final String className, final String targetName) {
 			super(String.format(pattern, value, className, targetName));
 		}
@@ -402,6 +404,7 @@ public final class ValueConverter {
 		/**
 		 * @see RuntimeException#RuntimeException(String, Throwable)
 		 */
+		@SuppressWarnings("javadoc")
 		public IncompatibleTypeException(final Object value, final String className, final String targetName,
 				final Exception nestedException) {
 			super(String.format(pattern, value, className, targetName), nestedException);
