@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class utilizes the functionality of the Java class <code>java.lang.reflect</code>. Specifically, this reflection tool is designed to
- * perform advanced method or constructor lookups, using a combination of {@link LookupMode} values.
+ * This class utilizes functionality of the Java class <code>java.lang.reflect</code>. Specifically, this reflection tool is designed to
+ * perform advanced method or constructor lookups, using a combination of {@link LookupMode} strategies.
  * <p>
  * Aside from that there are some nifty methods for things such as:
  * <ul>
@@ -25,7 +25,7 @@ import java.util.Map;
  * <li>a method to autobox a given value to its counterpart ({@link #autobox(Class)}),</li>
  * <li>A couple of methods to resolve a direct property of a given object (though they may move to {@link FieldUtils}),</li>
  * <li>Various handy methods for collecting information on a given <code>Object</code>, such as list of methods, properties or types</li>
- * <li><strong>An advanced <code>Class</code> lookup</strong> ({@link #locateClass(String, boolean, ExternalClassLoader)}), that allows a
+ * <li>An advanced <code>Class</code> lookup ({@link #locateClass(String, boolean, ExternalClassLoader)}), that allows a
  * full scan (to try all packages known) and an optional {@link ExternalClassLoader} instance that is able to actually compile a .java file
  * on the fly and load its compile .class file</li>
  * </ul>

@@ -21,6 +21,7 @@ import org.junit.Test;
 /**
  * Junit test for {@link FieldUtils}.
  */
+@SuppressWarnings("javadoc")
 public class FieldUtilsTest {
 
 	/**
