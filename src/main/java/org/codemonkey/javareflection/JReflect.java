@@ -25,9 +25,9 @@ import java.util.Map;
  * <li>a method to autobox a given value to its counterpart ({@link #autobox(Class)}),</li>
  * <li>A couple of methods to resolve a direct property of a given object (though they may move to {@link FieldUtils}),</li>
  * <li>Various handy methods for collecting information on a given <code>Object</code>, such as list of methods, properties or types</li>
- * <li>An advanced <code>Class</code> lookup ({@link #locateClass(String, boolean, ExternalClassLoader)}), that allows a
- * full scan (to try all packages known) and an optional {@link ExternalClassLoader} instance that is able to actually compile a .java file
- * on the fly and load its compile .class file</li>
+ * <li>An advanced <code>Class</code> lookup ({@link #locateClass(String, boolean, ExternalClassLoader)}), that allows a full scan (to try
+ * all packages known) and an optional {@link ExternalClassLoader} instance that is able to actually compile a .java file on the fly and
+ * load its compile .class file</li>
  * </ul>
  * <strong>About the method / constructor lookup facility:</strong>
  * <p>
@@ -77,11 +77,13 @@ import java.util.Map;
  * </ul>
  * <p>
  * For types that are candidates for common conversion, please see {@link ValueConverter}.
+ * <p>
+ * FIXME make JReflect cache optional
  * 
  * @author Benny Bottema
  * @see ValueConverter
  * @see FieldUtils
- * @see ExternalClassLoader FIXME make JReflect cache optional
+ * @see ExternalClassLoader
  */
 public final class JReflect {
 
@@ -249,11 +251,11 @@ public final class JReflect {
 	 * @param datatype The class to find the method on.
 	 * @param identifier The name of the method to locate.
 	 * @param args A list of [non-formal] arguments.
-	 * @return The return value of the invoke method, if succesful.
-	 * @throws NoSuchMethodException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
+	 * @return The return value of the invoke method, if successful.
+	 * @throws NoSuchMethodException Thrown by {@link #findCompatibleMethod(Class, String, EnumSet, Class...)}.
+	 * @throws IllegalArgumentException Thrown by {@link Method#invoke(Object, Object...)}.
+	 * @throws IllegalAccessException Thrown by {@link Method#invoke(Object, Object...)}.
+	 * @throws InvocationTargetException Thrown by {@link Method#invoke(Object, Object...)}.
 	 */
 	public static Object invokeCompatibleMethod(final Object context, final Class<?> datatype, final String identifier,
 			final Object... args)
@@ -296,10 +298,10 @@ public final class JReflect {
 	 * @param datatype The class to find the constructor for.
 	 * @param args A list of [non-formal] arguments.
 	 * @return The instantiated object of class datatype.
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 * @throws InstantiationException
-	 * @throws NoSuchMethodException
+	 * @throws IllegalAccessException Thrown by {@link #invokeConstructor(Class, Class[], Object[])}.
+	 * @throws InvocationTargetException Thrown by {@link #invokeConstructor(Class, Class[], Object[])}.
+	 * @throws InstantiationException Thrown by {@link #invokeConstructor(Class, Class[], Object[])}.
+	 * @throws NoSuchMethodException Thrown by {@link #invokeConstructor(Class, Class[], Object[])}.
 	 * @see java.lang.reflect.Constructor#newInstance(Object[])
 	 */
 	public static <T> T invokeCompatibleConstructor(final Class<T> datatype, final Object... args)
@@ -317,10 +319,10 @@ public final class JReflect {
 	 * @param signature The typelist used to find correct constructor.
 	 * @param args A list of [non-formal] arguments.
 	 * @return The instantiated object of class datatype.
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 * @throws InstantiationException
-	 * @throws NoSuchMethodException
+	 * @throws IllegalAccessException Thrown by {@link Constructor#newInstance(Object...)}.
+	 * @throws InvocationTargetException Thrown by {@link Constructor#newInstance(Object...)}.
+	 * @throws InstantiationException Thrown by {@link Constructor#newInstance(Object...)}.
+	 * @throws NoSuchMethodException Thrown by {@link #findCompatibleConstructor(Class, EnumSet, Class...)}.
 	 * @see java.lang.reflect.Constructor#newInstance(Object[])
 	 */
 	public static <T> T invokeConstructor(final Class<T> datatype, final Class<?>[] signature, final Object[] args)
@@ -374,8 +376,8 @@ public final class JReflect {
 	}
 
 	/**
-	 * Tries to find a {@link Constructor} of a given type, with a given typelist, where types do not match due to formal types <!=>
-	 * simpletypes. This expanded version tries a simple call first and when it fails, it generates a list of type arrays with all possible
+	 * Tries to find a {@link Constructor} of a given type, with a given typelist, where types do not match due to formal types <!=> simple
+	 * types. This expanded version tries a simple call first and when it fails, it generates a list of type arrays with all possible
 	 * (un)wraps of any type in the original list possible, and combinations thereof.
 	 * 
 	 * @param <T> Used to parameterize the returned constructor.
@@ -383,7 +385,8 @@ public final class JReflect {
 	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param types The list of types as specified by the user.
 	 * @return The constructor if found, otherwise exception is thrown.
-	 * @exception NoSuchMethodException
+	 * @exception NoSuchMethodException Thrown when the {@link Constructor} could not be found on the data type, even after performing
+	 *                optional conversions.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Constructor<T> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode,
@@ -447,7 +450,8 @@ public final class JReflect {
 	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param signature The list of types as specified by the user.
 	 * @return The method if found, otherwise exception is thrown.
-	 * @exception NoSuchMethodException
+	 * @exception NoSuchMethodException Thrown when the {@link Method} could not be found on the data type, even after performing optional
+	 *                conversions.
 	 */
 	public static Method findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
 			final Class<?>... signature)
@@ -485,7 +489,7 @@ public final class JReflect {
 
 	/**
 	 * Searches a specific class object for a {@link Method} using java reflect using a specific signature. This method will first search
-	 * all implemented interfaces for the method to avoid visiblity problems.<br />
+	 * all implemented interfaces for the method to avoid visibility problems.<br />
 	 * <br />
 	 * An example of such a problem is the <code>Iterator</code> as implemented by the <code>ArrayList</code>. The Iterator is implemented
 	 * as a private innerclass and as such not accessible by java reflect (even though the implemented methods are declared <i>public</i>),
@@ -494,8 +498,9 @@ public final class JReflect {
 	 * @param datatype The class reference to locate the method on.
 	 * @param name The name of the method to find.
 	 * @param signature The signature the method should match.
-	 * @return The Method found on the datatype that matched the specified signature.
-	 * @throws NoSuchMethodException
+	 * @return The Method found on the data type that matched the specified signature.
+	 * @exception NoSuchMethodException Thrown when the {@link Method} could not be found on the interfaces implemented by the given data
+	 *                type.
 	 * @see java.lang.Class#getMethod(String, Class[])
 	 */
 	public static Method getMethod(final Class<?> datatype, final String name, final Class<?>... signature)
@@ -726,7 +731,8 @@ public final class JReflect {
 	 * @param value The value to assign to the field, may be converted to the field's type through common conversion.
 	 * @return The actual value that was assigned (the original or the converted value).
 	 * @throws IllegalAccessException Thrown by {@link Field#set(Object, Object)}
-	 * @throws NoSuchFieldException
+	 * @throws NoSuchFieldException Thrown if the {@link Field} could not be found, even after trying to convert the value to the target
+	 *             type.
 	 * @see ValueConverter#convert(Object, Class)
 	 */
 	public static Object assignToField(final Object o, final String property, final Object value)
