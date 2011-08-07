@@ -91,7 +91,7 @@
 		           windowtitle="Java Reflection Utilities"
 							 linksource="true"
 							 Private="@{private}">
-		    <doctitle><![CDATA[<h1>Simple Java Mail</h1>]]></doctitle>
+		    <doctitle><![CDATA[<h1>Java Reflection</h1>]]></doctitle>
 		    <bottom><![CDATA[<i>Copyright &#169; 2009 under Apache v2 license.</i>]]></bottom>
 		    <link href="http://java.sun.com/products/javamail/javadocs/"/>
 		    <link href="http://java.sun.com/javase/6/docs/api/"/>
