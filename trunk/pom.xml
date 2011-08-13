@@ -1,0 +1,80 @@
+<project>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+  
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.codemonkey.javareflection</groupId>
+  <artifactId>java-reflection</artifactId>
+  <packaging>jar</packaging>
+  <name>Java Reflection</name>
+  <version>1.1</version>
+  <description>Java Reflection provides a small package with nifty reflection features that will help with finding constructors, methods and value conversions</description>
+  <url>http://code.google.com/p/java-reflection/</url>
+  
+  <licenses>
+    <license>
+      <name>MIT license</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <scm>
+    <connection>scm:svn:http://java-reflection.googlecode.com/svn/tags/v1.1/</connection>
+    <developerConnection>scm:svn:https://java-reflection.googlecode.com/svn/tags/v1.1/</developerConnection>
+    <url>http://java-reflection.googlecode.com/svn/tags/v1.1/</url>
+  </scm>
+  
+  <developers>
+    <developer>
+      <id>benny</id>
+      <name>Benny Bottema</name>
+      <email>b.bottema@projectnibble.org</email>
+      <url>http://blog.projectnibble.org</url>
+      <roles>
+        <role>developer</role>
+        <role>packager</role>
+      </roles>
+    </developer>
+  </developers>
+  
+  <issueManagement>
+	<system>Google Code</system>
+	<url>http://code.google.com/p/java-reflection/issues/</url>
+  </issueManagement>
+  
+  <dependencies>
+    <dependency>
+	    <groupId>commons-lang</groupId>
+	    <artifactId>commons-lang</artifactId>
+	    <version>2.5</version>
+	</dependency>
+	<dependency>
+	    <groupId>junit</groupId>
+	    <artifactId>junit</artifactId>
+	    <version>4.8.1</version>
+	</dependency>
+  </dependencies>
+  
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
