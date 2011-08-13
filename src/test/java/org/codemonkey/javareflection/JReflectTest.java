@@ -239,7 +239,7 @@ public class JReflectTest {
 	public void testIsPackage() {
 		assertTrue(JReflect.isPackage("java"));
 		assertTrue(JReflect.isPackage("java.util"));
-		assertTrue(JReflect.isPackage("org.codemonkey.util.reflect"));
+		assertTrue(JReflect.isPackage("org.codemonkey.javareflection"));
 		assertFalse(JReflect.isPackage("org.codemonkey"));
 	}
 
