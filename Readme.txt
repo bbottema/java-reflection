@@ -1,6 +1,6 @@
 Here are some basic instructions to build and compile or run junit tests.
 
-With Ant (default target is 'test'):
+With Ant (default target is 'run'):
 
 ant clean:
 - deletes the entire target folder

@@ -17,9 +17,9 @@ public class FieldWrapper {
 	/**
 	 * Initializes the wrapper with field, getter and setter, all optional.
 	 * 
-	 * @param field A {@link Field}.
-	 * @param getter A getter {@link Method} for the field.
-	 * @param setter A setter {@link Method} for the field.
+	 * @param field
+	 * @param getter
+	 * @param setter
 	 */
 	public FieldWrapper(final Field field, final Method getter, final Method setter) {
 		this.field = field;

@@ -114,9 +114,9 @@ public final class ValueConverter {
 	 * </ol>
 	 * 
 	 * @param value The value to convert.
-	 * @param targetType The target data type the value should be converted into.
-	 * @return The converted value according the specified target data type.
-	 * @throws IncompatibleTypeException Thrown by the various <code>convert()</code> methods used.
+	 * @param targetType The target datatype the value should be converted into.
+	 * @return The converted value according the specified target datatype.
+	 * @throws IncompatibleTypeException
 	 */
 	public static Object convert(final Object value, final Class<?> targetType)
 			throws IncompatibleTypeException {
@@ -157,7 +157,7 @@ public final class ValueConverter {
 	 * @param value The number to convert.
 	 * @param targetType The target datatype the number should be converted into.
 	 * @return The converted number.
-	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
+	 * @throws IncompatibleTypeException
 	 */
 	public static Object convert(final Number value, final Class<?> targetType)
 			throws IncompatibleTypeException {
@@ -194,7 +194,7 @@ public final class ValueConverter {
 	 * @param value The boolean to convert.
 	 * @param targetType The target datatype the boolean should be converted into.
 	 * @return The converted boolean.
-	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
+	 * @throws IncompatibleTypeException
 	 */
 	@SuppressWarnings("unchecked")
 	public static Object convert(final Boolean value, final Class<?> targetType)
@@ -221,7 +221,7 @@ public final class ValueConverter {
 	 * @param value The character to convert.
 	 * @param targetType The target datatype the character should be converted into.
 	 * @return The converted character.
-	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
+	 * @throws IncompatibleTypeException
 	 */
 	@SuppressWarnings("unchecked")
 	public static Object convert(final Character value, final Class<?> targetType)
@@ -256,7 +256,7 @@ public final class ValueConverter {
 	 * @param value The string to convert.
 	 * @param targetType The target datatype the string should be converted into.
 	 * @return The converted string.
-	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
+	 * @throws IncompatibleTypeException
 	 */
 	@SuppressWarnings("unchecked")
 	public static Object convert(final String value, final Class<?> targetType)
@@ -388,7 +388,6 @@ public final class ValueConverter {
 		/**
 		 * @see RuntimeException#RuntimeException(String, Throwable)
 		 */
-		@SuppressWarnings("javadoc")
 		public IncompatibleTypeException(final String message, final Exception e) {
 			super(message, e);
 		}
@@ -396,7 +395,6 @@ public final class ValueConverter {
 		/**
 		 * @see RuntimeException#RuntimeException(String)
 		 */
-		@SuppressWarnings("javadoc")
 		public IncompatibleTypeException(final Object value, final String className, final String targetName) {
 			super(String.format(pattern, value, className, targetName));
 		}
@@ -404,7 +402,6 @@ public final class ValueConverter {
 		/**
 		 * @see RuntimeException#RuntimeException(String, Throwable)
 		 */
-		@SuppressWarnings("javadoc")
 		public IncompatibleTypeException(final Object value, final String className, final String targetName,
 				final Exception nestedException) {
 			super(String.format(pattern, value, className, targetName), nestedException);

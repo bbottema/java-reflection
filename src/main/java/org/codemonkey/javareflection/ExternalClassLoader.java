@@ -65,7 +65,7 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * 
 	 * @param className The path and name to the classfile.
 	 * @return The requested class reference.
-	 * @throws ClassNotFoundException Thrown by {@link #findSystemClass(String)}.
+	 * @throws ClassNotFoundException
 	 */
 	@Override
 	public final Class<?> findClass(final String className)
