@@ -1,0 +1,13 @@
+  =========================================================================
+  ==  NOTICE file for use with the Apache License, Version 2.0           ==
+  =========================================================================
+  
+  Java Reflection
+  Copyright 2009-2012 B. Bottema
+  
+  This product uses no commercial products.
+  
+  This product uses the following external (Open Source) libraries:
+  
+    - Apache commons-lang-2.5.jar (http://commons.apache.org/lang/)
+    - junit-4.8.1.jar (http://www.junit.org/)
