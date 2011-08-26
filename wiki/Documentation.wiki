@@ -6,6 +6,8 @@ Aside from a variety of utility functions, this library mainly aims to ease meth
 
 Normal JDK method matching throguh reflection is very strict on the exact argument class types, but with this Java Reflection Library, this is much easier and more robust (and performs better).
 
+The main reason this project is available as open source is because it is a dependency of the [https://code.google.com/p/swift-socket-server/ Swift Socket Server] project, yet merited a project of its own.
+
 === Documentation ===
 
 Because of the size and nature of this little project, about four utility classes with only `static` methods, I will refer to the JavaDoc for all documentation.
