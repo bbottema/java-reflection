@@ -4,7 +4,7 @@ Java Reflection provides a small package with nifty Java reflection methods.
 
 Aside from a variety of utility functions, this library mainly aims to ease method/constructor lookups, using value conversions, such as autoboxing, auto casting, but also commons value conversions (such as Boolean to String and many more).
 
-Normal JDK method matching throguh reflection is very strict on the exact argument class types, but with this Java Reflection Library, this is much easier and more robust (and performs better).
+Normal JDK method matching through reflection is very strict on the exact argument class types, but with this Java Reflection Library, this is much easier and more robust (and performs better).
 
 The main reason this project is available as open source is because it is a dependency of the [https://code.google.com/p/swift-socket-server/ Swift Socket Server] project, yet merited a project of its own.
 
