@@ -239,19 +239,13 @@ public class ValueConverterTest {
 		assertEquals("h", ValueConverter.convert('h', String.class));
 		assertTrue((Boolean) ValueConverter.convert('1', Boolean.class));
 		assertFalse((Boolean) ValueConverter.convert('0', Boolean.class));
+		assertTrue((Boolean) ValueConverter.convert('h', Boolean.class));
 		assertEquals(9, ValueConverter.convert('9', Integer.class));
 		assertEquals(9, ValueConverter.convert('9', Number.class));
 		assertEquals(9d, ValueConverter.convert('9', Double.class));
 
 		try {
 			ValueConverter.convert('5', Calendar.class);
-			fail("should not be able to convert value");
-		} catch (IncompatibleTypeException e) {
-			// OK
-		}
-
-		try {
-			ValueConverter.convert('h', Boolean.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK
@@ -279,12 +273,7 @@ public class ValueConverterTest {
 		assertEquals('h', ValueConverter.convert("h", char.class));
 		assertEquals("h", ValueConverter.convert("h", String.class));
 		assertSame(TestEnum.ONE, ValueConverter.convert("ONE", TestEnum.class));
-		try {
-			ValueConverter.convert("h", Boolean.class);
-			fail("should not be able to convert value");
-		} catch (IncompatibleTypeException e) {
-			// OK
-		}
+		assertTrue((Boolean) ValueConverter.convert("h", Boolean.class));
 		try {
 			ValueConverter.convert("falsef", Boolean.class);
 			fail("should not be able to convert value");
