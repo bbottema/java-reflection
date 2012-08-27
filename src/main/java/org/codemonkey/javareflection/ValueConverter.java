@@ -107,10 +107,11 @@ public final class ValueConverter {
 	 * <br />
 	 * First checks if the input and output types aren't the same. Then the conversions are checked for and done in the following order:
 	 * <ol>
-	 * <li>conversion to <code>String</code></li>
-	 * <li>conversion to any {@link Number}</li>
-	 * <li>conversion to <code>Boolean</code></li>
-	 * <li>conversion to <code>Character</code></li>
+	 * <li>conversion to <code>String</code> (value.toString())</li>
+	 * <li>conversion from <code>String</code> ({@link #convert(String, Class)})</li>
+	 * <li>conversion to any {@link Number} ({@link #convert(Number, Class)})</li>
+	 * <li>conversion to <code>Boolean</code> ({@link #convert(Boolean, Class)})</li>
+	 * <li>conversion to <code>Character</code> ({@link #convert(Character, Class)})</li>
 	 * </ol>
 	 * 
 	 * @param value The value to convert.
@@ -153,6 +154,19 @@ public final class ValueConverter {
 	 * <p>
 	 * <strong>NOTE: </strong> precision may be lost when converting from a wide number to a narrower number (say float to integer). These
 	 * conversions are done by simply calling {@link Number#intValue()} and {@link Number#floatValue()} etc.
+	 * <p>
+	 * Conversions are as follows:
+	 * <ol>
+	 * <li><strong>String</strong>: <code>value.toString()</code></li>
+	 * <li><strong>Integer</strong>: <code>value.intValue()</code></li>
+	 * <li><strong>Boolean</strong>: <code>value.intValue() > 0</code></li>
+	 * <li><strong>Float</strong>: <code>value.floatValue()</code></li>
+	 * <li><strong>Double</strong>: <code>value.doubleValue()</code></li>
+	 * <li><strong>Long</strong>: <code>value.longValue()</code></li>
+	 * <li><strong>Byte</strong>: <code>value.byteValue()</code></li>
+	 * <li><strong>Short</strong>: <code>value.shortValue()</code></li>
+	 * <li><strong>Character</strong>: <code>Character.forDigit(value, 10)</code> ({@link Character#forDigit(int, int)})</code></li>
+	 * </ol>
 	 * 
 	 * @param value The number to convert.
 	 * @param targetType The target datatype the number should be converted into.
@@ -190,6 +204,14 @@ public final class ValueConverter {
 
 	/**
 	 * Attempts to convert a <code>Boolean</code> to the target datatype.
+	 * <p>
+	 * Conversions are as follows:
+	 * <ol>
+	 * <li><strong>Boolean (or boolean)</strong>: <code>value</code></li>
+	 * <li><strong>String</strong>: <code>value.toString()</code></li>
+	 * <li><strong>Number (or primitive number)</strong>: <code>convertNumber(value ? "1" : "0")</code> ({@link #convertNumber(String, Class)})</li>
+	 * <li><strong>Character (or character)</strong>: <code>value ? '1' : '0'</code></li>
+	 * </ol>
 	 * 
 	 * @param value The boolean to convert.
 	 * @param targetType The target datatype the boolean should be converted into.
@@ -217,6 +239,14 @@ public final class ValueConverter {
 
 	/**
 	 * Attempts to convert a <code>Character</code> to the target datatype.
+	 * <p>
+	 * Conversions are as follows:
+	 * <ol>
+	 * <li><strong>String</strong>: <code>value.toString()</code></li>
+	 * <li><strong>Character (or primitive character)</strong>: <code>value</code></li>
+	 * <li><strong>Number (or primitive number)</strong>: <code>convertNumber(String.valueOf(value))</code> ({@link #convertNumber(String, Class)})</li>
+	 * <li><strong>Boolean (or boolean)</strong>: <code>!value.equals('0')</code></li>
+	 * </ol>
 	 * 
 	 * @param value The character to convert.
 	 * @param targetType The target datatype the character should be converted into.
@@ -238,13 +268,7 @@ public final class ValueConverter {
 			return convertNumber(String.valueOf(value), (Class<Number>) targetType);
 		} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
 			// convert Character to Boolean
-			if (value.equals('0')) {
-				return false;
-			} else if (value.equals('1')) {
-				return true;
-			} else {
-				// Character incompatible with type Boolean
-			}
+			return !value.equals('0');
 		}
 		// Character incompatible with type targetType
 		throw new IncompatibleTypeException(value, Character.class.toString(), targetType.toString());
@@ -252,6 +276,24 @@ public final class ValueConverter {
 
 	/**
 	 * Attempts to convert a <code>String</code> to the target datatype.
+	 * <p>
+	 * Conversions are as follows:
+	 * <ol>
+	 * <li><strong>String</strong>: <code>value</code></li>
+	 * <li><strong>Enum type</strong>: <code>convertEnum(value)</code> ({@link #convertEnum(String, Class)})</li>
+	 * <li><strong>with source string length == 1</strong>
+	 * <ol>
+	 * <li><strong>Character</strong>: <code>value.charAt(0)</code></li>
+	 * <li><strong>Otherwise</strong>: <code>convert(value.charAt(0))</code> ({@link #convert(Character, Class)})</li>
+	 * </ol>
+	 * </li>
+	 * <li><strong>with source string length > 1</strong>
+	 * <ol>
+	 * <li><strong>Number (or primitive number)</strong>: <code>convertNumber(value)</code> ({@link #convertNumber(String, Class)})</li>
+	 * <li><strong>Boolean (or primitive boolean)</strong>: <code>value.equalsIgnoreCase("true") ? true : value.equalsIgnoreCase("false") ? false : nothing (IncompatibleTypeException)</code></li>
+	 * </ol>
+	 * </li>
+	 * </ol>
 	 * 
 	 * @param value The string to convert.
 	 * @param targetType The target datatype the string should be converted into.
@@ -279,9 +321,9 @@ public final class ValueConverter {
 				return convertNumber(value, (Class<? extends Number>) targetType);
 			} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
 				// convert String to Boolean
-				if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("0")) {
+				if (value.equalsIgnoreCase("false")) {
 					return false;
-				} else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("1")) {
+				} else if (value.equalsIgnoreCase("true")) {
 					return true;
 				} else {
 					// String incompatible with type Boolean
@@ -326,6 +368,18 @@ public final class ValueConverter {
 
 	/**
 	 * Attempts to convert a <code>String</code> to the specified <code>Number</code> type.
+	 * <p>
+	 * Conversions are as follows:
+	 * <ol>
+	 * <li><strong>Integer (or primitive int)</strong>: <code>Integer.parseInt(value)</code></li>
+	 * <li><strong>Byte (or primitive byte)</strong>: <code>Byte.parseByte(value)</code></li>
+	 * <li><strong>Short (or primitive short)</strong>: <code>Short.parseShort(value)</code></li>
+	 * <li><strong>Long (or primitive long)</strong>: <code>Long.parseLong(value)</code></li>
+	 * <li><strong>Float (or primitive float)</strong>: <code>Float.parseFloat(value)</code></li>
+	 * <li><strong>Double (or primitive double)</strong>: <code>Double.parseDouble(value)</code></li>
+	 * <li><strong>BigInteger</strong>: <code>BigInteger.valueOf(Long.parseLong(value))</code></li>
+	 * <li><strong>BigDecimal</strong>: <code>BigDecimal.valueOf(Long.parseLong(value))</code></li>
+	 * </ol>
 	 * 
 	 * @param value The string value which should be a number.
 	 * @param numberType The <code>Class</code> type that should be one of <code>Number</code>.

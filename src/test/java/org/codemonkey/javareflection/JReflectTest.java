@@ -240,6 +240,9 @@ public class JReflectTest {
 		assertTrue(JReflect.isPackage("java"));
 		assertTrue(JReflect.isPackage("java.util"));
 		assertTrue(JReflect.isPackage("org.codemonkey.javareflection"));
+		assertTrue(JReflect.isPackage("java.lang.reflect"));
+		assertTrue(JReflect.isPackage("org.junit"));
+		assertFalse(JReflect.isPackage("donkey.cake"));
 		assertFalse(JReflect.isPackage("org.codemonkey"));
 	}
 
@@ -263,6 +266,7 @@ public class JReflectTest {
 		assertSame(Short.class, JReflect.widestNumberClass(s, b));
 		assertSame(Byte.class, JReflect.widestNumberClass(b, B));
 		assertSame(Byte.class, JReflect.widestNumberClass(B, b));
+		assertSame(Integer.class, JReflect.widestNumberClass(b, s, i));
 		assertSame(Double.class, JReflect.widestNumberClass(b, s, i, l, f, d));
 		assertSame(Double.class, JReflect.widestNumberClass(B, S, I, L, F, D));
 		assertSame(Long.class, JReflect.widestNumberClass(L));
