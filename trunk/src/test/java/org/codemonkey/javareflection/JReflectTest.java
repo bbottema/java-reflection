@@ -1,14 +1,5 @@
 package org.codemonkey.javareflection;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -18,10 +9,18 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.EnumSet;
 
-import org.codemonkey.javareflection.JReflect;
 import org.codemonkey.javareflection.JReflect.LookupMode;
 import org.codemonkey.javareflection.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Junit test for {@link JReflect}.
@@ -324,20 +323,52 @@ public class JReflectTest {
 		assertTrue(properties.contains("numberC"));
 	}
 
-	/**
-	 * Test for {@link JReflect#collectMethods(Object)}.
-	 */
-	@Test
-	public void testCollectMethods() {
-		Collection<String> oProperties = JReflect.collectMethods(new Object());
-		Collection<String> cProperties = JReflect.collectMethods(new C(new Pear()));
-		assertNotNull(oProperties);
-		assertTrue(oProperties.size() > 0);
-		assertEquals(oProperties.size() + 1, cProperties.size());
-		cProperties.removeAll(oProperties);
-		assertEquals(1, cProperties.size());
-		assertTrue(cProperties.contains("foo"));
-	}
+    /**
+     * Test for {@link JReflect#collectMethods(Object, boolean)}.
+     */
+    @Test
+    public void testCollectPublicMethods() {
+        Collection<String> oProperties = JReflect.collectMethods(new Object(), true);
+        Collection<String> cProperties = JReflect.collectMethods(new C(new Pear()), true);
+        assertNotNull(oProperties);
+        assertTrue(oProperties.size() > 0);
+        assertEquals(oProperties.size() + 1, cProperties.size());
+        cProperties.removeAll(oProperties);
+        assertEquals(1, cProperties.size());
+        assertTrue(cProperties.contains("foo"));
+    }
+
+    /**
+     * Test for {@link JReflect#collectMethods(Object, boolean)}.
+     */
+    @Test
+    public void testCollectAllMethods() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        final Object o = new Object();
+        final C c = new C(new Pear());
+        Collection<String> oProperties = JReflect.collectMethods(o, false);
+        Collection<String> cProperties = JReflect.collectMethods(c, false);
+        assertNotNull(oProperties);
+        assertTrue(oProperties.size() > 0);
+        assertEquals(oProperties.size() + 3, cProperties.size());
+        cProperties.removeAll(oProperties);
+        assertEquals(3, cProperties.size());
+        assertTrue(cProperties.contains("foo"));
+        assertTrue(cProperties.contains("protectedMethod"));
+        assertTrue(cProperties.contains("privateMethod"));
+        JReflect.invokeCompatibleMethod(c, C.class, "privateMethod");
+    }
+
+    /**
+     * Test for {@link JReflect#collectMethods(Object, boolean)}.
+     */
+    @Test
+    public void testInvokeMethods() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        final C c = new C(new Pear());
+        assertEquals("private 1", JReflect.invokeCompatibleMethod(c, A.class, "privateMethod"));
+        assertEquals("protected 2", JReflect.invokeCompatibleMethod(c, B.class, "protectedMethod"));
+        assertEquals("private 2", JReflect.invokeCompatibleMethod(c, C.class, "privateMethod"));
+        assertEquals("protected 2", JReflect.invokeCompatibleMethod(c, C.class, "protectedMethod"));
+    }
 
 	/**
 	 * Test for {@link JReflect#solveField(Object, String)}.
@@ -389,6 +420,13 @@ public class JReflectTest {
 
 		public A(Fruit f) {
 		}
+		
+        abstract String protectedMethod();
+        
+        @SuppressWarnings("unused")
+        private String privateMethod() {
+            return "private 1";
+        }
 	}
 
 	static abstract class B extends A {
@@ -401,6 +439,11 @@ public class JReflectTest {
 		public B(Fruit f) {
 			super(f);
 		}
+        
+        @Override
+        String protectedMethod() {
+            return "protected 1";
+        }
 	}
 
 	static class C extends B {
@@ -419,5 +462,15 @@ public class JReflectTest {
 		public String foo(Double value, Fruit fruit, char c) {
 			return String.format("%s-%s-%s", value, fruit.getClass().getSimpleName(), c);
 		}
+        
+        @Override
+        String protectedMethod() {
+            return "protected 2";
+        }
+        
+        @SuppressWarnings("unused")
+        private String privateMethod() {
+            return "private 2";
+        }
 	}
 }
