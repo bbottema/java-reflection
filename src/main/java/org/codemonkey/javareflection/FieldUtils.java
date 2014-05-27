@@ -15,12 +15,15 @@ import org.apache.commons.lang.StringUtils;
 /**
  * A {@link Field} shorthand utility class mainly used to collect fields from classes meeting certain restrictions/requirements.
  * <p>
- * With this utility class you can perform field lookups, by combining lookup restriction criteria. A trivial example is find all fields on
- * a class <em>Apple</em>, not looking at its super classes, which should be protected, have a getter method, but not a setter method:
+ * With this utility class you can perform field lookups, by combining lookup restriction criteria.
+ * <p>
+ * <strong>Example</strong><br />
+ * "find all fields on a class <em>Apple</em>, not looking at its super classes, which should be protected, have a getter method, but not a setter
+ * method"
  * 
  * <pre>
  * FieldUtils.collectFields(Apple.class, Apple.class, EnumSet.of(Visibility.PROTECTED),
- * 		EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER));
+ *         EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER));
  * </pre>
  * 
  * @author Benny Bottema
