@@ -89,7 +89,7 @@ import java.util.Set;
 public final class JReflect {
 
     /**
-     * Defines to allowed lookup modes for matching Java methods and constructors. Each time a lookup failed on signature type, a less strict lookup
+     * Defines lookup modes for matching Java methods and constructors. Each time a lookup failed on signature type, a less strict lookup
      * is performed, in the following order (signature means: the list of parameters defined for a method or constructor):
      * <ol>
      * <li><strong>exact matching</strong>: the given type should exactly match the found types during lookup. This lookup cycle is always performed
