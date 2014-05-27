@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
- * A wrapper class that keeps the property and its setter/getter in one place.
+ * A wrapper class that keeps a property ({@link Field}) and its setter/getter method(s) in one place.
  * 
  * @author Benny Bottema
  */
