@@ -10,6 +10,9 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * This reflection utility class predicts (and converts) which types a specified value can be converted into. It can only do conversions of
  * known 'common' types, which include:
@@ -37,7 +40,7 @@ public final class ValueConverter {
 	/**
 	 * A list of all primitive number types.
 	 */
-	static final List<Class<?>> PRIMITIVE_NUMBER_TYPES = Arrays.asList(new Class<?>[] { byte.class, short.class, int.class, long.class,
+	private static final List<Class<?>> PRIMITIVE_NUMBER_TYPES = Arrays.asList(new Class<?>[] { byte.class, short.class, int.class, long.class,
 			float.class, double.class });
 
 	/**
@@ -62,6 +65,7 @@ public final class ValueConverter {
 	 * @param c The input type to find compatible conversion output types for
 	 * @return The list with compatible conversion output types.
 	 */
+	@Nonnull
 	public static List<Class<?>> collectCompatibleTypes(final Class<?> c) {
 		if (isCommonType(c)) {
 			return Collections.unmodifiableList(COMMON_TYPES);
@@ -81,6 +85,7 @@ public final class ValueConverter {
 	 * @return Array containing converted values where convertible or the original value otherwise.
 	 * @throws IncompatibleTypeException Thrown when unable to convert and not use the original value.
 	 */
+	@Nonnull
 	public static Object[] convert(final Object[] args, final Class<?>[] targetTypes, boolean useOriginalValueWhenIncompatible)
 			throws IncompatibleTypeException {
 		if (args.length != targetTypes.length) {
@@ -120,7 +125,8 @@ public final class ValueConverter {
 	 * @return The converted value according the specified target data type.
 	 * @throws IncompatibleTypeException Thrown by the various <code>convert()</code> methods used.
 	 */
-	public static Object convert(final Object value, final Class<?> targetType)
+	@Nullable
+	public static Object convert(@Nullable final Object value, final Class<?> targetType)
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
@@ -174,7 +180,8 @@ public final class ValueConverter {
 	 * @return The converted number.
 	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
 	 */
-	public static Object convert(final Number value, final Class<?> targetType)
+	@Nullable
+	public static Object convert(@Nullable final Number value, final Class<?> targetType)
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
@@ -220,7 +227,8 @@ public final class ValueConverter {
 	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
 	 */
 	@SuppressWarnings("unchecked")
-	public static Object convert(final Boolean value, final Class<?> targetType)
+	@Nullable
+	public static Object convert(@Nullable final Boolean value, final Class<?> targetType)
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
@@ -255,7 +263,8 @@ public final class ValueConverter {
 	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
 	 */
 	@SuppressWarnings("unchecked")
-	public static Object convert(final Character value, final Class<?> targetType)
+	@Nullable
+	public static Object convert(@Nullable final Character value, final Class<?> targetType)
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
@@ -301,8 +310,9 @@ public final class ValueConverter {
 	 * @return The converted string.
 	 * @throws IncompatibleTypeException Thrown when unable to find a compatible conversion.
 	 */
-	@SuppressWarnings("unchecked")
-	public static Object convert(final String value, final Class<?> targetType)
+	@Nullable
+	@SuppressWarnings({"unchecked", "StatementWithEmptyBody"})
+	public static Object convert(@Nullable final String value, final Class<?> targetType)
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
@@ -343,7 +353,8 @@ public final class ValueConverter {
 	 * @param targetType The enum type to which which we'll try to convert.
 	 * @return An enum of the given type, or <code>null</code> otherwise.
 	 */
-	public static Object convertEnum(final String value, final Class<? extends Enum<?>> targetType) {
+	@Nullable
+	public static Object convertEnum(@Nullable final String value, final Class<? extends Enum<?>> targetType) {
 		if (value == null) {
 			return null;
 		}
@@ -352,15 +363,7 @@ public final class ValueConverter {
 			// /CLOVER:ON
 			return targetType.getMethod("valueOf", String.class).invoke(null, value);
 			// /CLOVER:OFF
-		} catch (final IllegalArgumentException e) {
-			throw new IncompatibleTypeException(value, Enum.class.toString(), targetType.toString(), e);
-		} catch (final SecurityException e) {
-			throw new IncompatibleTypeException(value, Enum.class.toString(), targetType.toString(), e);
-		} catch (final IllegalAccessException e) {
-			throw new IncompatibleTypeException(value, Enum.class.toString(), targetType.toString(), e);
-		} catch (final InvocationTargetException e) {
-			throw new IncompatibleTypeException(value, Enum.class.toString(), targetType.toString(), e);
-		} catch (final NoSuchMethodException e) {
+		} catch (final IllegalArgumentException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | SecurityException e) {
 			throw new IncompatibleTypeException(value, Enum.class.toString(), targetType.toString(), e);
 		}
 		// /CLOVER:ON
@@ -386,7 +389,8 @@ public final class ValueConverter {
 	 * @param numberType The <code>Class</code> type that should be one of <code>Number</code>.
 	 * @return A {@link Number} subtype value converted from <code>value</code> (or <code>null</code> if value is <code>null</code>).
 	 */
-	public static Object convertNumber(final String value, final Class<? extends Number> numberType) {
+	@Nullable
+	public static Object convertNumber(@Nullable final String value, final Class<? extends Number> numberType) {
 		if (value == null) {
 			return null;
 		}
@@ -424,7 +428,7 @@ public final class ValueConverter {
 	 * @param targetType The class to check whether it's a number.
 	 * @return Whether specified class is a primitive number.
 	 */
-	public final static boolean isPrimitiveNumber(final Class<?> targetType) {
+	public static boolean isPrimitiveNumber(final Class<?> targetType) {
 		return PRIMITIVE_NUMBER_TYPES.contains(targetType);
 	}
 

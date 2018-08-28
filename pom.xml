@@ -1,89 +1,246 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
-  </parent>
-  
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.codemonkey.javareflection</groupId>
-  <artifactId>java-reflection</artifactId>
-  <packaging>jar</packaging>
-  <name>Java Reflection</name>
-  <version>1.1</version>
-  <description>Java Reflection provides a small package with nifty reflection features that will help with finding constructors, methods and value conversions</description>
-  <url>http://code.google.com/p/java-reflection/</url>
-  
-  <licenses>
-    <license>
-      <name>MIT license</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  
-  <scm>
-    <connection>scm:svn:http://java-reflection.googlecode.com/svn/tags/v1.1/</connection>
-    <developerConnection>scm:svn:https://java-reflection.googlecode.com/svn/tags/v1.1/</developerConnection>
-    <url>http://java-reflection.googlecode.com/svn/tags/v1.1/</url>
-  </scm>
-  
-  <developers>
-    <developer>
-      <id>benny</id>
-      <name>Benny Bottema</name>
-      <email>b.bottema@projectnibble.org</email>
-      <url>http://blog.projectnibble.org</url>
-      <roles>
-        <role>developer</role>
-        <role>packager</role>
-      </roles>
-    </developer>
-  </developers>
-  
-  <issueManagement>
-	<system>Google Code</system>
-	<url>http://code.google.com/p/java-reflection/issues/</url>
-  </issueManagement>
-  
-  <dependencies>
-    <dependency>
-	    <groupId>commons-lang</groupId>
-	    <artifactId>commons-lang</artifactId>
-	    <version>2.5</version>
-	</dependency>
-	<dependency>
-	    <groupId>junit</groupId>
-	    <artifactId>junit</artifactId>
-	    <version>4.8.1</version>
-	    <scope>test</scope>
-	</dependency>
-  </dependencies>
-  
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.codemonkey.javareflection</groupId>
+	<artifactId>java-reflection</artifactId>
+	<packaging>jar</packaging>
+	<name>Java Reflection</name>
+	<version>2.0.0-SNAPSHOT</version>
+	<description>Java Reflection provides a small package with nifty reflection features that will help with finding constructors, methods and value conversions</description>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git://github.com/bbottema/java-reflection.git</connection>
+		<developerConnection>scm:git:git@github.com:bbottema/java-reflection.git</developerConnection>
+		<url>https://github.com/bbottema/java-reflection</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>benny</id>
+			<name>Benny Bottema</name>
+			<email>benny@bennybottema.com</email>
+			<url>http://www.bennybottema.com</url>
+			<roles>
+				<role>developer</role>
+				<role>packager</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/bbottema/java-reflection/issues</url>
+	</issueManagement>
+
+	<properties>
+		<java.version>1.7</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<compiler.encoding>UTF-8</compiler.encoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency><!-- gives us @NonNull annotations-->
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>3.0.1</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
 	<build>
+		<resources>
+			<resource>
+				<directory>.</directory>
+				<includes>
+					<include>LICENSE-2.0.txt</include>
+					<include>NOTICE.txt</include>
+					<include>RELEASE.txt</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${compiler.encoding}</encoding>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<useIncrementalCompilation>false</useIncrementalCompilation>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.2</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<archive>
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>3.5.1</version>
 				<executions>
 					<execution>
-						<id>sign-artifacts</id>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>manifest</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>3.1.6</version>
+				<!-- this will make findbugs run during mvn verify -->
+				<executions>
+					<execution>
 						<phase>verify</phase>
 						<goals>
-							<goal>sign</goal>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.3</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
 						</goals>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-compiler-plugin</artifactId>
-			    <configuration>
-			        <source>1.6</source>
-			        <target>1.6</target>
-			    </configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<!--<additionalparam>-Xdoclint:none</additionalparam>-->
+							<additionalparam>-Xdoclint:all</additionalparam>
+							<additionalparam>-Xdoclint:-missing</additionalparam>
+							<show>public</show>
+							<nohelp>true</nohelp>
+							<excludePackageNames>*.internal.*</excludePackageNames>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<failOnError>false</failOnError>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.5</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>travis-install-skip-findbugs</id>
+			<activation>
+				<property>
+					<name>skipFindBugs</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.spotbugs</groupId>
+						<artifactId>spotbugs-maven-plugin</artifactId>
+						<version>3.1.6</version>
+						<executions>
+							<execution>
+								<phase>none</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

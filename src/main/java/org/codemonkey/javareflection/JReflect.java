@@ -1,5 +1,7 @@
 package org.codemonkey.javareflection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -122,7 +124,7 @@ public final class JReflect {
         /**
          * Indicates that looking for methods includes trying to find compatible signatures by automatically convert the specified arguments.
          */
-        COMMON_CONVERT;
+        COMMON_CONVERT
     }
 
     /**
@@ -137,12 +139,12 @@ public final class JReflect {
      * @see JReflect#addMethodToCache(Class, String, AccessibleObject, Class[])
      * @see JReflect#getMethodFromCache(Class, String, Class[])
      */
-    private final static Map<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>> methodCache = new LinkedHashMap<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>>();
+    private final static Map<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>> methodCache = new LinkedHashMap<>();
 
     /**
      * {@link Class} cache optionally used when looking up classes with {@link #locateClass(String, boolean, ExternalClassLoader, boolean)}.
      */
-    private final static Map<String, Class<?>> classCache = new HashMap<String, Class<?>>();
+    private final static Map<String, Class<?>> classCache = new HashMap<>();
 
     /**
      * A list with Number types in ascending order to wideness (or size) of each type (ie. double is wider than integer).
@@ -150,7 +152,7 @@ public final class JReflect {
     private static final Map<Class<?>, Integer> numSizes;
 
     static {
-        numSizes = new LinkedHashMap<Class<?>, Integer>();
+        numSizes = new LinkedHashMap<>();
         int size = 0;
         numSizes.put(Byte.class, ++size);
         numSizes.put(Short.class, ++size);
@@ -169,6 +171,7 @@ public final class JReflect {
     /**
      * Delegates to {@link #locateClass(String, ExternalClassLoader)}, using default cache.
      */
+    @Nullable
     public static Class<?> locateClass(final String className, final boolean fullscan, final ExternalClassLoader classLoader) {
         return locateClass(className, fullscan, classLoader, true);
     }
@@ -181,7 +184,9 @@ public final class JReflect {
      * @param classLoader Optional user-provided classloader.
      * @return The <code>Class</code> reference if found or <code>null</code> otherwise.
      */
-    public static Class<?> locateClass(final String className, final boolean fullscan, final ExternalClassLoader classLoader, final boolean useCache) {
+    @SuppressWarnings("WeakerAccess")
+	@Nullable
+	public static Class<?> locateClass(final String className, final boolean fullscan, final ExternalClassLoader classLoader, final boolean useCache) {
         final String cacheKey = className + fullscan;
         if (useCache && classCache.containsKey(cacheKey)) {
             return classCache.get(className);
@@ -211,7 +216,9 @@ public final class JReflect {
      * @param classLoader Optional user-provided classloader.
      * @return The {@code Class} object found from cache or VM.
      */
-    public static Class<?> locateClass(final String fullClassName, final ExternalClassLoader classLoader) {
+    @SuppressWarnings("WeakerAccess")
+	@Nullable
+	public static Class<?> locateClass(final String fullClassName, final ExternalClassLoader classLoader) {
         try {
             Class<?> _class = null;
             // /CLOVER:OFF
@@ -235,6 +242,7 @@ public final class JReflect {
      * @param <T> Type used to parameterize the return instance.
      * @return A new parameterized instance of the given type.
      */
+    @Nonnull
     public static <T> T newInstanceSimple(final Class<T> _class) {
         // /CLOVER:OFF
         try {
@@ -275,6 +283,7 @@ public final class JReflect {
      * @throws InvocationTargetException Thrown by {@link Method#invoke(Object, Object...)}.
      */
     @SuppressWarnings("unchecked")
+	@Nullable
     public static <T> T invokeCompatibleMethod(final Object context, final Class<?> datatype, final String identifier, final Object... args)
             throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         // determine the signature we want to find a compatible java method for
@@ -323,6 +332,8 @@ public final class JReflect {
      * @throws NoSuchMethodException Thrown by {@link #invokeConstructor(Class, Class[], Object[])}.
      * @see java.lang.reflect.Constructor#newInstance(Object[])
      */
+    @SuppressWarnings("UnusedReturnValue")
+	@Nonnull
     public static <T> T invokeCompatibleConstructor(final Class<T> datatype, final Object... args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
         final Class<?>[] signature = JReflect.collectTypes(args);
@@ -344,6 +355,8 @@ public final class JReflect {
      * @throws NoSuchMethodException Thrown by {@link #findCompatibleConstructor(Class, EnumSet, Class...)}.
      * @see java.lang.reflect.Constructor#newInstance(Object[])
      */
+    @SuppressWarnings("WeakerAccess")
+	@Nonnull
     public static <T> T invokeConstructor(final Class<T> datatype, final Class<?>[] signature, final Object[] args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
         // setup lookup procedure
@@ -384,6 +397,7 @@ public final class JReflect {
      * @param objects The array of objects to harvest classtypes from.
      * @return The array with the harvested classtypes.
      */
+    @Nonnull
     public static Class<?>[] collectTypes(final Object[] objects) {
         // collect classtypes of the arguments
         final Class<?>[] types = new Class[objects.length];
@@ -408,6 +422,7 @@ public final class JReflect {
      *                conversions.
      */
     @SuppressWarnings("unchecked")
+	@Nonnull
     public static <T> Constructor<T> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode, final Class<?>... types)
             throws NoSuchMethodException {
         // first try to find the constructor in the method cache
@@ -451,6 +466,7 @@ public final class JReflect {
      * @return <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
      * @see #findCompatibleMethod(Class, String, EnumSet, Class...)
      */
+    @Nullable
     public static Method findSimpleCompatibleMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
         try {
             return findCompatibleMethod(datatype, methodName, EnumSet.noneOf(LookupMode.class), signature);
@@ -471,6 +487,7 @@ public final class JReflect {
      * @exception NoSuchMethodException Thrown when the {@link Method} could not be found on the data type, even after performing optional
      *                conversions.
      */
+    @Nonnull
     public static Method findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
             final Class<?>... signature) throws NoSuchMethodException {
         // first try to find the method in the method cache
@@ -519,7 +536,9 @@ public final class JReflect {
      * @exception NoSuchMethodException Thrown when the {@link Method} could not be found on the interfaces implemented by the given data type.
      * @see java.lang.Class#getMethod(String, Class[])
      */
-    public static Method getMethod(final Class<?> datatype, final String name, final Class<?>... signature) throws NoSuchMethodException {
+    @SuppressWarnings("WeakerAccess")
+	@Nonnull
+	public static Method getMethod(final Class<?> datatype, final String name, final Class<?>... signature) throws NoSuchMethodException {
         for (final Class<?> iface : datatype.getInterfaces()) {
             try {
                 return iface.getMethod(name, signature);
@@ -541,8 +560,9 @@ public final class JReflect {
      * @param signature The list with original user specified types.
      * @return The list with converted type-arrays.
      */
+    @Nonnull
     private static List<Class<?>[]> generateCompatibleSignatures(final EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
-        final List<Class<?>[]> signatures = new ArrayList<Class<?>[]>();
+        final List<Class<?>[]> signatures = new ArrayList<>();
         generateCompatibleSignatures(0, lookupMode, signatures, signature);
         return signatures;
     }
@@ -621,6 +641,7 @@ public final class JReflect {
      * @param c The datatype to convert (autobox).
      * @return The converted version of the specified type, or null.
      */
+    @Nullable
     public static Class<?> autobox(final Class<?> c) {
         // integer
         if (c == Integer.class) {
@@ -668,6 +689,7 @@ public final class JReflect {
      * @param fieldName The identifier or name of the member field/property.
      * @return The value of the <code>Field</code>.
      */
+    @Nullable
     public static Field solveField(final Object o, final String fieldName) {
         try {
             if (o.getClass().equals(Class.class)) {
@@ -692,7 +714,8 @@ public final class JReflect {
      * @see JReflect#methodCache
      * @see JReflect#addMethodToCache(Class, String, AccessibleObject, Class...)
      */
-    private final static <T> AccessibleObject getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
+    @Nullable
+    private static <T> AccessibleObject getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
         final Map<String, Map<AccessibleObject, Class<?>[]>> owner = methodCache.get(datatype);
         // we know only methods with parameter list are stored in the cache
         if (signature.length > 0) {
@@ -722,8 +745,8 @@ public final class JReflect {
      * @see JReflect#methodCache
      * @see JReflect#getMethodFromCache(Class, String, Class...)
      */
-    private final static void addMethodToCache(final Class<?> datatype, final String method, final AccessibleObject methodRef,
-            final Class<?>... signature) {
+    private static void addMethodToCache(final Class<?> datatype, final String method, final AccessibleObject methodRef,
+                                         final Class<?>... signature) {
         // only store methods with a parameter list
         if (signature.length > 0) {
             // get or create owner entry
@@ -753,10 +776,11 @@ public final class JReflect {
      * @throws NoSuchFieldException Thrown if the {@link Field} could not be found, even after trying to convert the value to the target type.
      * @see ValueConverter#convert(Object, Class)
      */
+    @Nullable
     public static Object assignToField(final Object o, final String property, final Object value) throws IllegalAccessException, NoSuchFieldException {
-        Object assignedValue = value;
         final Field field = solveField(o, property);
         if (field != null) {
+        	Object assignedValue = value;
             try {
                 field.set(o, value);
             } catch (final IllegalArgumentException ie) {
@@ -785,6 +809,7 @@ public final class JReflect {
      * @param numbers The list with numbers that all should fit in the <code>Number</code> container.
      * @return The <code>Number</code> container that is just large enough for all specified numbers.
      */
+    @Nonnull
     public static Class<?> widestNumberClass(final Number... numbers) {
         // find widest number
         Integer widest = 0;
@@ -805,8 +830,9 @@ public final class JReflect {
      * @param subject The <code>Object</code> who's properties/fields need to be reflected.
      * @return A list of names that represent the fields on the given <code>Object</code>.
      */
+    @Nonnull
     public static Collection<String> collectProperties(final Object subject) {
-        final Collection<String> properties = new LinkedHashSet<String>();
+        final Collection<String> properties = new LinkedHashSet<>();
         // collect properties/fields
         final Field[] fields = subject.getClass().getFields();
         for (final Field f : fields) {
@@ -823,11 +849,11 @@ public final class JReflect {
      *            included
      * @return Returns a list with methods, either {@link Method}s.
      */
+    @Nonnull
     public static Set<String> collectMethods(final Object subject, final boolean publicOnly) {
-        final Set<String> methodNames = new LinkedHashSet<String>();
+        final Set<String> methodNames = new LinkedHashSet<>();
         // collect methods
-        final Set<Method> allMethods = new HashSet<Method>();
-        allMethods.addAll(Arrays.asList(subject.getClass().getMethods()));
+        final Set<Method> allMethods = new HashSet<>(Arrays.asList(subject.getClass().getMethods()));
         if (!publicOnly) {
             Class<?> _class = subject.getClass();
             while (_class != null) {
@@ -850,6 +876,7 @@ public final class JReflect {
      * @param value The value to insert at the specified index in the specified array.
      * @return The specified array with the item replaced at specified index.
      */
+    @Nonnull
     public static <T> T[] replaceInArray(final T[] array, final int index, final T value) {
         array[index] = value;
         return array;

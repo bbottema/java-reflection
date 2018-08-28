@@ -21,8 +21,10 @@ import org.junit.Test;
 /**
  * Junit test for {@link ValueConverter}.
  */
+@SuppressWarnings({"WrapperTypeMayBePrimitive", "ConstantConditions"})
 public class ValueConverterTest {
 
+	@SuppressWarnings("unused")
 	enum TestEnum {
 		ONE, TWO, THREE
 	}
@@ -65,25 +67,25 @@ public class ValueConverterTest {
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
 		for (Class<?> basicCommonType : ValueConverter.COMMON_TYPES) {
-			assertContainsAll(ValueConverter.collectCompatibleTypes(basicCommonType), ValueConverter.COMMON_TYPES);
+			assertContainsAllCommonTypes(ValueConverter.collectCompatibleTypes(basicCommonType));
 		}
 
 		List<Class<?>> types = ValueConverter.collectCompatibleTypes(String.class);
-		assertContainsAll(types, ValueConverter.COMMON_TYPES);
+		assertContainsAllCommonTypes(types);
 
 		types = ValueConverter.collectCompatibleTypes(boolean.class);
-		assertContainsAll(types, ValueConverter.COMMON_TYPES);
+		assertContainsAllCommonTypes(types);
 
 		types = ValueConverter.collectCompatibleTypes(Character.class);
-		assertContainsAll(types, ValueConverter.COMMON_TYPES);
+		assertContainsAllCommonTypes(types);
 
 		types = ValueConverter.collectCompatibleTypes(Calendar.class);
 		assertEquals(1, types.size());
 		assertTrue(types.contains(String.class));
 	}
 
-	private void assertContainsAll(List<Class<?>> types, List<Class<?>> basiccommontypes) {
-		for (Class<?> basicCommonType : basiccommontypes) {
+	private void assertContainsAllCommonTypes(List<Class<?>> types) {
+		for (Class<?> basicCommonType : ValueConverter.COMMON_TYPES) {
 			assertTrue(types.contains(basicCommonType));
 		}
 	}
@@ -128,6 +130,7 @@ public class ValueConverterTest {
 	/**
 	 * Test for {@link ValueConverter#convert(Object, Class)}.
 	 */
+	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testConvertObjectClassOfQ() {
 		// test null value
@@ -137,7 +140,7 @@ public class ValueConverterTest {
 		assertSame(integer, ValueConverter.convert((Object) integer, Number.class));
 		// test with exact same type (allowed, should return the original value)
 		Calendar calendar = Calendar.getInstance();
-		assertSame(calendar, ValueConverter.convert((Object) calendar, Calendar.class));
+		assertSame(calendar, ValueConverter.convert(calendar, Calendar.class));
 		// test number -> integer (not allowed)
 		Number number = 100.5f;
 		Object o = ValueConverter.convert((Object) number, Integer.class);
@@ -170,7 +173,7 @@ public class ValueConverterTest {
 			// OK
 		}
 		try {
-			ValueConverter.convert((Object) Calendar.getInstance(), Number.class);
+			ValueConverter.convert(Calendar.getInstance(), Number.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK
@@ -188,7 +191,7 @@ public class ValueConverterTest {
 		assertTrue((Boolean) ValueConverter.convert(50, boolean.class));
 		assertEquals(50f, ValueConverter.convert(50, float.class));
 		assertEquals(50d, ValueConverter.convert(50, double.class));
-		assertEquals(50l, ValueConverter.convert(50, long.class));
+		assertEquals(50L, ValueConverter.convert(50, long.class));
 		assertEquals(50, ValueConverter.convert(50, Integer.class));
 		assertEquals((byte) 50, ValueConverter.convert(50, byte.class));
 		assertEquals((short) 50, ValueConverter.convert(50, short.class));
@@ -328,7 +331,7 @@ public class ValueConverterTest {
 		assertEquals((byte) 1, ValueConverter.convertNumber("1", Byte.class));
 		assertEquals(1, ValueConverter.convertNumber("1", Number.class));
 		assertEquals((short) 1, ValueConverter.convertNumber("1", short.class));
-		assertEquals(1l, ValueConverter.convertNumber("1", long.class));
+		assertEquals(1L, ValueConverter.convertNumber("1", long.class));
 		assertEquals(BigDecimal.valueOf(1), ValueConverter.convertNumber("1", BigDecimal.class));
 		assertEquals(BigInteger.valueOf(1), ValueConverter.convertNumber("1", BigInteger.class));
 		try {

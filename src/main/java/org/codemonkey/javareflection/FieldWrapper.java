@@ -1,5 +1,7 @@
 package org.codemonkey.javareflection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -10,8 +12,11 @@ import java.lang.reflect.Method;
  */
 public class FieldWrapper {
 
+	@Nonnull
 	private final Field field;
+	@Nullable
 	private final Method getter;
+	@Nullable
 	private final Method setter;
 
 	/**
@@ -21,7 +26,7 @@ public class FieldWrapper {
 	 * @param getter A getter {@link Method} for the field.
 	 * @param setter A setter {@link Method} for the field.
 	 */
-	public FieldWrapper(final Field field, final Method getter, final Method setter) {
+	public FieldWrapper(@Nonnull Field field, @Nullable Method getter, @Nullable Method setter) {
 		this.field = field;
 		this.getter = getter;
 		this.setter = setter;
@@ -30,6 +35,7 @@ public class FieldWrapper {
 	/**
 	 * @return {@link #field}.
 	 */
+	@Nonnull
 	public Field getField() {
 		return field;
 	}
@@ -37,6 +43,7 @@ public class FieldWrapper {
 	/**
 	 * @return {@link #getter}.
 	 */
+	@Nullable
 	public Method getGetter() {
 		return getter;
 	}
@@ -44,6 +51,7 @@ public class FieldWrapper {
 	/**
 	 * @return {@link #setter}.
 	 */
+	@Nullable
 	public Method getSetter() {
 		return setter;
 	}

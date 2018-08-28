@@ -1,14 +1,12 @@
 package org.codemonkey.javareflection;
 
+import javax.annotation.Nullable;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.script.ScriptException;
 
 /**
  * A toolkit that can read and compile .java sourcefiles on the fly in runtime. This <code>class loader</code> caches loaded classes for
@@ -26,19 +24,20 @@ public final class ExternalClassLoader extends ClassLoader {
 	/**
 	 * List of classes. These are non-instances of a class, of which instances can be spawn.
 	 */
-	protected final Map<String, Class<?>> classes;
+	private final Map<String, Class<?>> classes;
 
 	/**
 	 * The exception that was thrown when the class was actually found but some other error occurred.
 	 */
-	protected CompileException exception;
+	@SuppressWarnings("FieldCanBeLocal")
+	private CompileException exception;
 
 	/**
 	 * Constructor which initializes all properties.
 	 */
 	public ExternalClassLoader() {
 		super(ExternalClassLoader.class.getClassLoader());
-		classes = new HashMap<String, Class<?>>();
+		classes = new HashMap<>();
 	}
 
 	/**
@@ -47,6 +46,7 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * @see ClassLoader#loadClass(String)
 	 */
 	@Override
+	@Nullable
 	public final Class<?> loadClass(final String className)
 			throws ClassNotFoundException {
 		final Class<?> c = classes.get(className);
@@ -67,7 +67,9 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * @return The requested class reference.
 	 * @throws ClassNotFoundException Thrown by {@link #findSystemClass(String)}.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@Override
+	@Nullable
 	public final Class<?> findClass(final String className)
 			throws ClassNotFoundException {
 		exception = null;
@@ -101,18 +103,14 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * Reads and compiles the sourcefile from filesystem and creates the class inside the VM.
 	 * 
 	 * @param className The path and name to the .java sourcefile.
-	 * @throws CompileException
-	 * @throws IOException
 	 */
 	private void checkForFile(final String classPath, final String className)
-			throws CompileException, IOException {
+			throws IOException {
 		// figure paths...
 		final String resource = className.replace("..", "||").replace('.', File.separatorChar).replace("||", "..");
 		final File javaSource = new File(classPath + File.separatorChar + resource + ".java");
 		final File javaClass = new File(classPath + File.separatorChar + resource + ".class");
 
-		new File(basepath).getAbsolutePath();
-		javaSource.getAbsolutePath();
 		final String absoluteClassPath = javaClass.getAbsolutePath();
 
 		// see if there is a javafile and classfile
@@ -160,8 +158,6 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * 
 	 * @param classPath The path and name to the classfile.
 	 * @param className The name of the class to use as key for the Class reference value.
-	 * @throws FileNotFoundException
-	 * @throws IOException
 	 */
 	private Class<?> loadClass(final String classPath, final String className)
 			throws IOException {
@@ -181,13 +177,13 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * 
 	 * @author Benny Bottema
 	 */
-	public static class CompileException extends ScriptException {
+	public static class CompileException extends RuntimeException {
 		private static final long serialVersionUID = -7210219718456902667L;
 
 		/**
 		 * @param reason The description of the cause of the exception.
 		 */
-		public CompileException(final String reason) {
+		CompileException(final String reason) {
 			super(reason);
 		}
 
@@ -197,7 +193,7 @@ public final class ExternalClassLoader extends ClassLoader {
 		 * @param reason The description of the cause of the exception.
 		 * @param cause A thrown exception that is the cause.
 		 */
-		public CompileException(final String reason, final Throwable cause) {
+		CompileException(final String reason, final Throwable cause) {
 			super(reason + "\n	" + cause.toString());
 			setStackTrace(cause.getStackTrace());
 		}
@@ -217,5 +213,12 @@ public final class ExternalClassLoader extends ClassLoader {
 	 */
 	public String getBasepath() {
 		return basepath;
+	}
+	
+	/**
+	 * @return {@link #exception}
+	 */
+	public CompileException getException() {
+		return exception;
 	}
 }

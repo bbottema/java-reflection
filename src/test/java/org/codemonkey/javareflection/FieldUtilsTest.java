@@ -62,6 +62,7 @@ public class FieldUtilsTest {
 	/**
 	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
 	 */
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	public class FieldsTestClassGrandparent {
 		protected Object field1; // yes
 		protected Object field2; // no, has setter
@@ -87,6 +88,7 @@ public class FieldUtilsTest {
 	/**
 	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
 	 */
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	public class FieldsTestClassParent extends FieldsTestClassGrandparent {
 		protected Object field2; // no, parent has setter
 		protected Object field3; // no, no getter
@@ -111,6 +113,7 @@ public class FieldUtilsTest {
 	/**
 	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
 	 */
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	public class FieldsTestClass extends FieldsTestClassParent {
 		protected Object field5; // yes
 		public Object field6; // no, not protected
@@ -135,7 +138,8 @@ public class FieldUtilsTest {
 		assertNull("field1", fieldWrappers.get(0).getGetter());
 		assertNotNull("field1", fieldWrappers.get(0).getSetter());
 	}
-
+	
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	public class FieldsTestClassOnlySetter {
 		protected Object field1; // yes
 
@@ -185,8 +189,8 @@ public class FieldUtilsTest {
 		assertFalse(FieldUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE, Visibility.PUBLIC)));
 		assertTrue(FieldUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED, Visibility.DEFAULT)));
 	}
-
-	@SuppressWarnings("unused")
+	
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	private static class FieldModifiers {
 		Object _default;
 		private Object _private;

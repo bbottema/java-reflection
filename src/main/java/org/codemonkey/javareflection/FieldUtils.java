@@ -12,6 +12,9 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * A {@link Field} shorthand utility class mainly used to collect fields from classes meeting certain restrictions/requirements.
  * <p>
@@ -55,9 +58,10 @@ public final class FieldUtils {
 		 * Visibility flag that corresponds with java's keyword <code>public</code>.
 		 */
 		PUBLIC(Modifier.PUBLIC);
-		private int modifierFlag;
+		
+		private final int modifierFlag;
 
-		private Visibility(final int modifierFlag) {
+		Visibility(final int modifierFlag) {
 			this.modifierFlag = modifierFlag;
 		}
 	}
@@ -84,7 +88,7 @@ public final class FieldUtils {
 		/**
 		 * Restriction flag that indicates a <em>getter</em> must be available.
 		 */
-		NO_GETTER;
+		NO_GETTER
 	}
 
 	/**
@@ -104,11 +108,12 @@ public final class FieldUtils {
 	 * @see #meetsVisibilityRequirements(Field, EnumSet)
 	 * @see #resolveBeanProperty(Field, EnumSet)
 	 */
+	@Nonnull
 	public static Map<Class<?>, List<FieldWrapper>> collectFields(final Class<?> _class, final Class<?> boundaryMarker,
 			final EnumSet<Visibility> visibility, final EnumSet<BeanRestriction> beanRestrictions) {
-		final Map<Class<?>, List<FieldWrapper>> fields = new HashMap<Class<?>, List<FieldWrapper>>();
+		final Map<Class<?>, List<FieldWrapper>> fields = new HashMap<>();
 		final Field[] allFields = _class.getDeclaredFields();
-		final List<FieldWrapper> filteredFields = new LinkedList<FieldWrapper>();
+		final List<FieldWrapper> filteredFields = new LinkedList<>();
 		for (final Field field : allFields) {
 			if (meetsVisibilityRequirements(field, visibility)) {
 				final FieldWrapper property = resolveBeanProperty(field, beanRestrictions);
@@ -159,6 +164,7 @@ public final class FieldUtils {
 	 * @param beanRestrictions The Bean restrictions to apply (should/shouldn't have setter/getter).
 	 * @return Whether the field fits the restrictions.
 	 */
+	@Nullable
 	static FieldWrapper resolveBeanProperty(final Field field, final EnumSet<BeanRestriction> beanRestrictions) {
 		if (beanRestrictions.containsAll(EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER)) //
 				|| beanRestrictions.containsAll(EnumSet.of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER))) {
@@ -178,9 +184,9 @@ public final class FieldUtils {
 		final Method readMethod = JReflect.findSimpleCompatibleMethod(field.getDeclaringClass(), getterName);
 
 		if (!((readMethod != null && beanRestrictions.contains(BeanRestriction.NO_GETTER)) //
-				|| (!(readMethod != null) && beanRestrictions.contains(BeanRestriction.YES_GETTER)) //
+				|| (readMethod == null && beanRestrictions.contains(BeanRestriction.YES_GETTER)) //
 				|| (writeMethod != null && beanRestrictions.contains(BeanRestriction.NO_SETTER)) //
-		|| (!(writeMethod != null) && beanRestrictions.contains(BeanRestriction.YES_SETTER)))) {
+		|| (writeMethod == null && beanRestrictions.contains(BeanRestriction.YES_SETTER)))) {
 			return new FieldWrapper(field, readMethod, writeMethod);
 		} else {
 			return null;

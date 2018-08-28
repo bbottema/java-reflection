@@ -259,7 +259,7 @@ public class JReflectTest {
 		Byte B = 1;
 		Short S = 1;
 		Integer I = 1;
-		Long L = 1l;
+		Long L = 1L;
 		Float F = 1f;
 		Double D = 1d;
 		assertSame(Short.class, JReflect.widestNumberClass(s, b));
@@ -407,12 +407,13 @@ public class JReflectTest {
 	}
 
 	static class Pear extends Fruit {
-	};
-
-	static interface Foo {
+	}
+	
+	interface Foo {
 		String foo(Double value, Fruit fruit, char c);
 	}
 
+	@SuppressWarnings({"unused", "SameReturnValue", "WeakerAccess"})
 	static abstract class A implements Foo {
 
 		public Integer numberA;
@@ -428,7 +429,8 @@ public class JReflectTest {
             return "private 1";
         }
 	}
-
+	
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	static abstract class B extends A {
 
 		public Integer numberB;
@@ -445,7 +447,8 @@ public class JReflectTest {
             return "protected 1";
         }
 	}
-
+	
+	@SuppressWarnings({"unused", "SameReturnValue", "WeakerAccess"})
 	static class C extends B {
 		public Integer numberC;
 		Integer number_privateC;
