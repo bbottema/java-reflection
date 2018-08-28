@@ -1,14 +1,13 @@
 package org.codemonkey.javareflection;
 
+import org.codemonkey.javareflection.commonslang25.NumberUtils;
+
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -394,7 +393,7 @@ public final class ValueConverter {
 		if (value == null) {
 			return null;
 		}
-		Validate.isTrue(Number.class.isAssignableFrom(numberType) || isPrimitiveNumber(numberType));
+		assumeTrue(Number.class.isAssignableFrom(numberType) || isPrimitiveNumber(numberType));
 		if (NumberUtils.isNumber(value)) {
 			if (Integer.class.equals(numberType) || int.class.equals(numberType) || Number.class.equals(numberType)) {
 				return Integer.parseInt(value);
@@ -430,6 +429,12 @@ public final class ValueConverter {
 	 */
 	public static boolean isPrimitiveNumber(final Class<?> targetType) {
 		return PRIMITIVE_NUMBER_TYPES.contains(targetType);
+	}
+	
+	private static void assumeTrue(boolean expression) {
+		if (!expression) {
+			throw new IllegalArgumentException("The validated expression is false");
+		}
 	}
 
 	/**

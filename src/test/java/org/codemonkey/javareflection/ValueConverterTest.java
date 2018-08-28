@@ -14,9 +14,9 @@ import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.List;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.codemonkey.javareflection.ValueConverter.IncompatibleTypeException;
 import org.junit.Test;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Junit test for {@link ValueConverter}.
@@ -96,12 +96,12 @@ public class ValueConverterTest {
 	@Test
 	public void testConvertObjectArrayClassOfQArray() {
 		// empty list
-		Object[] emptyArray = ValueConverter.convert(new Object[] {}, new Class[] {}, true);
+		Object[] emptyArray = ValueConverter.convert(new Object[] {}, new Class<?>[] {}, true);
 		assertNotNull(emptyArray);
 		assertEquals(0, emptyArray.length);
 		// asymmetric list
 		try {
-			ValueConverter.convert(new Object[] { 1, 2, 3 }, new Class[] { String.class }, true);
+			ValueConverter.convert(new Object[] { 1, 2, 3 }, new Class<?>[] { String.class }, true);
 			fail("should not accept array arguments of different lengths!");
 		} catch (IllegalStateException e) {
 			// OK
@@ -109,14 +109,14 @@ public class ValueConverterTest {
 		// list with inconvertible items, throwing exception for inconvertible values
 		try {
 			Calendar calendar = Calendar.getInstance();
-			ValueConverter.convert(new Object[] { 1, "blah", calendar }, new Class[] { String.class, Integer.class, Float.class }, false);
+			ValueConverter.convert(new Object[] { 1, "blah", calendar }, new Class<?>[] { String.class, Integer.class, Float.class }, false);
 			fail("should not accept inconvertible values!");
 		} catch (IncompatibleTypeException e) {
 			// OK
 		}
 		// list with inconvertible items, keeping original for inconvertible values
 		Calendar calendar = Calendar.getInstance();
-		Object[] result = ValueConverter.convert(new Object[] { 1, "blah", calendar, 0 }, new Class[] { String.class, Integer.class,
+		Object[] result = ValueConverter.convert(new Object[] { 1, "blah", calendar, 0 }, new Class<?>[] { String.class, Integer.class,
 				Float.class, Boolean.class }, true);
 		assertNotNull(result);
 		assertEquals(4, result.length);
