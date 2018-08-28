@@ -161,6 +161,11 @@ public final class JReflect {
         numSizes.put(Float.class, ++size);
         numSizes.put(Double.class, ++size);
     }
+    
+    public static void resetCaches() {
+    	classCache.clear();
+    	methodCache.clear();
+	}
 
     /**
      * Private constructor to prevent creating instances of this class.

@@ -11,6 +11,7 @@ import java.util.EnumSet;
 
 import org.bbottema.javareflection.JReflect.LookupMode;
 import org.bbottema.javareflection.ValueConverter.IncompatibleTypeException;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -26,6 +27,12 @@ import static org.junit.Assert.fail;
  * Junit test for {@link JReflect}.
  */
 public class JReflectTest {
+	
+	@Before
+	public void resetStaticCaches() {
+		JReflect.resetCaches();
+	}
+	
 	/**
 	 * Test for {@link JReflect#newInstanceSimple(Class)}.
 	 * <p>
