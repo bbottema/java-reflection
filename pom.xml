@@ -3,7 +3,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.codemonkey.javareflection</groupId>
+	<groupId>com.github.bbottema</groupId>
 	<artifactId>java-reflection</artifactId>
 	<packaging>jar</packaging>
 	<name>Java Reflection</name>
