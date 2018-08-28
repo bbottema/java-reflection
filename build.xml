@@ -81,7 +81,7 @@
 		<attribute name="private" />
 		<sequential>
 			<mkdir dir="@{dest.dir}"/>
-			<javadoc packagenames="org.codemonkey.javareflection.*"
+			<javadoc packagenames="org.bbottema.javareflection.*"
 		           classpathref="compiletime-libraries"
 		           sourcepath="${src.dir}"
 		           destdir="@{dest.dir}"

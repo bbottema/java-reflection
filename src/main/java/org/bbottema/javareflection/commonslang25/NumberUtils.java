@@ -1,4 +1,4 @@
-package org.codemonkey.javareflection.commonslang25;
+package org.bbottema.javareflection.commonslang25;
 
 public class NumberUtils {
 	private NumberUtils() {
