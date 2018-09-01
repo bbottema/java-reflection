@@ -61,11 +61,9 @@ import java.util.Set;
  * the <code>Pear</code> type and finally by attempting a common conversion from <code>String</code> to <code>char</code>. This will give you a Java
  * {@link Method}, but you won't be able to invoke it if it was found using a less strict lookup than one with a simple exact match. There are two
  * ways to do this: use {@link #invokeCompatibleMethod(Object, Class, String, Object...)} instead or perform the conversion yourself using
- * {@link ValueConverter#convert(Object[], Class[], boolean)} prior to invoking the method. <code>
-			ValueConverter.convert(args, method.getParameterTypes())</code>.
+ * {@link ValueConverter#convert(Object[], Class[], boolean)} prior to invoking the method. <code>ValueConverter.convert(args, method.getParameterTypes())</code>.
  * <p>
- * // TODO fix comment about switching the cache<br/>
- * Because this lookup is potentially very expensive, a cache is present to store lookup results. This cache is turned on/off using the constructor.
+ * Because this lookup is potentially very expensive, a cache is present to store lookup results.
  * <p>
  * <strong>Types that are candidates for Autoboxing:</strong>
  * <ul>
@@ -81,8 +79,7 @@ import java.util.Set;
  * <p>
  * For types that are candidates for common conversion, please see {@link ValueConverter}.
  * <p>
- * FIXME make JReflect cache optional
- * 
+ *
  * @author Benny Bottema
  * @see ValueConverter
  * @see FieldUtils
