@@ -162,6 +162,7 @@ public final class JReflect {
         numSizes.put(Double.class, ++size);
     }
     
+    @SuppressWarnings("WeakerAccess")
     public static void resetCaches() {
     	classCache.clear();
     	methodCache.clear();
@@ -177,6 +178,7 @@ public final class JReflect {
      * Delegates to {@link #locateClass(String, ExternalClassLoader)}, using default cache.
      */
     @Nullable
+    @SuppressWarnings("WeakerAccess")
     public static Class<?> locateClass(final String className, final boolean fullscan, final ExternalClassLoader classLoader) {
         return locateClass(className, fullscan, classLoader, true);
     }
@@ -248,6 +250,7 @@ public final class JReflect {
      * @return A new parameterized instance of the given type.
      */
     @Nonnull
+    @SuppressWarnings("WeakerAccess")
     public static <T> T newInstanceSimple(final Class<T> _class) {
         // /CLOVER:OFF
         try {
@@ -287,7 +290,7 @@ public final class JReflect {
      * @throws IllegalAccessException Thrown by {@link Method#invoke(Object, Object...)}.
      * @throws InvocationTargetException Thrown by {@link Method#invoke(Object, Object...)}.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "WeakerAccess"})
 	@Nullable
     public static <T> T invokeCompatibleMethod(final Object context, final Class<?> datatype, final String identifier, final Object... args)
             throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
@@ -337,7 +340,7 @@ public final class JReflect {
      * @throws NoSuchMethodException Thrown by {@link #invokeConstructor(Class, Class[], Object[])}.
      * @see java.lang.reflect.Constructor#newInstance(Object[])
      */
-    @SuppressWarnings("UnusedReturnValue")
+    @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 	@Nonnull
     public static <T> T invokeCompatibleConstructor(final Class<T> datatype, final Object... args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -403,6 +406,7 @@ public final class JReflect {
      * @return The array with the harvested classtypes.
      */
     @Nonnull
+    @SuppressWarnings("WeakerAccess")
     public static Class<?>[] collectTypes(final Object[] objects) {
         // collect classtypes of the arguments
         final Class<?>[] types = new Class[objects.length];
@@ -426,7 +430,7 @@ public final class JReflect {
      * @exception NoSuchMethodException Thrown when the {@link Constructor} could not be found on the data type, even after performing optional
      *                conversions.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "WeakerAccess"})
 	@Nonnull
     public static <T> Constructor<T> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode, final Class<?>... types)
             throws NoSuchMethodException {
@@ -472,6 +476,7 @@ public final class JReflect {
      * @see #findCompatibleMethod(Class, String, EnumSet, Class...)
      */
     @Nullable
+    @SuppressWarnings("WeakerAccess")
     public static Method findSimpleCompatibleMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
         try {
             return findCompatibleMethod(datatype, methodName, EnumSet.noneOf(LookupMode.class), signature);
@@ -493,6 +498,7 @@ public final class JReflect {
      *                conversions.
      */
     @Nonnull
+    @SuppressWarnings("WeakerAccess")
     public static Method findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
             final Class<?>... signature) throws NoSuchMethodException {
         // first try to find the method in the method cache
@@ -647,6 +653,7 @@ public final class JReflect {
      * @return The converted version of the specified type, or null.
      */
     @Nullable
+    @SuppressWarnings("WeakerAccess")
     public static Class<?> autobox(final Class<?> c) {
         // integer
         if (c == Integer.class) {
@@ -695,6 +702,7 @@ public final class JReflect {
      * @return The value of the <code>Field</code>.
      */
     @Nullable
+    @SuppressWarnings("WeakerAccess")
     public static Field solveField(final Object o, final String fieldName) {
         try {
             if (o.getClass().equals(Class.class)) {
@@ -782,6 +790,7 @@ public final class JReflect {
      * @see ValueConverter#convert(Object, Class)
      */
     @Nullable
+    @SuppressWarnings("WeakerAccess")
     public static Object assignToField(final Object o, final String property, final Object value) throws IllegalAccessException, NoSuchFieldException {
         final Field field = solveField(o, property);
         if (field != null) {
@@ -804,6 +813,7 @@ public final class JReflect {
      * @param name The string representing a list of packages.
      * @return A boolean indicating whether name represents a valid package.
      */
+    @SuppressWarnings("WeakerAccess")
     public static boolean isPackage(final String name) {
         return name.equals("java") || Package.getPackage(name) != null;
     }
@@ -815,6 +825,7 @@ public final class JReflect {
      * @return The <code>Number</code> container that is just large enough for all specified numbers.
      */
     @Nonnull
+    @SuppressWarnings("WeakerAccess")
     public static Class<?> widestNumberClass(final Number... numbers) {
         // find widest number
         Integer widest = 0;
@@ -836,6 +847,7 @@ public final class JReflect {
      * @return A list of names that represent the fields on the given <code>Object</code>.
      */
     @Nonnull
+    @SuppressWarnings("WeakerAccess")
     public static Collection<String> collectProperties(final Object subject) {
         final Collection<String> properties = new LinkedHashSet<>();
         // collect properties/fields
@@ -855,6 +867,7 @@ public final class JReflect {
      * @return Returns a list with methods, either {@link Method}s.
      */
     @Nonnull
+    @SuppressWarnings("WeakerAccess")
     public static Set<String> collectMethods(final Object subject, final boolean publicOnly) {
         final Set<String> methodNames = new LinkedHashSet<>();
         // collect methods
@@ -882,6 +895,7 @@ public final class JReflect {
      * @return The specified array with the item replaced at specified index.
      */
     @Nonnull
+    @SuppressWarnings("WeakerAccess")
     public static <T> T[] replaceInArray(final T[] array, final int index, final T value) {
         array[index] = value;
         return array;
