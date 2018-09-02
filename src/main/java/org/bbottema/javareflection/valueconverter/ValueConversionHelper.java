@@ -1,16 +1,25 @@
-package org.bbottema.javareflection;
+package org.bbottema.javareflection.valueconverter;
 
 import org.bbottema.javareflection.commonslang25.NumberUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.bbottema.javareflection.util.MiscUtil.assumeTrue;
+import static org.bbottema.javareflection.util.MiscUtil.intersection;
 
 /**
  * This reflection utility class predicts (and converts) which types a specified value can be converted into. It can only do conversions of
@@ -26,22 +35,41 @@ import javax.annotation.Nullable;
  * @author Benny Bottema
  * @see IncompatibleTypeException
  */
-public final class ValueConverter {
+public final class ValueConversionHelper {
 
 	/**
 	 * List of common types that all other common types can always convert to. For example, <code>String</code> and <code>Integer</code> are
 	 * basic common types and can be converted to any other common type.
 	 */
-	static final List<Class<?>> COMMON_TYPES = Arrays.asList(new Class<?>[] { String.class, Integer.class, int.class, Float.class,
+	//FIXME move this out
+	public static final Set<Class<?>> COMMON_TYPES = new HashSet<Class<?>>(asList(String.class, Integer.class, int.class, Float.class,
 			float.class, Double.class, double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class,
-			Boolean.class, boolean.class, Character.class, char.class });
+			Boolean.class, boolean.class, Character.class, char.class));
 
 	/**
 	 * A list of all primitive number types.
 	 */
-	private static final List<Class<?>> PRIMITIVE_NUMBER_TYPES = Arrays.asList(new Class<?>[] { byte.class, short.class, int.class, long.class,
+	private static final List<Class<?>> PRIMITIVE_NUMBER_TYPES = asList(new Class<?>[] { byte.class, short.class, int.class, long.class,
 			float.class, double.class });
-
+	
+	/**
+	 * Contains all user-provided converters. User converters also act as intermediate converters, ie. if a user converter can go to <code>int</code>,
+	 * <code>double</code> is automatically supported as well as common conversion.
+	 */
+	private static final Map<Class<?>, Collection<ValueFunction<Object, Object>>> userValueConverters = new HashMap<>();
+	
+	/**
+	 * Registers a user-provided converter. User converters also act as intermediate converters, ie. if a user converter can go to <code>int</code>,
+	 * <code>double</code> is automatically supported as well as common conversion.
+	 */
+	@SuppressWarnings("unchecked")
+	public static void registerUserValueConverter(final ValueFunction<?, ?> userConverter) {
+		if (userValueConverters.containsKey(userConverter.fromType())) {
+			userValueConverters.put(userConverter.fromType(), new HashSet<ValueFunction<Object, Object>>());
+		}
+		userValueConverters.get(userConverter.fromType()).add((ValueFunction<Object, Object>) userConverter);
+	}
+	
 	/**
 	 * @param c The class to inspect.
 	 * @return whether given type is a known common type.
@@ -53,7 +81,7 @@ public final class ValueConverter {
 	/**
 	 * Private constructor prevents from instantiating this utility class.
 	 */
-	private ValueConverter() {
+	private ValueConversionHelper() {
 		// utility class
 	}
 
@@ -65,13 +93,33 @@ public final class ValueConverter {
 	 * @return The list with compatible conversion output types.
 	 */
 	@Nonnull
-	public static List<Class<?>> collectCompatibleTypes(final Class<?> c) {
-		if (isCommonType(c)) {
-			return Collections.unmodifiableList(COMMON_TYPES);
-		} else {
-			// not a common type, we only know we're able to convert to String
-			return Arrays.asList(new Class<?>[] { String.class });
-		}
+	public static Set<Class<?>> collectCompatibleTypes(final Class<?> c) {
+		return null;
+//		if (isCommonType(c)) {
+//			return Collections.unmodifiableSet(COMMON_TYPES);
+//		} else if (userValueConverters.containsKey(c)) {
+//			final Set<Class<?>> compatibleTypes = new HashSet<>();
+//			for (ValueFunction converter : userValueConverters.get(c)) {
+//				compatibleTypes.add();
+//			}
+//
+//			final Set<Class<?>> userTargetTypes = userValueConverters.get(c).getSupportedTargetTypes();
+//			final Set<Class<?>> compatibleTypes = new HashSet<>(userTargetTypes);
+//			if (!intersection(ValueConversionHelper.COMMON_TYPES, compatibleTypes).isEmpty()) {
+//				compatibleTypes.addAll(COMMON_TYPES);
+//			}
+//			return compatibleTypes;
+//		} else {
+//			// not a common type, we only know we're able to convert to String
+//			return new HashSet<Class<?>>(singletonList(String.class));
+//		}
+	}
+	
+	/**
+	 * @return Whether <code>targetType</code> can be derived from <code>fromType</code>.
+	 */
+	public static boolean typesCompatible(final Class<?> fromType, final Class<?> targetType) {
+		return collectCompatibleTypes(fromType).contains(targetType);
 	}
 
 	/**
@@ -131,7 +179,25 @@ public final class ValueConverter {
 			return null;
 		}
 		final Class<?> valueType = value.getClass();
-
+		
+		
+//		if (userValueConverters.containsKey(valueType)) {
+//			for (IValueConverter converter : userValueConverters.get(valueType)) {
+//
+//			}
+//		}
+		
+		
+//		if (userValueConverters.containsKey(valueType)) {
+//			IValueConverter<Object> userValueConverter = userValueConverters.get(valueType);
+//			Set<Class<?>> userTargetTypes = userValueConverter.getSupportedTargetTypes();
+//			if (userTargetTypes.contains(targetType)) {
+//				return userValueConverter.convertValue(value);
+//			} else if (isCommonType(targetType) && !intersection(userTargetTypes, COMMON_TYPES).isEmpty()) {
+//				return convert();
+//			}
+//		}
+//
 		// 1. check if conversion is required to begin with
 		if (targetType.isAssignableFrom(valueType)) {
 			return value;
@@ -154,7 +220,7 @@ public final class ValueConverter {
 			throw new IncompatibleTypeException(value, valueType.toString(), targetType.toString());
 		}
 	}
-
+	
 	/**
 	 * Attempts to convert a {@link Number} to the target datatype.
 	 * <p>
@@ -431,44 +497,4 @@ public final class ValueConverter {
 		return PRIMITIVE_NUMBER_TYPES.contains(targetType);
 	}
 	
-	private static void assumeTrue(boolean expression) {
-		if (!expression) {
-			throw new IllegalArgumentException("The validated expression is false");
-		}
-	}
-
-	/**
-	 * This exception can be thrown in any of the conversion methods of {@link ValueConverter}, to indicate a value could not be converted
-	 * into the target datatype. It doesn't mean a failed attempt at a conversion, it means that there was no way to convert the input value
-	 * to begin with.
-	 * 
-	 * @author Benny Bottema
-	 */
-	public static final class IncompatibleTypeException extends RuntimeException {
-		private static final long serialVersionUID = -9234872336546L;
-
-		private static final String pattern = "error: unable to convert value '%s': '%s' to '%s'";
-
-		/**
-		 * @see RuntimeException#RuntimeException(String, Throwable)
-		 */
-		public IncompatibleTypeException(final String message, final Exception e) {
-			super(message, e);
-		}
-
-		/**
-		 * @see RuntimeException#RuntimeException(String)
-		 */
-		public IncompatibleTypeException(final Object value, final String className, final String targetName) {
-			super(String.format(pattern, value, className, targetName));
-		}
-
-		/**
-		 * @see RuntimeException#RuntimeException(String, Throwable)
-		 */
-		public IncompatibleTypeException(final Object value, final String className, final String targetName,
-				final Exception nestedException) {
-			super(String.format(pattern, value, className, targetName), nestedException);
-		}
-	}
 }

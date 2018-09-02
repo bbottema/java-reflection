@@ -1,5 +1,7 @@
 package org.bbottema.javareflection;
 
+import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.AccessibleObject;
@@ -61,7 +63,9 @@ import java.util.Set;
  * the <code>Pear</code> type and finally by attempting a common conversion from <code>String</code> to <code>char</code>. This will give you a Java
  * {@link Method}, but you won't be able to invoke it if it was found using a less strict lookup than one with a simple exact match. There are two
  * ways to do this: use {@link #invokeCompatibleMethod(Object, Class, String, Object...)} instead or perform the conversion yourself using
- * {@link ValueConverter#convert(Object[], Class[], boolean)} prior to invoking the method. <code>ValueConverter.convert(args, method.getParameterTypes())</code>.
+ * {@link ValueConversionHelper#convert(Object[], Class[], boolean)} prior to invoking the method. <code>ValueConverter.convert(args, method.getParameterTypes())</code>.
+ * <p>
+ * A reverse lookup is also possible: given an ordered list of possible types, is a given <code>Method</code> compatible?
  * <p>
  * Because this lookup is potentially very expensive, a cache is present to store lookup results.
  * <p>
@@ -77,11 +81,11 @@ import java.util.Set;
  * <li><strong>double</strong> <code>java.lang.Double</code></li>
  * </ul>
  * <p>
- * For types that are candidates for common conversion, please see {@link ValueConverter}.
+ * For types that are candidates for common conversion, please see {@link ValueConversionHelper}.
  * <p>
  *
  * @author Benny Bottema
- * @see ValueConverter
+ * @see ValueConversionHelper
  * @see FieldUtils
  * @see ExternalClassLoader
  */
@@ -98,7 +102,7 @@ public final class JReflect {
      * <li><strong>polymorphic superclass matching</strong>: the given type should match one of the super classes (for each superclass, the cycle is
      * repeated, so exact and interface matching come first again before the next superclass up in the chain)</li>
      * <li><strong>common conversion matching</strong>: if all other lookups fail, one last resort is to try to convert the given type, if a common
-     * type, to any other common type and then try to find a matching method or constructor. See {@link ValueConverter} for more on the possibilities.
+     * type, to any other common type and then try to find a matching method or constructor. See {@link ValueConversionHelper} for more on the possibilities.
      * </li>
      * </ol>
      * 
@@ -319,7 +323,7 @@ public final class JReflect {
         try {
             return (T) method.invoke(context, args);
         } catch (final IllegalArgumentException e) {
-            final Object[] convertedArgs = ValueConverter.convert(args, method.getParameterTypes(), true);
+            final Object[] convertedArgs = ValueConversionHelper.convert(args, method.getParameterTypes(), true);
             return (T) method.invoke(context, convertedArgs);
         }
     }
@@ -388,7 +392,7 @@ public final class JReflect {
         try {
             return constructor.newInstance(args);
         } catch (final IllegalArgumentException e) {
-            final Object[] convertedArgs = ValueConverter.convert(args, constructor.getParameterTypes(), true);
+            final Object[] convertedArgs = ValueConversionHelper.convert(args, constructor.getParameterTypes(), true);
             return constructor.newInstance(convertedArgs);
         }
     }
@@ -560,8 +564,21 @@ public final class JReflect {
             return datatype.getDeclaredMethod(name, signature);
         }
     }
-
-    /**
+    
+    public static boolean isMethodCompatible(Method method, final Class<?>... signature) {
+		final Class<?>[] targetSignature = method.getParameterTypes();
+		if (signature.length != targetSignature.length) {
+			return false;
+		}
+		for (int i = 0; i < signature.length; i++) {
+			if (!ValueConversionHelper.typesCompatible(signature[i], targetSignature[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
      * Initializes the list with type-arrays and starts generating beginning from index 0. This method is used for (un)wrapping.
      * 
      * @param lookupMode Flag indicating the search steps that need to be done.
@@ -635,7 +652,7 @@ public final class JReflect {
 
             // 5. generate types the original value could be converted into
             if (lookupMode.contains(LookupMode.COMMON_CONVERT)) {
-                for (final Class<?> convert : ValueConverter.collectCompatibleTypes(original)) {
+                for (final Class<?> convert : ValueConversionHelper.collectCompatibleTypes(original)) {
                     final Class<?>[] newSignature = replaceInArray(signature.clone(), index, convert);
                     generateCompatibleSignatures(index + 1, lookupMode, signatures, newSignature);
                 }
@@ -784,7 +801,7 @@ public final class JReflect {
      * @return The actual value that was assigned (the original or the converted value).
      * @throws IllegalAccessException Thrown by {@link Field#set(Object, Object)}
      * @throws NoSuchFieldException Thrown if the {@link Field} could not be found, even after trying to convert the value to the target type.
-     * @see ValueConverter#convert(Object, Class)
+     * @see ValueConversionHelper#convert(Object, Class)
      */
     @Nullable
     @SuppressWarnings("WeakerAccess")
@@ -795,7 +812,7 @@ public final class JReflect {
             try {
                 field.set(o, value);
             } catch (final IllegalArgumentException ie) {
-                assignedValue = ValueConverter.convert(value, field.getType());
+                assignedValue = ValueConversionHelper.convert(value, field.getType());
                 field.set(o, assignedValue);
             }
             return assignedValue;

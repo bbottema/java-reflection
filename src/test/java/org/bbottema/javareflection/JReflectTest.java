@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 
 import org.bbottema.javareflection.JReflect.LookupMode;
-import org.bbottema.javareflection.ValueConverter.IncompatibleTypeException;
+import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.junit.Before;
 import org.junit.Test;
 
