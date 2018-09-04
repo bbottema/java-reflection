@@ -1,12 +1,12 @@
 package org.bbottema.javareflection.valueconverter;
 
 import org.bbottema.javareflection.commonslang25.NumberUtils;
+import org.bbottema.javareflection.util.Dijkstra;
+import org.bbottema.javareflection.util.Dijkstra.Node;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,9 +17,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.bbottema.javareflection.util.MiscUtil.assumeTrue;
-import static org.bbottema.javareflection.util.MiscUtil.intersection;
 
 /**
  * This reflection utility class predicts (and converts) which types a specified value can be converted into. It can only do conversions of
@@ -56,7 +54,12 @@ public final class ValueConversionHelper {
 	 * Contains all user-provided converters. User converters also act as intermediate converters, ie. if a user converter can go to <code>int</code>,
 	 * <code>double</code> is automatically supported as well as common conversion.
 	 */
-	private static final Map<Class<?>, Collection<ValueFunction<Object, Object>>> userValueConverters = new HashMap<>();
+	private static final Map<Class<?>, Map<Class<?>, ValueFunction<Object, Object>>> userValueConverters = new HashMap<>();
+	
+	/**
+	 * Graph of from-to type conversions so we can calculate shortes conversion path between two types.
+	 */
+	private static final Map<Class<?>, Node> converterGraph = new HashMap<>();
 	
 	/**
 	 * Registers a user-provided converter. User converters also act as intermediate converters, ie. if a user converter can go to <code>int</code>,
@@ -64,10 +67,29 @@ public final class ValueConversionHelper {
 	 */
 	@SuppressWarnings("unchecked")
 	public static void registerUserValueConverter(final ValueFunction<?, ?> userConverter) {
-		if (userValueConverters.containsKey(userConverter.fromType())) {
-			userValueConverters.put(userConverter.fromType(), new HashSet<ValueFunction<Object, Object>>());
+		if (!userValueConverters.containsKey(userConverter.fromType())) {
+			userValueConverters.put(userConverter.fromType(), new HashMap<Class<?>, ValueFunction<Object, Object>>());
 		}
-		userValueConverters.get(userConverter.fromType()).add((ValueFunction<Object, Object>) userConverter);
+		userValueConverters.get(userConverter.fromType()).put(userConverter.targetType(), (ValueFunction<Object, Object>) userConverter);
+		
+		updateTypeGraph();
+	}
+	
+	private static void updateTypeGraph() {
+		converterGraph.clear();
+		
+		// add nodes
+		for (Class<?> forType : userValueConverters.keySet()) {
+			converterGraph.put(forType, new Node(forType));
+		}
+		// add edges
+		for (Map<Class<?>, ValueFunction<Object, Object>> convertersForType : userValueConverters.values()) {
+			for (ValueFunction<Object, Object> converter : convertersForType.values()) {
+				Node fromNode = converterGraph.get(converter.fromType());
+				Node toNode = converterGraph.get(converter.targetType());
+				fromNode.getToTypes().put(toNode, 1);
+			}
+		}
 	}
 	
 	/**
@@ -94,25 +116,11 @@ public final class ValueConversionHelper {
 	 */
 	@Nonnull
 	public static Set<Class<?>> collectCompatibleTypes(final Class<?> c) {
-		return null;
-//		if (isCommonType(c)) {
-//			return Collections.unmodifiableSet(COMMON_TYPES);
-//		} else if (userValueConverters.containsKey(c)) {
-//			final Set<Class<?>> compatibleTypes = new HashSet<>();
-//			for (ValueFunction converter : userValueConverters.get(c)) {
-//				compatibleTypes.add();
-//			}
-//
-//			final Set<Class<?>> userTargetTypes = userValueConverters.get(c).getSupportedTargetTypes();
-//			final Set<Class<?>> compatibleTypes = new HashSet<>(userTargetTypes);
-//			if (!intersection(ValueConversionHelper.COMMON_TYPES, compatibleTypes).isEmpty()) {
-//				compatibleTypes.addAll(COMMON_TYPES);
-//			}
-//			return compatibleTypes;
-//		} else {
-//			// not a common type, we only know we're able to convert to String
-//			return new HashSet<Class<?>>(singletonList(String.class));
-//		}
+		Set<Class<?>> compatibleTypes = new HashSet<>();
+		for (Node reachableNode : Dijkstra.findReachableNodes(converterGraph.get(c))) {
+			compatibleTypes.add(reachableNode.getType());
+		}
+		return compatibleTypes;
 	}
 	
 	/**
@@ -177,27 +185,22 @@ public final class ValueConversionHelper {
 			throws IncompatibleTypeException {
 		if (value == null) {
 			return null;
+		} else {
+			final Class<?> valueType = value.getClass();
+			if (targetType.isAssignableFrom(valueType)) {
+				return value;
+			} else if (typesCompatible(valueType, targetType)) {
+				Dijkstra.calculateShortestPathFromSource(converterGraph.get(valueType));
+				Object valueInFlux = value;
+				for (Node nodeInConversionPath : converterGraph.get(targetType).getShortestPath()) {
+					Class<?> fromType = valueInFlux.getClass();
+					Class<?> toType = nodeInConversionPath.getType();
+					valueInFlux = userValueConverters.get(fromType).get(toType).convertValue(valueInFlux);
+				}
+				return valueInFlux;
+			}
 		}
-		final Class<?> valueType = value.getClass();
 		
-		
-//		if (userValueConverters.containsKey(valueType)) {
-//			for (IValueConverter converter : userValueConverters.get(valueType)) {
-//
-//			}
-//		}
-		
-		
-//		if (userValueConverters.containsKey(valueType)) {
-//			IValueConverter<Object> userValueConverter = userValueConverters.get(valueType);
-//			Set<Class<?>> userTargetTypes = userValueConverter.getSupportedTargetTypes();
-//			if (userTargetTypes.contains(targetType)) {
-//				return userValueConverter.convertValue(value);
-//			} else if (isCommonType(targetType) && !intersection(userTargetTypes, COMMON_TYPES).isEmpty()) {
-//				return convert();
-//			}
-//		}
-//
 		// 1. check if conversion is required to begin with
 		if (targetType.isAssignableFrom(valueType)) {
 			return value;

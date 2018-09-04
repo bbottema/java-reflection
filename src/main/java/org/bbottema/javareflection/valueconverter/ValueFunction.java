@@ -10,5 +10,5 @@ import javax.annotation.Nullable;
 public interface ValueFunction<F, T> {
 	@Nonnull Class<F> fromType();
 	@Nonnull Class<T> targetType();
-	@Nullable Class<T> convertValue(@Nullable F value, @Nonnull Class<T> targetType);
+	@Nonnull Class<T> convertValue(@Nonnull F value);
 }

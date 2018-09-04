@@ -24,7 +24,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  * Junit test for {@link ValueConversionHelper}.
  */
 @SuppressWarnings({"WrapperTypeMayBePrimitive", "ConstantConditions"})
-public class ValueConverterTest {
+public class ValueConversionHelperTest {
 
 	@SuppressWarnings("unused")
 	enum TestEnum {

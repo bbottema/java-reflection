@@ -1,8 +1,8 @@
 package org.bbottema.javareflection.util;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -14,15 +14,34 @@ import java.util.Set;
 
 public class Dijkstra {
 	
-	@Setter
-	@Getter
-	@RequiredArgsConstructor
+	@Data
+	@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+	@ToString(onlyExplicitlyIncluded = true)
 	public static class Node {
 		@Nonnull
-		private String name;
+		@EqualsAndHashCode.Include
+		@ToString.Include
+		private Class<?> type;
 		private LinkedList<Node> shortestPath = new LinkedList<>();
 		private Integer distance = Integer.MAX_VALUE;
-		private Map<Node, Integer> adjacentNodes = new HashMap<>();
+		private Map<Node, Integer> toTypes = new HashMap<>();
+	}
+	
+	@Nonnull
+	public static Set<Node> findReachableNodes(final Node fromNode) {
+		Set<Node> reachableNodes = new HashSet<>();
+		findReachableNodes(fromNode, reachableNodes);
+		reachableNodes.remove(fromNode); // in case of cyclic paths, remove fromNode
+		return reachableNodes;
+	}
+	
+	@Nonnull
+	private static void findReachableNodes(final Node currentNode, final Set<Node> reachableNodesSoFar) {
+		for (Node reachableNode : currentNode.getToTypes().keySet()) {
+			if (reachableNodesSoFar.add(reachableNode)) {
+				findReachableNodes(reachableNode, reachableNodesSoFar);
+			}
+		}
 	}
 	
 	public static void calculateShortestPathFromSource(Node source) {
@@ -35,7 +54,7 @@ public class Dijkstra {
 		while (unsettledNodes.size() != 0) {
 			Node currentNode = getLowestDistanceNode(unsettledNodes);
 			unsettledNodes.remove(currentNode);
-			for (Entry<Node, Integer> adjacencyPair : currentNode.getAdjacentNodes().entrySet()) {
+			for (Entry<Node, Integer> adjacencyPair : currentNode.getToTypes().entrySet()) {
 				Node adjacentNode = adjacencyPair.getKey();
 				
 				if (!settledNodes.contains(adjacentNode)) {
