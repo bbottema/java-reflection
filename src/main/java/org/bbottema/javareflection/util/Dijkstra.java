@@ -7,7 +7,6 @@ import lombok.ToString;
 import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
@@ -19,33 +18,31 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static java.util.Collections.reverseOrder;
-
 public class Dijkstra {
 	
 	@Data
 	@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 	@ToString(onlyExplicitlyIncluded = true)
-	public static class Node {
+	public static class Node<T> {
 		@Nonnull
 		@EqualsAndHashCode.Include
 		@ToString.Include
-		private Class<?> type;
-		private LinkedList<Node> shortestPath = new LinkedList<>();
-		private Integer distance = Integer.MAX_VALUE;
-		private Map<Node, Integer> toTypes = new HashMap<>();
+		private T type;
+		private LinkedList<Node<T>> leastExpensivePath = new LinkedList<>();
+		private Integer cost = Integer.MAX_VALUE;
+		private Map<Node<T>, Integer> toNodes = new HashMap<>();
 	}
 	
 	@SuppressWarnings("WeakerAccess")
-	public static List<List<Node>> findAllPathsAscending(Node startingPoint, Node destination) {
-		List<List<Node>> allPaths = new ArrayList<>();
-		findAllPossiblePaths(startingPoint, destination, new ArrayDeque<Node>(), allPaths);
-		Collections.sort(allPaths, NodesComparator.INSTANCE);
+	public static <T> List<List<Node<T>>> findAllPathsAscending(Node<T> startingPoint, Node<T> destination) {
+		List<List<Node<T>>> allPaths = new ArrayList<>();
+		findAllPossiblePaths(startingPoint, destination, new ArrayDeque<Node<T>>(), allPaths);
+		Collections.sort(allPaths, new NodesComparator<T>());
 		return allPaths;
 	}
 	
 	@SuppressWarnings({"StatementWithEmptyBody"})
-	private static void findAllPossiblePaths(Node currentNode, Node destination, Deque<Node> currentPath, List<List<Node>> possiblePathsSoFar) {
+	private static <T> void findAllPossiblePaths(Node<T> currentNode, Node<T> destination, Deque<Node<T>> currentPath, List<List<Node<T>>> possiblePathsSoFar) {
 		if (!currentPath.contains(currentNode)) {
 			currentPath.addLast(currentNode);
 			
@@ -56,7 +53,7 @@ public class Dijkstra {
 					// startingPoint same as destination
 				}
 			} else {
-				for (Node nextNode : currentNode.getToTypes().keySet()) {
+				for (Node<T> nextNode : currentNode.getToNodes().keySet()) {
 					findAllPossiblePaths(nextNode, destination, currentPath, possiblePathsSoFar);
 				}
 			}
@@ -67,33 +64,34 @@ public class Dijkstra {
 	}
 	
 	@Nonnull
-	public static Set<Node> findReachableNodes(final Node fromNode) {
-		Set<Node> reachableNodes = new HashSet<>();
+	public static <T> Set<Node<T>> findReachableNodes(final Node<T> fromNode) {
+		Set<Node<T>> reachableNodes = new HashSet<>();
 		findReachableNodes(fromNode, reachableNodes);
 		reachableNodes.remove(fromNode); // in case of cyclic paths, remove fromNode
 		return reachableNodes;
 	}
 	
-	private static void findReachableNodes(final Node currentNode, final Set<Node> reachableNodesSoFar) {
-		for (Node reachableNode : currentNode.getToTypes().keySet()) {
+	private static <T> void findReachableNodes(final Node<T> currentNode, final Set<Node<T>> reachableNodesSoFar) {
+		for (Node<T> reachableNode : currentNode.getToNodes().keySet()) {
 			if (reachableNodesSoFar.add(reachableNode)) {
 				findReachableNodes(reachableNode, reachableNodesSoFar);
 			}
 		}
 	}
 	
-	public static void findShortestPathToAllOtherNodesUsingDijkstra(Node startingPoint) {
-		startingPoint.setDistance(0);
+	@SuppressWarnings("WeakerAccess")
+	public static <T> void findShortestPathToAllOtherNodesUsingDijkstra(Node<T> startingPoint) {
+		startingPoint.setCost(0);
 		
-		Set<Node> settledNodes = new HashSet<>();
-		Set<Node> unsettledNodes = new HashSet<>();
+		Set<Node<T>> settledNodes = new HashSet<>();
+		Set<Node<T>> unsettledNodes = new HashSet<>();
 		unsettledNodes.add(startingPoint);
 		
 		while (unsettledNodes.size() != 0) {
-			Node currentNode = getLowestDistanceNode(unsettledNodes);
+			Node<T> currentNode = getLowestDistanceNode(unsettledNodes);
 			unsettledNodes.remove(currentNode);
-			for (Entry<Node, Integer> adjacencyPair : currentNode.getToTypes().entrySet()) {
-				Node adjacentNode = adjacencyPair.getKey();
+			for (Entry<Node<T>, Integer> adjacencyPair : currentNode.getToNodes().entrySet()) {
+				Node<T> adjacentNode = adjacencyPair.getKey();
 				
 				if (!settledNodes.contains(adjacentNode)) {
 					Integer edgeWeight = adjacencyPair.getValue();
@@ -105,33 +103,31 @@ public class Dijkstra {
 		}
 	}
 	
-	private static void calculateMinimumDistance(Node evaluationNode, Integer edgeWeigh, Node sourceNode) {
-		if (sourceNode.getDistance() + edgeWeigh < evaluationNode.getDistance()) {
-			evaluationNode.setDistance(sourceNode.getDistance() + edgeWeigh);
-			LinkedList<Node> shortestPath = new LinkedList<>(sourceNode.getShortestPath());
+	private static <T> void calculateMinimumDistance(Node<T> evaluationNode, Integer edgeWeigh, Node<T> sourceNode) {
+		if (sourceNode.getCost() + edgeWeigh < evaluationNode.getCost()) {
+			evaluationNode.setCost(sourceNode.getCost() + edgeWeigh);
+			LinkedList<Node<T>> shortestPath = new LinkedList<>(sourceNode.getLeastExpensivePath());
 			shortestPath.add(sourceNode);
-			evaluationNode.setShortestPath(shortestPath);
+			evaluationNode.setLeastExpensivePath(shortestPath);
 		}
 	}
 	
-	private static Node getLowestDistanceNode(Set<Node> unsettledNodes) {
-		Node lowestDistanceNode = null;
+	private static <T> Node<T> getLowestDistanceNode(Set<Node<T>> unsettledNodes) {
+		Node<T> lowestDistanceNode = null;
 		int lowestDistance = Integer.MAX_VALUE;
-		for (Node node : unsettledNodes) {
-			if (node.getDistance() < lowestDistance) {
-				lowestDistance = node.getDistance();
+		for (Node<T> node : unsettledNodes) {
+			if (node.getCost() < lowestDistance) {
+				lowestDistance = node.getCost();
 				lowestDistanceNode = node;
 			}
 		}
 		return lowestDistanceNode;
 	}
 	
-	private static class NodesComparator implements Comparator<List<Node>> {
-		
-		static final NodesComparator INSTANCE = new NodesComparator();
+	private static class NodesComparator<T> implements Comparator<List<Node<T>>> {
 		
 		@Override
-		public int compare(List<Node> nodes1, List<Node> nodes2) {
+		public int compare(List<Node<T>> nodes1, List<Node<T>> nodes2) {
 			return sumNodes(nodes1).compareTo(sumNodes(nodes2));
 		}
 		
@@ -141,14 +137,14 @@ public class Dijkstra {
 		 * We need to calculate the distance this way, since Dijkstra's algorithm mutates the distance property for a single shortes path to a
 		 * starting node.
 		 */
-		private Integer sumNodes(List<Node> nodes) {
-			Node currentFromNode = null;
+		private Integer sumNodes(List<Node<T>> nodes) {
+			Node<T> currentFromNode = null;
 			int nodesCost = 0;
-			for (Node nodeInPath : nodes) {
+			for (Node<T> nodeInPath : nodes) {
 				if (currentFromNode == null) {
 					currentFromNode = nodeInPath;
 				} else {
-					nodesCost += currentFromNode.getToTypes().get(nodeInPath);
+					nodesCost += currentFromNode.getToNodes().get(nodeInPath);
 				}
 			}
 			return nodesCost;

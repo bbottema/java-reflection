@@ -60,13 +60,13 @@ public final class ValueConversionHelper {
 	/**
 	 * Graph of from-to type conversions so we can calculate shortes conversion path between two types.
 	 */
-	private static final Map<Class<?>, Node> converterGraph = new HashMap<>();
+	private static final Map<Class<?>, Node<Class<?>>> converterGraph = new HashMap<>();
 	
 	/**
 	 * Registers a user-provided converter. User converters also act as intermediate converters, ie. if a user converter can go to <code>int</code>,
 	 * <code>double</code> is automatically supported as well as common conversion.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "unused"})
 	public static void registerUserValueConverter(final ValueFunction<?, ?> userConverter) {
 		if (!userValueConverters.containsKey(userConverter.fromType())) {
 			userValueConverters.put(userConverter.fromType(), new HashMap<Class<?>, ValueFunction<Object, Object>>());
@@ -81,14 +81,14 @@ public final class ValueConversionHelper {
 		
 		// add nodes
 		for (Class<?> forType : userValueConverters.keySet()) {
-			converterGraph.put(forType, new Node(forType));
+			converterGraph.put(forType, new Node<Class<?>>(forType));
 		}
 		// add edges
 		for (Map<Class<?>, ValueFunction<Object, Object>> convertersForType : userValueConverters.values()) {
 			for (ValueFunction<Object, Object> converter : convertersForType.values()) {
-				Node fromNode = converterGraph.get(converter.fromType());
-				Node toNode = converterGraph.get(converter.targetType());
-				fromNode.getToTypes().put(toNode, 1);
+				Node<Class<?>> fromNode = converterGraph.get(converter.fromType());
+				Node<Class<?>> toNode = converterGraph.get(converter.targetType());
+				fromNode.getToNodes().put(toNode, 1);
 			}
 		}
 	}
@@ -118,7 +118,7 @@ public final class ValueConversionHelper {
 	@Nonnull
 	public static Set<Class<?>> collectCompatibleTypes(final Class<?> c) {
 		Set<Class<?>> compatibleTypes = new HashSet<>();
-		for (Node reachableNode : Dijkstra.findReachableNodes(converterGraph.get(c))) {
+		for (Node<Class<?>> reachableNode : Dijkstra.findReachableNodes(converterGraph.get(c))) {
 			compatibleTypes.add(reachableNode.getType());
 		}
 		return compatibleTypes;
@@ -191,14 +191,14 @@ public final class ValueConversionHelper {
 			if (targetType.isAssignableFrom(valueType)) {
 				return value;
 			} else if (typesCompatible(valueType, targetType)) {
-				Node fromNode = converterGraph.get(valueType);
-				Node toNode = converterGraph.get(targetType);
-				List<List<Node>> conversionPathsAscending = Dijkstra.findAllPathsAscending(fromNode, toNode);
+				Node<Class<?>> fromNode = converterGraph.get(valueType);
+				Node<Class<?>> toNode = converterGraph.get(targetType);
+				List<List<Node<Class<?>>>> conversionPathsAscending = Dijkstra.findAllPathsAscending(fromNode, toNode);
 				
-				for (Iterator<List<Node>> iterator = conversionPathsAscending.iterator(); iterator.hasNext(); ) {
+				for (Iterator<List<Node<Class<?>>>> iterator = conversionPathsAscending.iterator(); iterator.hasNext(); ) {
 					try {
 						Object valueInFlux = value;
-						for (Node nodeInConversionPath : iterator.next()) {
+						for (Node<Class<?>> nodeInConversionPath : iterator.next()) {
 							Class<?> fromType = valueInFlux.getClass();
 							Class<?> toType = nodeInConversionPath.getType();
 							valueInFlux = userValueConverters.get(fromType).get(toType).convertValue(valueInFlux);
