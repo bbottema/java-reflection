@@ -39,7 +39,7 @@ public class DijkstraTest {
 	
 	@Test
 	@SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
-	public void whenSPPSolved_thenCorrect() {
+	public void testFindShortestPathToAllOtherNodes() {
 		// define nodes
 		Node nodeA = new Node(byte.class);
 		Node nodeB = new Node(Integer.class);
@@ -58,7 +58,7 @@ public class DijkstraTest {
 		nodeF.getToTypes().put(nodeE, 5);
 		
 		@SuppressWarnings("UnnecessaryLocalVariable")
-		Node sourceNode = nodeA;
+		Node startingPoint = nodeA;
 		Set<Node> destinationNodes = new HashSet<>();
 		destinationNodes.add(nodeB);
 		destinationNodes.add(nodeC);
@@ -66,7 +66,7 @@ public class DijkstraTest {
 		destinationNodes.add(nodeE);
 		destinationNodes.add(nodeF);
 		
-		Dijkstra.calculateShortestPathFromSource(sourceNode);
+		Dijkstra.findShortestPathToAllOtherNodesUsingDijkstra(startingPoint);
 		
 		Map<Class<?>, List<Node>> expectedShortestPaths = new HashMap<>();
 		expectedShortestPaths.put(Integer.class, Arrays.asList(nodeA));
@@ -78,5 +78,34 @@ public class DijkstraTest {
 		for (Node node : destinationNodes) {
 			assertEquals(node.getShortestPath(), expectedShortestPaths.get(node.getType()));
 		}
+	}
+	
+	@Test
+	public void testFindAllPathsAscending() {
+		Node nodeA = new Node(byte.class);
+		Node nodeB = new Node(Integer.class);
+		Node nodeC = new Node(String.class);
+		Node nodeD = new Node(double.class);
+		Node nodeE = new Node(Double.class);
+		Node nodeF = new Node(boolean.class);
+		// define edges from source
+		nodeA.getToTypes().put(nodeE, 10);
+		nodeA.getToTypes().put(nodeB, 10);
+		nodeA.getToTypes().put(nodeC, 15);
+		nodeB.getToTypes().put(nodeE, 10);
+		nodeC.getToTypes().put(nodeA, 10); // cyclic path
+		nodeC.getToTypes().put(nodeE, 10); // cyclic path
+		// define other edges
+		nodeD.getToTypes().put(nodeA, 15); // to A but not reachable
+		nodeF.getToTypes().put(nodeE, 10);
+		nodeF.getToTypes().put(nodeD, 10); // cyclic path
+		
+		assertThat(Dijkstra.findAllPathsAscending(nodeA, nodeD)).isEmpty();
+		assertThat(Dijkstra.findAllPathsAscending(nodeC, nodeF)).isEmpty();
+		assertThat(Dijkstra.findAllPathsAscending(nodeA, nodeE)).containsExactly(
+				Arrays.asList(nodeA, nodeE),
+				Arrays.asList(nodeA, nodeB, nodeE),
+				Arrays.asList(nodeA, nodeC, nodeE)
+		);
 	}
 }

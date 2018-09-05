@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -190,38 +191,49 @@ public final class ValueConversionHelper {
 			if (targetType.isAssignableFrom(valueType)) {
 				return value;
 			} else if (typesCompatible(valueType, targetType)) {
-				Dijkstra.calculateShortestPathFromSource(converterGraph.get(valueType));
-				Object valueInFlux = value;
-				for (Node nodeInConversionPath : converterGraph.get(targetType).getShortestPath()) {
-					Class<?> fromType = valueInFlux.getClass();
-					Class<?> toType = nodeInConversionPath.getType();
-					valueInFlux = userValueConverters.get(fromType).get(toType).convertValue(valueInFlux);
+				Node fromNode = converterGraph.get(valueType);
+				Node toNode = converterGraph.get(targetType);
+				List<List<Node>> conversionPathsAscending = Dijkstra.findAllPathsAscending(fromNode, toNode);
+				
+				for (Iterator<List<Node>> iterator = conversionPathsAscending.iterator(); iterator.hasNext(); ) {
+					try {
+						Object valueInFlux = value;
+						for (Node nodeInConversionPath : iterator.next()) {
+							Class<?> fromType = valueInFlux.getClass();
+							Class<?> toType = nodeInConversionPath.getType();
+							valueInFlux = userValueConverters.get(fromType).get(toType).convertValue(valueInFlux);
+						}
+						return valueInFlux;
+					} catch (IncompatibleTypeException e) {
+						if (!iterator.hasNext()) {
+							throw new IncompatibleTypeException(value, valueType.getName(), targetType.getName());
+						}
+					}
 				}
-				return valueInFlux;
 			}
 		}
-		
-		// 1. check if conversion is required to begin with
-		if (targetType.isAssignableFrom(valueType)) {
-			return value;
-			// 2. check if we can simply use Object.toString() implementation
-		} else if (targetType.equals(String.class)) {
-			return value.toString();
-			// 3. check if we can reuse conversion from String
-		} else if (valueType.equals(String.class)) {
-			return convert((String) value, targetType);
-			// 4. check if we can reuse conversion from a Number subtype
-		} else if (Number.class.isAssignableFrom(valueType) || isPrimitiveNumber(valueType)) {
-			return convert((Number) value, targetType);
-			// 4. check if we can reuse conversion from boolean value
-		} else if (valueType.equals(Boolean.class) || valueType.equals(boolean.class)) {
-			return convert((Boolean) value, targetType);
-			// 5. check if we can reuse conversion from character
-		} else if (valueType.equals(Character.class) || valueType.equals(char.class)) {
-			return convert((Character) value, targetType);
-		} else {
-			throw new IncompatibleTypeException(value, valueType.toString(), targetType.toString());
-		}
+		return null;
+//		// 1. check if conversion is required to begin with
+//		if (targetType.isAssignableFrom(valueType)) {
+//			return value;
+//			// 2. check if we can simply use Object.toString() implementation
+//		} else if (targetType.equals(String.class)) {
+//			return value.toString();
+//			// 3. check if we can reuse conversion from String
+//		} else if (valueType.equals(String.class)) {
+//			return convert((String) value, targetType);
+//			// 4. check if we can reuse conversion from a Number subtype
+//		} else if (Number.class.isAssignableFrom(valueType) || isPrimitiveNumber(valueType)) {
+//			return convert((Number) value, targetType);
+//			// 4. check if we can reuse conversion from boolean value
+//		} else if (valueType.equals(Boolean.class) || valueType.equals(boolean.class)) {
+//			return convert((Boolean) value, targetType);
+//			// 5. check if we can reuse conversion from character
+//		} else if (valueType.equals(Character.class) || valueType.equals(char.class)) {
+//			return convert((Character) value, targetType);
+//		} else {
+//			throw new IncompatibleTypeException(value, valueType.toString(), targetType.toString());
+//		}
 	}
 	
 	/**

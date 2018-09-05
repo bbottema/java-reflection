@@ -29,8 +29,8 @@ public final class IncompatibleTypeException extends RuntimeException {
 	/**
 	 * @see RuntimeException#RuntimeException(String, Throwable)
 	 */
-	public IncompatibleTypeException(final Object value, final String className, final String targetName,
+	public IncompatibleTypeException(final Object value, final String fromType, final String targetName,
 									 final Exception nestedException) {
-		super(String.format(pattern, value, className, targetName), nestedException);
+		super(String.format(pattern, value, fromType, targetName), nestedException);
 	}
 }
