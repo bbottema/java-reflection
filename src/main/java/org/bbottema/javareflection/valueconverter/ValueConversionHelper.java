@@ -1,9 +1,11 @@
 package org.bbottema.javareflection.valueconverter;
 
 import org.bbottema.javareflection.commonslang25.NumberUtils;
-import org.bbottema.javareflection.util.Dijkstra;
-import org.bbottema.javareflection.util.Dijkstra.Node;
+import org.bbottema.javareflection.util.graph.GraphHelper;
+import org.bbottema.javareflection.util.graph.Node;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -13,9 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import static java.util.Arrays.asList;
 import static org.bbottema.javareflection.util.MiscUtil.assumeTrue;
@@ -80,8 +79,11 @@ public final class ValueConversionHelper {
 		converterGraph.clear();
 		
 		// add nodes
-		for (Class<?> forType : userValueConverters.keySet()) {
-			converterGraph.put(forType, new Node<Class<?>>(forType));
+		for (Map.Entry<Class<?>, Map<Class<?>, ValueFunction<Object, Object>>> convertersForType : userValueConverters.entrySet()) {
+			converterGraph.put(convertersForType.getKey(), new Node<Class<?>>(convertersForType.getKey()));
+			for (Class<?> toTypes : convertersForType.getValue().keySet()) {
+				converterGraph.put(toTypes, new Node<Class<?>>(toTypes));
+			}
 		}
 		// add edges
 		for (Map<Class<?>, ValueFunction<Object, Object>> convertersForType : userValueConverters.values()) {
@@ -112,13 +114,13 @@ public final class ValueConversionHelper {
 	 * Determines to which types the specified value (its type) can be converted to. Most common types can be converted to most other common
 	 * types and all types can be converted into a String using {@link Object#toString()}.
 	 * 
-	 * @param c The input type to find compatible conversion output types for
+	 * @param fromType The input type to find compatible conversion output types for
 	 * @return The list with compatible conversion output types.
 	 */
 	@Nonnull
-	public static Set<Class<?>> collectCompatibleTypes(final Class<?> c) {
+	public static Set<Class<?>> collectRegisteredCompatibleTargetTypes(final Class<?> fromType) {
 		Set<Class<?>> compatibleTypes = new HashSet<>();
-		for (Node<Class<?>> reachableNode : Dijkstra.findReachableNodes(converterGraph.get(c))) {
+		for (Node<Class<?>> reachableNode : GraphHelper.findReachableNodes(converterGraph.get(fromType))) {
 			compatibleTypes.add(reachableNode.getType());
 		}
 		return compatibleTypes;
@@ -128,7 +130,16 @@ public final class ValueConversionHelper {
 	 * @return Whether <code>targetType</code> can be derived from <code>fromType</code>.
 	 */
 	public static boolean typesCompatible(final Class<?> fromType, final Class<?> targetType) {
-		return collectCompatibleTypes(fromType).contains(targetType);
+		if (targetType.isAssignableFrom(fromType)) {
+			return true;
+		} else {
+			for (Class<?> registeredCompatibleTargetType : collectRegisteredCompatibleTargetTypes(fromType)) {
+				if (targetType.isAssignableFrom(registeredCompatibleTargetType)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -165,7 +176,7 @@ public final class ValueConversionHelper {
 
 	/**
 	 * Converts a single value into a target output datatype. Only input/output pairs should be passed in here according to the possible
-	 * conversions as determined by {@link #collectCompatibleTypes(Class)}.<br />
+	 * conversions as determined by {@link #collectRegisteredCompatibleTargetTypes(Class)}.<br />
 	 * <br />
 	 * First checks if the input and output types aren't the same. Then the conversions are checked for and done in the following order:
 	 * <ol>
@@ -190,23 +201,24 @@ public final class ValueConversionHelper {
 			final Class<?> valueType = value.getClass();
 			if (targetType.isAssignableFrom(valueType)) {
 				return value;
-			} else if (typesCompatible(valueType, targetType)) {
-				Node<Class<?>> fromNode = converterGraph.get(valueType);
-				Node<Class<?>> toNode = converterGraph.get(targetType);
-				List<List<Node<Class<?>>>> conversionPathsAscending = Dijkstra.findAllPathsAscending(fromNode, toNode);
-				
-				for (Iterator<List<Node<Class<?>>>> iterator = conversionPathsAscending.iterator(); iterator.hasNext(); ) {
-					try {
-						Object valueInFlux = value;
-						for (Node<Class<?>> nodeInConversionPath : iterator.next()) {
-							Class<?> fromType = valueInFlux.getClass();
-							Class<?> toType = nodeInConversionPath.getType();
-							valueInFlux = userValueConverters.get(fromType).get(toType).convertValue(valueInFlux);
-						}
-						return valueInFlux;
-					} catch (IncompatibleTypeException e) {
-						if (!iterator.hasNext()) {
-							throw new IncompatibleTypeException(value, valueType.getName(), targetType.getName());
+			} else if (typesCompatible(valueType, targetType)) { // FIXME this is probably not nescesary
+				final Node<Class<?>> fromNode = converterGraph.get(valueType);
+				for (Node<Class<?>> toNode : collectTypeCompatibleNodes(targetType)) {
+					List<List<Node<Class<?>>>> conversionPathsAscending = GraphHelper.findAllPathsAscending(fromNode, toNode);
+					
+					for (Iterator<List<Node<Class<?>>>> iterator = conversionPathsAscending.iterator(); iterator.hasNext(); ) {
+						try {
+							Object valueInFlux = value;
+							for (Node<Class<?>> nodeInConversionPath : iterator.next()) {
+								Class<?> fromType = valueInFlux.getClass();
+								Class<?> toType = nodeInConversionPath.getType();
+								valueInFlux = userValueConverters.get(fromType).get(toType).convertValue(valueInFlux);
+							}
+							return valueInFlux;
+						} catch (IncompatibleTypeException e) {
+							if (!iterator.hasNext()) {
+								throw new IncompatibleTypeException(value, valueType.getName(), targetType.getName());
+							}
 						}
 					}
 				}
@@ -234,6 +246,16 @@ public final class ValueConversionHelper {
 //		} else {
 //			throw new IncompatibleTypeException(value, valueType.toString(), targetType.toString());
 //		}
+	}
+	
+	static Set<Node<Class<?>>> collectTypeCompatibleNodes(Class<?> targetType) {
+		final Set<Node<Class<?>>> typeCompatibleNodes = new HashSet<>();
+		for (Map.Entry<Class<?>, Node<Class<?>>> converterNodeEntry : converterGraph.entrySet()) {
+			if (targetType.isAssignableFrom(converterNodeEntry.getKey())) {
+				typeCompatibleNodes.add(converterNodeEntry.getValue());
+			}
+		}
+		return typeCompatibleNodes;
 	}
 	
 	/**
@@ -398,7 +420,7 @@ public final class ValueConversionHelper {
 			return null;
 		} else if (targetType.equals(String.class)) {
 			return value;
-		} else if (targetType.isEnum()) {
+		} else if (java.lang.Enum.class.isAssignableFrom(targetType)) {
 			return convertEnum(value, (Class<? extends Enum<?>>) targetType);
 		} else if (value.length() > 0) {
 			if (value.length() == 1) {

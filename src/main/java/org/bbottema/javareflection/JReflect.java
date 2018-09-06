@@ -652,7 +652,7 @@ public final class JReflect {
 
             // 5. generate types the original value could be converted into
             if (lookupMode.contains(LookupMode.COMMON_CONVERT)) {
-                for (final Class<?> convert : ValueConversionHelper.collectCompatibleTypes(original)) {
+                for (final Class<?> convert : ValueConversionHelper.collectRegisteredCompatibleTargetTypes(original)) {
                     final Class<?>[] newSignature = replaceInArray(signature.clone(), index, convert);
                     generateCompatibleSignatures(index + 1, lookupMode, signatures, newSignature);
                 }

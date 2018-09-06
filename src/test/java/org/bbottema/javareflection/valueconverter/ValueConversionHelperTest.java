@@ -1,5 +1,16 @@
-package org.bbottema.javareflection;
+package org.bbottema.javareflection.valueconverter;
 
+import org.bbottema.javareflection.util.graph.Node;
+import org.junit.Test;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import javax.annotation.Nonnull;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Calendar;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -8,17 +19,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Set;
-
-import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
-import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
-import org.junit.Test;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Junit test for {@link ValueConversionHelper}.
@@ -63,25 +63,25 @@ public class ValueConversionHelperTest {
 	}
 
 	/**
-	 * Test for {@link ValueConversionHelper#collectCompatibleTypes(Class)}.
+	 * Test for {@link ValueConversionHelper#collectRegisteredCompatibleTargetTypes(Class)}.
 	 */
 	@Test
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
 		for (Class<?> basicCommonType : ValueConversionHelper.COMMON_TYPES) {
-			assertContainsAllCommonTypes(ValueConversionHelper.collectCompatibleTypes(basicCommonType));
+			assertContainsAllCommonTypes(ValueConversionHelper.collectRegisteredCompatibleTargetTypes(basicCommonType));
 		}
 
-		Set<Class<?>> types = ValueConversionHelper.collectCompatibleTypes(String.class);
+		Set<Class<?>> types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(String.class);
 		assertContainsAllCommonTypes(types);
 
-		types = ValueConversionHelper.collectCompatibleTypes(boolean.class);
+		types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(boolean.class);
 		assertContainsAllCommonTypes(types);
 
-		types = ValueConversionHelper.collectCompatibleTypes(Character.class);
+		types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(Character.class);
 		assertContainsAllCommonTypes(types);
 
-		types = ValueConversionHelper.collectCompatibleTypes(Calendar.class);
+		types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(Calendar.class);
 		assertEquals(1, types.size());
 		assertTrue(types.contains(String.class));
 	}
@@ -404,5 +404,60 @@ public class ValueConversionHelperTest {
 		assertFalse(ValueConversionHelper.isPrimitiveNumber(Character.class));
 		assertFalse(ValueConversionHelper.isPrimitiveNumber(Integer.class));
 		assertFalse(ValueConversionHelper.isPrimitiveNumber(Number.class));
+	}
+	
+	@Test
+	public void testCollectTypeCompatibleNodes() {
+		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Fruit.class, Vehicle.class));
+		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Fruit.class, Car.class));
+		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Fruit.class, Leon.class));
+		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Vehicle.class, Fruit.class));
+		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Car.class, Apple.class));
+		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Leon.class, Elstar.class));
+		
+		Set<Node<Class<?>>> result = ValueConversionHelper.collectTypeCompatibleNodes(Car.class);
+		
+		assertThat(result).containsExactlyInAnyOrder(
+				new Node<Class<?>>(Car.class),
+				new Node<Class<?>>(Leon.class)
+		);
+	}
+	
+	class Fruit{}
+	class Apple extends Fruit{}
+	class Elstar extends Apple{}
+	
+	class Vehicle{}
+	class Car extends Vehicle{}
+	class Leon extends Car{}
+	
+	@SuppressWarnings("unchecked")
+	public static class DummyValueConverter implements ValueFunction<Object, Object> {
+		
+		private final Class<?> fromType;
+		private final Class<?> targetType;
+		
+		public DummyValueConverter(Class<?> fromType, Class<?> targetType) {
+			this.fromType = fromType;
+			this.targetType = targetType;
+		}
+		
+		@Nonnull
+		@Override
+		public Class<Object> fromType() {
+			return (Class<Object>) fromType;
+		}
+		
+		@Nonnull
+		@Override
+		public Class<Object> targetType() {
+			return (Class<Object>) targetType;
+		}
+		
+		@Nonnull
+		@Override
+		public Class<Object> convertValue(@Nonnull Object value) {
+			throw new AssertionError("This method should not be used");
+		}
 	}
 }
