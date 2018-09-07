@@ -78,21 +78,21 @@ public final class ValueConversionHelper {
 	private static void updateTypeGraph() {
 		converterGraph.clear();
 		
-		// add nodes
-		for (Map.Entry<Class<?>, Map<Class<?>, ValueFunction<Object, Object>>> convertersForType : userValueConverters.entrySet()) {
-			converterGraph.put(convertersForType.getKey(), new Node<Class<?>>(convertersForType.getKey()));
-			for (Class<?> toTypes : convertersForType.getValue().keySet()) {
-				converterGraph.put(toTypes, new Node<Class<?>>(toTypes));
+		// add nodes and edges
+		for (Map.Entry<Class<?>, Map<Class<?>, ValueFunction<Object, Object>>> convertersForFromType : userValueConverters.entrySet()) {
+			final Class<?> fromType = convertersForFromType.getKey();
+			final Node<Class<?>> fromNode = new Node<Class<?>>(fromType);
+			converterGraph.put(fromType, fromNode); // from node
+			for (Class<?> toType : convertersForFromType.getValue().keySet()) {
+				final Node<Class<?>> toNode = new Node<Class<?>>(toType);
+				converterGraph.put(toType, toNode); // to node
+				fromNode.getToNodes().put(toNode, 1); // edge
 			}
 		}
-		// add edges
-		for (Map<Class<?>, ValueFunction<Object, Object>> convertersForType : userValueConverters.values()) {
-			for (ValueFunction<Object, Object> converter : convertersForType.values()) {
-				Node<Class<?>> fromNode = converterGraph.get(converter.fromType());
-				Node<Class<?>> toNode = converterGraph.get(converter.targetType());
-				fromNode.getToNodes().put(toNode, 1);
-			}
-		}
+	}
+	
+	private static ValueFunction<Object, Object> locateValueConverter(Class<?> fromType, Class<?> toType) {
+		return userValueConverters.get(fromType).get(toType);
 	}
 	
 	/**
@@ -148,7 +148,7 @@ public final class ValueConversionHelper {
 	 * @param args The list with value to convert.
 	 * @param targetTypes The output types the specified values should be converted into.
 	 * @param useOriginalValueWhenIncompatible Indicates whether an exception should be thrown for inconvertible values or that the original
-	 *            value should be used instead.
+	 *            value should be used instead. Basically change mode to "convert what you can".
 	 * @return Array containing converted values where convertible or the original value otherwise.
 	 * @throws IncompatibleTypeException Thrown when unable to convert and not use the original value.
 	 */
@@ -187,37 +187,37 @@ public final class ValueConversionHelper {
 	 * <li>conversion to <code>Character</code> ({@link #convert(Character, Class)})</li>
 	 * </ol>
 	 * 
-	 * @param value The value to convert.
+	 * @param fromValue The value to convert.
 	 * @param targetType The target data type the value should be converted into.
 	 * @return The converted value according the specified target data type.
 	 * @throws IncompatibleTypeException Thrown by the various <code>convert()</code> methods used.
 	 */
 	@Nullable
-	public static Object convert(@Nullable final Object value, final Class<?> targetType)
+	public static Object convert(@Nullable final Object fromValue, final Class<?> targetType)
 			throws IncompatibleTypeException {
-		if (value == null) {
+		if (fromValue == null) {
 			return null;
 		} else {
-			final Class<?> valueType = value.getClass();
+			final Class<?> valueType = fromValue.getClass();
 			if (targetType.isAssignableFrom(valueType)) {
-				return value;
-			} else if (typesCompatible(valueType, targetType)) { // FIXME this is probably not nescesary
+				return fromValue;
+			} else {
 				final Node<Class<?>> fromNode = converterGraph.get(valueType);
 				for (Node<Class<?>> toNode : collectTypeCompatibleNodes(targetType)) {
 					List<List<Node<Class<?>>>> conversionPathsAscending = GraphHelper.findAllPathsAscending(fromNode, toNode);
 					
-					for (Iterator<List<Node<Class<?>>>> iterator = conversionPathsAscending.iterator(); iterator.hasNext(); ) {
+					for (Iterator<List<Node<Class<?>>>> conversionPath = conversionPathsAscending.iterator(); conversionPath.hasNext(); ) {
 						try {
-							Object valueInFlux = value;
-							for (Node<Class<?>> nodeInConversionPath : iterator.next()) {
-								Class<?> fromType = valueInFlux.getClass();
+							Object targetValue = fromValue;
+							for (Node<Class<?>> nodeInConversionPath : conversionPath.next()) {
+								Class<?> fromType = targetValue.getClass();
 								Class<?> toType = nodeInConversionPath.getType();
-								valueInFlux = userValueConverters.get(fromType).get(toType).convertValue(valueInFlux);
+								targetValue = locateValueConverter(fromType, toType).convertValue(targetValue);
 							}
-							return valueInFlux;
+							return targetValue;
 						} catch (IncompatibleTypeException e) {
-							if (!iterator.hasNext()) {
-								throw new IncompatibleTypeException(value, valueType.getName(), targetType.getName());
+							if (!conversionPath.hasNext()) {
+								throw new IncompatibleTypeException(fromValue, valueType.getName(), targetType.getName());
 							}
 						}
 					}
