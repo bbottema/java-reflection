@@ -20,9 +20,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- * Junit test for {@link ValueConversionHelper}.
- */
 @SuppressWarnings({"WrapperTypeMayBePrimitive", "ConstantConditions"})
 public class ValueConversionHelperTest {
 
@@ -31,9 +28,6 @@ public class ValueConversionHelperTest {
 		ONE, TWO, THREE
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#isCommonType(Class)}.
-	 */
 	@Test
 	public void testIsCommonType() {
 		// basic commons
@@ -62,9 +56,6 @@ public class ValueConversionHelperTest {
 		assertFalse(ValueConversionHelper.isCommonType(Calendar.class));
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#collectRegisteredCompatibleTargetTypes(Class)}.
-	 */
 	@Test
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
@@ -92,9 +83,6 @@ public class ValueConversionHelperTest {
 		}
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convert(Object[], Class[], boolean)}.
-	 */
 	@Test
 	public void testConvertObjectArrayClassOfQArray() {
 		// empty list
@@ -129,9 +117,6 @@ public class ValueConversionHelperTest {
 		assertFalse((Boolean) result[3]);
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convert(Object, Class)}.
-	 */
 	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testConvertObjectClassOfQ() {
@@ -182,9 +167,6 @@ public class ValueConversionHelperTest {
 		}
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convert(Number, Class)}.
-	 */
 	@Test
 	public void testConvertNumberClassOfQ() {
 		assertNull(ValueConversionHelper.convert((Number) null, boolean.class));
@@ -208,9 +190,6 @@ public class ValueConversionHelperTest {
 		}
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convert(Boolean, Class)}.
-	 */
 	@Test
 	public void testConvertBooleanClassOfQ() {
 		assertNull(ValueConversionHelper.convert((Boolean) null, Calendar.class));
@@ -234,9 +213,6 @@ public class ValueConversionHelperTest {
 		}
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convert(Character, Class)}.
-	 */
 	@Test
 	public void testConvertCharacterClassOfQ() {
 		assertNull(ValueConversionHelper.convert((Character) null, Object.class));
@@ -257,9 +233,6 @@ public class ValueConversionHelperTest {
 		}
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convert(String, Class)}.
-	 */
 	@Test
 	public void testConvertStringClassOfQ() {
 		assertEquals(0, ValueConversionHelper.convert("0", Integer.class));
@@ -305,57 +278,51 @@ public class ValueConversionHelperTest {
 		}
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convertEnum(String, Class)}.
-	 */
 	@Test
 	public void testConvertEnum() {
-		assertNull(ValueConversionHelper.convertEnum(null, TestEnum.class));
-		assertSame(TestEnum.ONE, ValueConversionHelper.convertEnum("ONE", TestEnum.class));
+		assertNull(ValueConversionHelper.convert(null, TestEnum.class));
+		assertSame(TestEnum.ONE, ValueConversionHelper.convert("ONE", TestEnum.class));
 		try {
-			ValueConversionHelper.convertEnum("5", TestEnum.class);
+			ValueConversionHelper.convert("5", TestEnum.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK
 		}
 	}
 
-	/**
-	 * Test for {@link ValueConversionHelper#convertNumber(String, Class)}.
-	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testConvertNumber() {
-		assertNull(ValueConversionHelper.convertNumber(null, Integer.class));
-		assertEquals(1, ValueConversionHelper.convertNumber("1", Integer.class));
-		assertEquals(1f, ValueConversionHelper.convertNumber("1", Float.class));
-		assertEquals(1d, ValueConversionHelper.convertNumber("1", Double.class));
-		assertEquals((byte) 1, ValueConversionHelper.convertNumber("1", Byte.class));
-		assertEquals(1, ValueConversionHelper.convertNumber("1", Number.class));
-		assertEquals((short) 1, ValueConversionHelper.convertNumber("1", short.class));
-		assertEquals(1L, ValueConversionHelper.convertNumber("1", long.class));
-		assertEquals(BigDecimal.valueOf(1), ValueConversionHelper.convertNumber("1", BigDecimal.class));
-		assertEquals(BigInteger.valueOf(1), ValueConversionHelper.convertNumber("1", BigInteger.class));
+		assertNull(ValueConversionHelper.convert(null, Integer.class));
+		assertEquals(1, ValueConversionHelper.convert("1", Integer.class));
+		assertEquals(1f, ValueConversionHelper.convert("1", Float.class));
+		assertEquals(1d, ValueConversionHelper.convert("1", Double.class));
+		assertEquals((byte) 1, ValueConversionHelper.convert("1", Byte.class));
+		assertEquals(1, ValueConversionHelper.convert("1", Number.class));
+		assertEquals((short) 1, ValueConversionHelper.convert("1", short.class));
+		assertEquals(1L, ValueConversionHelper.convert("1", long.class));
+		assertEquals(BigDecimal.valueOf(1), ValueConversionHelper.convert("1", BigDecimal.class));
+		assertEquals(BigInteger.valueOf(1), ValueConversionHelper.convert("1", BigInteger.class));
 		try {
-			ValueConversionHelper.convertNumber("", Integer.class);
+			ValueConversionHelper.convert("", Integer.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK
 		}
 		try {
-			ValueConversionHelper.convertNumber("d", Integer.class);
+			ValueConversionHelper.convert("d", Integer.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK
 		}
 		try {
-			ValueConversionHelper.convertNumber("1", (Class<Integer>) (Object) Calendar.class);
+			ValueConversionHelper.convert("1", (Class<Integer>) (Object) Calendar.class);
 			fail("should not be able to convert value");
 		} catch (IllegalArgumentException e) {
 			// OK
 		}
 		try {
-			ValueConversionHelper.convertNumber("1", CustomNumber.class);
+			ValueConversionHelper.convert("1", CustomNumber.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK
@@ -408,12 +375,12 @@ public class ValueConversionHelperTest {
 	
 	@Test
 	public void testCollectTypeCompatibleNodes() {
-		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Fruit.class, Vehicle.class));
-		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Fruit.class, Car.class));
-		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Fruit.class, Leon.class));
-		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Vehicle.class, Fruit.class));
-		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Car.class, Apple.class));
-		ValueConversionHelper.registerUserValueConverter(new DummyValueConverter(Leon.class, Elstar.class));
+		ValueConversionHelper.registerValueConverter(new DummyValueConverter(Fruit.class, Vehicle.class));
+		ValueConversionHelper.registerValueConverter(new DummyValueConverter(Fruit.class, Car.class));
+		ValueConversionHelper.registerValueConverter(new DummyValueConverter(Fruit.class, Leon.class));
+		ValueConversionHelper.registerValueConverter(new DummyValueConverter(Vehicle.class, Fruit.class));
+		ValueConversionHelper.registerValueConverter(new DummyValueConverter(Car.class, Apple.class));
+		ValueConversionHelper.registerValueConverter(new DummyValueConverter(Leon.class, Elstar.class));
 		
 		Set<Node<Class<?>>> result = ValueConversionHelper.collectTypeCompatibleNodes(Car.class);
 		
@@ -444,13 +411,13 @@ public class ValueConversionHelperTest {
 		
 		@Nonnull
 		@Override
-		public Class<Object> fromType() {
+		public Class<Object> getFromType() {
 			return (Class<Object>) fromType;
 		}
 		
 		@Nonnull
 		@Override
-		public Class<Object> targetType() {
+		public Class<Object> getTargetType() {
 			return (Class<Object>) targetType;
 		}
 		

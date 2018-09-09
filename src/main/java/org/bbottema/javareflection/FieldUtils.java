@@ -1,5 +1,6 @@
 package org.bbottema.javareflection;
 
+import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.commonslang25.StringUtils;
 
 import java.lang.reflect.Field;
@@ -33,9 +34,8 @@ import javax.annotation.Nullable;
  * @author Benny Bottema
  * @see #collectFields(Class, Class, EnumSet, EnumSet)
  */
+@UtilityClass
 public final class FieldUtils {
-	private FieldUtils() {
-	}
 
 	/**
 	 * Determines what visibility modifiers a field is allowed to have in {@link FieldUtils#collectFields(Class, Class, EnumSet, EnumSet)}.

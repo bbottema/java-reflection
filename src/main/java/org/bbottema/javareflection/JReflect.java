@@ -89,6 +89,10 @@ import java.util.Set;
  * @see FieldUtils
  * @see ExternalClassLoader
  */
+
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public final class JReflect {
 
     /**
@@ -168,12 +172,6 @@ public final class JReflect {
     	classCache.clear();
     	methodCache.clear();
 	}
-
-    /**
-     * Private constructor to prevent creating instances of this class.
-     */
-    private JReflect() {
-    }
 
     /**
      * Delegates to {@link #locateClass(String, ExternalClassLoader)}, using default cache.
