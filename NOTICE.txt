@@ -7,6 +7,6 @@
   
   This product uses no commercial products.
   
-  This product uses the following external (Open Source) libraries:
+  This product uses the following external (Open Source) libraries in the deployed code:
 
-    - junit-4.8.1.jar (http://www.junit.org/)
+    - Two partial classes from Apache Commons Lang 2.5 (NumberUtils.isNumber, StringUtils.capitalize)

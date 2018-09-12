@@ -1,9 +1,0 @@
-http://code.google.com/p/java-reflection/
-
-
-RELEASE NOTES Java Reflection
-
-
-v1.0
-
-Initial upload
