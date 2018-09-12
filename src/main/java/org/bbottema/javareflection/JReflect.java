@@ -2,9 +2,9 @@ package org.bbottema.javareflection;
 
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -178,7 +178,7 @@ public final class JReflect {
      */
     @Nullable
     @SuppressWarnings("WeakerAccess")
-    public static Class<?> locateClass(final String className, final boolean fullscan, final ExternalClassLoader classLoader) {
+    public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ExternalClassLoader classLoader) {
         return locateClass(className, fullscan, classLoader, true);
     }
 
@@ -192,7 +192,7 @@ public final class JReflect {
      */
     @SuppressWarnings("WeakerAccess")
 	@Nullable
-	public static Class<?> locateClass(final String className, final boolean fullscan, final ExternalClassLoader classLoader, final boolean useCache) {
+	public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ExternalClassLoader classLoader, final boolean useCache) {
         final String cacheKey = className + fullscan;
         if (useCache && classCache.containsKey(cacheKey)) {
             return classCache.get(className);
@@ -224,7 +224,7 @@ public final class JReflect {
      */
     @SuppressWarnings("WeakerAccess")
 	@Nullable
-	public static Class<?> locateClass(final String fullClassName, final ExternalClassLoader classLoader) {
+	public static Class<?> locateClass(final String fullClassName, @Nullable final ExternalClassLoader classLoader) {
         try {
             Class<?> _class = null;
             // /CLOVER:OFF
@@ -248,7 +248,7 @@ public final class JReflect {
      * @param <T> Type used to parameterize the return instance.
      * @return A new parameterized instance of the given type.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("WeakerAccess")
     public static <T> T newInstanceSimple(final Class<T> _class) {
         // /CLOVER:OFF
@@ -340,7 +340,7 @@ public final class JReflect {
      * @see java.lang.reflect.Constructor#newInstance(Object[])
      */
     @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
-	@Nonnull
+	@NotNull
     public static <T> T invokeCompatibleConstructor(final Class<T> datatype, final Object... args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
         final Class<?>[] signature = JReflect.collectTypes(args);
@@ -363,7 +363,7 @@ public final class JReflect {
      * @see java.lang.reflect.Constructor#newInstance(Object[])
      */
     @SuppressWarnings("WeakerAccess")
-	@Nonnull
+	@NotNull
     public static <T> T invokeConstructor(final Class<T> datatype, final Class<?>[] signature, final Object[] args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
         // setup lookup procedure
@@ -404,11 +404,11 @@ public final class JReflect {
      * @param objects The array of objects to harvest classtypes from.
      * @return The array with the harvested classtypes.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("WeakerAccess")
     public static Class<?>[] collectTypes(final Object[] objects) {
         // collect classtypes of the arguments
-        final Class<?>[] types = new Class[objects.length];
+        final Class<?>[] types = new Class<?>[objects.length];
         for (int i = 0; i < objects.length; i++) {
             final Object o = objects[i];
             types[i] = o != null ? o.getClass() : Object.class;
@@ -430,7 +430,7 @@ public final class JReflect {
      *                conversions.
      */
     @SuppressWarnings({"unchecked", "WeakerAccess"})
-	@Nonnull
+	@NotNull
     public static <T> Constructor<T> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode, final Class<?>... types)
             throws NoSuchMethodException {
         // first try to find the constructor in the method cache
@@ -496,7 +496,7 @@ public final class JReflect {
      * @exception NoSuchMethodException Thrown when the {@link Method} could not be found on the data type, even after performing optional
      *                conversions.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("WeakerAccess")
     public static Method findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
             final Class<?>... signature) throws NoSuchMethodException {
@@ -547,7 +547,7 @@ public final class JReflect {
      * @see java.lang.Class#getMethod(String, Class[])
      */
     @SuppressWarnings("WeakerAccess")
-	@Nonnull
+	@NotNull
 	public static Method getMethod(final Class<?> datatype, final String name, final Class<?>... signature) throws NoSuchMethodException {
         for (final Class<?> iface : datatype.getInterfaces()) {
             try {
@@ -563,6 +563,7 @@ public final class JReflect {
         }
     }
     
+    @SuppressWarnings("unused")
     public static boolean isMethodCompatible(Method method, final Class<?>... signature) {
 		final Class<?>[] targetSignature = method.getParameterTypes();
 		if (signature.length != targetSignature.length) {
@@ -583,7 +584,7 @@ public final class JReflect {
      * @param signature The list with original user specified types.
      * @return The list with converted type-arrays.
      */
-    @Nonnull
+    @NotNull
     private static List<Class<?>[]> generateCompatibleSignatures(final EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
         final List<Class<?>[]> signatures = new ArrayList<>();
         generateCompatibleSignatures(0, lookupMode, signatures, signature);
@@ -836,7 +837,7 @@ public final class JReflect {
      * @param numbers The list with numbers that all should fit in the <code>Number</code> container.
      * @return The <code>Number</code> container that is just large enough for all specified numbers.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("WeakerAccess")
     public static Class<?> widestNumberClass(final Number... numbers) {
         // find widest number
@@ -858,7 +859,7 @@ public final class JReflect {
      * @param subject The <code>Object</code> who's properties/fields need to be reflected.
      * @return A list of names that represent the fields on the given <code>Object</code>.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("WeakerAccess")
     public static Collection<String> collectProperties(final Object subject) {
         final Collection<String> properties = new LinkedHashSet<>();
@@ -878,7 +879,7 @@ public final class JReflect {
      *            included
      * @return Returns a list with methods, either {@link Method}s.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("WeakerAccess")
     public static Set<String> collectMethods(final Object subject, final boolean publicOnly) {
         final Set<String> methodNames = new LinkedHashSet<>();
@@ -906,7 +907,7 @@ public final class JReflect {
      * @param value The value to insert at the specified index in the specified array.
      * @return The specified array with the item replaced at specified index.
      */
-    @Nonnull
+    @NotNull
     @SuppressWarnings("WeakerAccess")
     public static <T> T[] replaceInArray(final T[] array, final int index, final T value) {
         array[index] = value;

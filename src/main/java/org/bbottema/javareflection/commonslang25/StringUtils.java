@@ -1,5 +1,8 @@
 package org.bbottema.javareflection.commonslang25;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@SuppressFBWarnings(justification = "imported code as-is from Apache Commons Lang 2.5")
 public class StringUtils {
 	private StringUtils() {
 	}
@@ -29,5 +32,4 @@ public class StringUtils {
 		}
 		return String.valueOf(Character.toTitleCase(str.charAt(0))) + str.substring(1);
 	}
-	
 }

@@ -1,7 +1,8 @@
 package org.bbottema.javareflection;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -12,7 +13,7 @@ import java.lang.reflect.Method;
  */
 public class FieldWrapper {
 
-	@Nonnull
+	@NotNull
 	private final Field field;
 	@Nullable
 	private final Method getter;
@@ -26,7 +27,7 @@ public class FieldWrapper {
 	 * @param getter A getter {@link Method} for the field.
 	 * @param setter A setter {@link Method} for the field.
 	 */
-	public FieldWrapper(@Nonnull Field field, @Nullable Method getter, @Nullable Method setter) {
+	public FieldWrapper(@NotNull Field field, @Nullable Method getter, @Nullable Method setter) {
 		this.field = field;
 		this.getter = getter;
 		this.setter = setter;
@@ -35,7 +36,7 @@ public class FieldWrapper {
 	/**
 	 * @return {@link #field}.
 	 */
-	@Nonnull
+	@NotNull
 	public Field getField() {
 		return field;
 	}

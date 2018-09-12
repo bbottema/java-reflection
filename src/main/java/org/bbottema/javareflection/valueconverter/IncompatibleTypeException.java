@@ -1,5 +1,7 @@
 package org.bbottema.javareflection.valueconverter;
 
+import org.jetbrains.annotations.Nullable;
+
 import static java.lang.String.format;
 
 /**
@@ -8,12 +10,13 @@ import static java.lang.String.format;
  *
  * @author Benny Bottema
  */
+@SuppressWarnings("serial")
 public final class IncompatibleTypeException extends RuntimeException {
 	public IncompatibleTypeException(Object value, Class<?> fromType, Class<?> targetType) {
 		this(value, fromType, targetType, null);
 	}
 	
-	public IncompatibleTypeException(Object value, Class<?> fromType, Class<?> targetType, Throwable cause) {
+	public IncompatibleTypeException(Object value, Class<?> fromType, Class<?> targetType, @Nullable Throwable cause) {
 		super(format("error: unable to convert value '%s': '%s' to '%s'", value, fromType, targetType), cause);
 	}
 }

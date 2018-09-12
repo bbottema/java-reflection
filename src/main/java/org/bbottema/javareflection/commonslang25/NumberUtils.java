@@ -1,5 +1,8 @@
 package org.bbottema.javareflection.commonslang25;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@SuppressFBWarnings(justification = "imported code as-is from Apache Commons Lang 2.5")
 public class NumberUtils {
 	private NumberUtils() {
 	}

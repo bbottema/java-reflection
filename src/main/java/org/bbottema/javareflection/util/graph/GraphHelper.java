@@ -1,6 +1,7 @@
 package org.bbottema.javareflection.util.graph;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,7 +62,7 @@ public final class GraphHelper {
 	}
 	
 	
-	@Nonnull
+	@NotNull
 	public static <T> Set<Node<T>> findReachableNodes(final Node<T> fromNode) {
 		Set<Node<T>> reachableNodes = new HashSet<>();
 		findReachableNodes(fromNode, reachableNodes);

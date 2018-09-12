@@ -50,6 +50,18 @@
 	</properties>
 
 	<dependencies>
+		<dependency><!-- Gives us @NotNull and @Nullable -->
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations</artifactId>
+			<version>16.0.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency><!-- Gives us Spotbugs maven build directives -->
+			<groupId>com.github.spotbugs</groupId>
+			<artifactId>spotbugs-annotations</artifactId>
+			<version>3.1.3</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -57,13 +69,7 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency><!-- allows us to ignore spotbugs warnings for generated code-->
-			<groupId>com.github.spotbugs</groupId>
-			<artifactId>spotbugs-annotations</artifactId>
-			<version>3.1.6</version>
-			<scope>provided</scope>
-		</dependency>
-
+		<!-- testing dependencies-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -100,6 +106,30 @@
 					<encoding>${compiler.encoding}</encoding>
 					<compilerArgument>-Xlint:all</compilerArgument>
 					<useIncrementalCompilation>false</useIncrementalCompilation>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>se.eris</groupId>
+				<artifactId>notnull-instrumenter-maven-plugin</artifactId>
+				<version>0.6.8</version>
+				<executions>
+					<execution>
+						<id>instrument</id>
+						<goals>
+							<goal>instrument</goal>
+							<goal>tests-instrument</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<implicit>true</implicit>
+					<nullable>
+						<param>org.jetbrains.annotations.Nullable</param>
+					</nullable>
+					<notNull>
+						<param>org.jetbrains.annotations.NotNull</param>
+					</notNull>
 				</configuration>
 			</plugin>
 

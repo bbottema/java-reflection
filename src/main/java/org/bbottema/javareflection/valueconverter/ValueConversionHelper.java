@@ -8,8 +8,8 @@ import org.bbottema.javareflection.valueconverter.converters.CharacterConverters
 import org.bbottema.javareflection.valueconverter.converters.NumberConverters;
 import org.bbottema.javareflection.valueconverter.converters.StringConverters;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -116,7 +116,8 @@ public final class ValueConversionHelper {
 	 * @param fromType The input type to find compatible conversion output types for
 	 * @return The list with compatible conversion output types.
 	 */
-	@Nonnull
+	@SuppressWarnings("WeakerAccess")
+	@NotNull
 	public static Set<Class<?>> collectRegisteredCompatibleTargetTypes(final Class<?> fromType) {
 		Set<Class<?>> compatibleTypes = new HashSet<>(Collections.<Class<?>>singleton(fromType));
 		if (converterGraph.containsKey(fromType)) {
@@ -183,7 +184,7 @@ public final class ValueConversionHelper {
 	 * @return Array containing converted values where convertible or the original value otherwise.
 	 * @throws IncompatibleTypeException Thrown when unable to convert and not use the original value.
 	 */
-	@Nonnull
+	@NotNull
 	public static Object[] convert(final Object[] args, final Class<?>[] targetTypes, boolean useOriginalValueWhenIncompatible)
 			throws IncompatibleTypeException {
 		if (args.length != targetTypes.length) {
@@ -219,13 +220,13 @@ public final class ValueConversionHelper {
 	 * @return The converted value according the specified target data type.
 	 * @throws IncompatibleTypeException Thrown by the various <code>convert()</code> methods used.
 	 */
+	@SuppressWarnings("unchecked")
 	@Nullable
 	public static <T> T convert(@Nullable final Object fromValue, final Class<T> targetType)
 			throws IncompatibleTypeException {
 		if (fromValue == null) {
 			return null;
 		} else if (targetType.isAssignableFrom(fromValue.getClass())) {
-			//noinspection unchecked
 			return (T) fromValue;
 		} else {
 			checkForAndRegisterEnumConverter(targetType);
@@ -234,8 +235,8 @@ public final class ValueConversionHelper {
 		}
 	}
 	
-	@Nonnull
-	private static <T> T convertWithConversionGraph(@Nonnull Object fromValue, @Nonnull Class<T> targetType) {
+	@NotNull
+	private static <T> T convertWithConversionGraph(@NotNull Object fromValue, @NotNull Class<T> targetType) {
 		final Node<Class<?>> fromNode = converterGraph.get(fromValue.getClass());
 		
 		if (fromNode != null) {
@@ -261,10 +262,10 @@ public final class ValueConversionHelper {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static void checkForAndRegisterEnumConverter(Class<?> targetType) {
+	private static <T extends Enum<T>> void checkForAndRegisterEnumConverter(Class<?> targetType) {
 		if (Enum.class.isAssignableFrom(targetType)) {
 			if (!valueConverters.get(String.class).containsKey(targetType)) {
-				registerValueConverter(StringConverters.produceStringToEnumConverter((Class<? extends Enum>) targetType));
+				registerValueConverter(StringConverters.produceStringToEnumConverter((Class<T>) targetType));
 			}
 		}
 	}

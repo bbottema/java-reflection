@@ -1,6 +1,7 @@
 package org.bbottema.javareflection.valueconverter;
 
 import org.bbottema.javareflection.util.graph.Node;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -411,21 +412,21 @@ public class ValueConversionHelperTest {
 			this.targetType = targetType;
 		}
 		
-		@Nonnull
+		@NotNull
 		@Override
 		public Class<Object> getFromType() {
 			return (Class<Object>) fromType;
 		}
 		
-		@Nonnull
+		@NotNull
 		@Override
 		public Class<Object> getTargetType() {
 			return (Class<Object>) targetType;
 		}
 		
-		@Nonnull
+		@NotNull
 		@Override
-		public Class<Object> convertValue(@Nonnull Object value) {
+		public Class<Object> convertValue(@NotNull Object value) {
 			throw new AssertionError("This method should not be used");
 		}
 	}

@@ -37,7 +37,7 @@ public class DijkstraTest {
 		nodeF.getToNodes().put(nodeE, 5);
 		
 		@SuppressWarnings("UnnecessaryLocalVariable")
-		Node startingPoint = nodeA;
+		Node<Class<?>> startingPoint = nodeA;
 		Set<Node<Class<?>>> destinationNodes = new HashSet<>();
 		destinationNodes.add(nodeB);
 		destinationNodes.add(nodeC);

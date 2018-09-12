@@ -1,5 +1,6 @@
 package org.bbottema.javareflection.valueconverter.converters;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.commonslang25.NumberUtils;
@@ -9,8 +10,7 @@ import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueFunction;
 import org.bbottema.javareflection.valueconverter.ValueFunction.ValueFunctionImpl;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ public final class StringConverters {
 	 * {@link Enum#valueOf(Class, String)}.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends Enum> ValueFunction<String, T> produceStringToEnumConverter(Class<T> targetEnumClass) {
+	public static <T extends Enum<T>> ValueFunction<String, T> produceStringToEnumConverter(Class<T> targetEnumClass) {
 		return new ValueFunctionImpl<>(String.class, targetEnumClass, new StringToEnumFunction<>(targetEnumClass));
 	}
 	
@@ -67,7 +67,7 @@ public final class StringConverters {
 	
 	@RequiredArgsConstructor
 	private static class StringToEnumFunction<T extends Enum<T>> implements Function<String, T> {
-		@Nonnull
+		@NonNull
 		private final Class<T> targetEnumClass;
 		
 		@Override

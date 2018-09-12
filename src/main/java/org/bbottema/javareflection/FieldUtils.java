@@ -3,8 +3,8 @@ package org.bbottema.javareflection;
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.commonslang25.StringUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -107,7 +107,7 @@ public final class FieldUtils {
 	 * @see #meetsVisibilityRequirements(Field, EnumSet)
 	 * @see #resolveBeanProperty(Field, EnumSet)
 	 */
-	@Nonnull
+	@NotNull
 	public static Map<Class<?>, List<FieldWrapper>> collectFields(final Class<?> _class, final Class<?> boundaryMarker,
 			final EnumSet<Visibility> visibility, final EnumSet<BeanRestriction> beanRestrictions) {
 		final Map<Class<?>, List<FieldWrapper>> fields = new HashMap<>();

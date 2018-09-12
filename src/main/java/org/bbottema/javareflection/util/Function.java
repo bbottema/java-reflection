@@ -5,14 +5,14 @@ public interface Function<F, T> {
 	
 	class Functions {
 		
-		private static Function<?, ?> IDENTITY_FUNCTION = new Function<Object, Object>() {
+		private static final Function<?, ?> IDENTITY_FUNCTION = new Function<Object, Object>() {
 			@Override
 			public Object apply(Object value) {
 				return value;
 			}
 		};
 		
-		private static Function<?, String> TOSTRING_FUNCTION = new Function<Object, String>() {
+		private static final Function<?, String> TOSTRING_FUNCTION = new Function<Object, String>() {
 			@Override
 			public String apply(Object value) {
 				return value.toString();

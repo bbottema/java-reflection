@@ -72,7 +72,7 @@ public class NumberConverters {
 		for (Class<? extends Number> numberFromClass : CONVERTABLE_NUMBER_FROM_CLASSES_JDK7) {
 			for (Map.Entry<Class<?>, Function<Number, ?>> targetClassConverter : CONVERTERS_BY_TARGET_TYPE.entrySet()) {
 				Class<?> targetClass = targetClassConverter.getKey();
-				Function converter = (numberFromClass == targetClass || targetClass.isAssignableFrom(numberFromClass))
+				Function<?, ?> converter = (numberFromClass == targetClass || targetClass.isAssignableFrom(numberFromClass))
 						? Functions.identity()
 						: targetClassConverter.getValue();
 				//noinspection unchecked

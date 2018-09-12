@@ -1,6 +1,8 @@
 package org.bbottema.javareflection;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,16 +21,19 @@ public final class ExternalClassLoader extends ClassLoader {
 	/**
 	 * base path used to locate [packaged] classes in
 	 */
+	@Nullable
 	private String basepath;
 
 	/**
 	 * List of classes. These are non-instances of a class, of which instances can be spawn.
 	 */
-	private final Map<String, Class<?>> classes;
+	@NotNull
+	private final Map<String, Class<?>> classes = new HashMap<>();
 
 	/**
 	 * The exception that was thrown when the class was actually found but some other error occurred.
 	 */
+	@Nullable
 	@SuppressWarnings("FieldCanBeLocal")
 	private CompileException exception;
 
@@ -37,7 +42,6 @@ public final class ExternalClassLoader extends ClassLoader {
 	 */
 	public ExternalClassLoader() {
 		super(ExternalClassLoader.class.getClassLoader());
-		classes = new HashMap<>();
 	}
 
 	/**
@@ -204,20 +208,16 @@ public final class ExternalClassLoader extends ClassLoader {
 	 * 
 	 * @param basepath A folder path to look for classes.
 	 */
-	public void setBasepath(final String basepath) {
+	public void setBasepath(@Nullable final String basepath) {
 		this.basepath = basepath;
 	}
 
-	/**
-	 * @return {@link #basepath}
-	 */
+	@Nullable
 	public String getBasepath() {
 		return basepath;
 	}
 	
-	/**
-	 * @return {@link #exception}
-	 */
+	@Nullable
 	public CompileException getException() {
 		return exception;
 	}
