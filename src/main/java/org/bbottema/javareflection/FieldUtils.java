@@ -3,6 +3,8 @@ package org.bbottema.javareflection;
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.commonslang25.StringUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -12,10 +14,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * A {@link Field} shorthand utility class mainly used to collect fields from classes meeting certain restrictions/requirements.

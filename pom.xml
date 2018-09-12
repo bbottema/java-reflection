@@ -57,11 +57,11 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency><!-- gives us @NonNull annotations-->
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-			<version>3.0.1</version>
-			<scope>compile</scope>
+		<dependency><!-- allows us to ignore spotbugs warnings for generated code-->
+			<groupId>com.github.spotbugs</groupId>
+			<artifactId>spotbugs-annotations</artifactId>
+			<version>3.1.6</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>

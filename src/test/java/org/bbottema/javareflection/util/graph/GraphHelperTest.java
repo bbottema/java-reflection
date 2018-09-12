@@ -10,12 +10,12 @@ public class GraphHelperTest {
 	
 	@Test
 	public void testFindAllPathsAscending() {
-		Node<Class<?>> nodeA = new Node<Class<?>>(byte.class);
-		Node<Class<?>> nodeB = new Node<Class<?>>(Integer.class);
-		Node<Class<?>> nodeC = new Node<Class<?>>(String.class);
-		Node<Class<?>> nodeD = new Node<Class<?>>(double.class);
-		Node<Class<?>> nodeE = new Node<Class<?>>(Double.class);
-		Node<Class<?>> nodeF = new Node<Class<?>>(boolean.class);
+		Node<String> nodeA = new Node<>("A");
+		Node<String> nodeB = new Node<>("B");
+		Node<String> nodeC = new Node<>("C");
+		Node<String> nodeD = new Node<>("D");
+		Node<String> nodeE = new Node<>("E");
+		Node<String> nodeF = new Node<>("F");
 		// define edges from source
 		nodeA.getToNodes().put(nodeE, 10);
 		nodeA.getToNodes().put(nodeB, 10);
@@ -31,9 +31,9 @@ public class GraphHelperTest {
 		assertThat(GraphHelper.findAllPathsAscending(nodeA, nodeD)).isEmpty();
 		assertThat(GraphHelper.findAllPathsAscending(nodeC, nodeF)).isEmpty();
 		assertThat(GraphHelper.findAllPathsAscending(nodeA, nodeE)).containsExactly(
-				Arrays.asList(nodeA, nodeE),
-				Arrays.asList(nodeA, nodeB, nodeE),
-				Arrays.asList(nodeA, nodeC, nodeE)
+				Arrays.asList(nodeE),
+				Arrays.asList(nodeB, nodeE),
+				Arrays.asList(nodeC, nodeE)
 		);
 	}
 	

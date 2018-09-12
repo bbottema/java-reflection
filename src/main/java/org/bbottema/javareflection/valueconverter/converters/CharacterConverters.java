@@ -29,6 +29,8 @@ public final class CharacterConverters {
 		ArrayList<ValueFunction<Character, ?>> converters = new ArrayList<>();
 		converters.add(new ValueFunctionImpl<>(char.class, Character.class, Functions.<Character>identity()));
 		converters.add(new ValueFunctionImpl<>(Character.class, char.class, Functions.<Character>identity()));
+		converters.add(new ValueFunctionImpl<>(char.class, char.class, Functions.<Character>identity()));
+		converters.add(new ValueFunctionImpl<>(Character.class, Character.class, Functions.<Character>identity()));
 		converters.add(new ValueFunctionImpl<>(Character.class, String.class, Functions.<Character>simpleToString()));
 		converters.add(new ValueFunctionImpl<>(Character.class, Number.class, new CharacterToNumberFunction()));
 		converters.add(new ValueFunctionImpl<>(Character.class, Boolean.class, new CharacterToBooleanFunction()));
@@ -38,7 +40,10 @@ public final class CharacterConverters {
 	private static class CharacterToNumberFunction implements Function<Character, Number> {
 		@Override
 		public Number apply(Character value) {
-			return Character.getNumericValue(value);
+			int numericValue = Character.getNumericValue(value);
+			return numericValue == -1 || numericValue > 9
+					? (int) value
+					: numericValue;
 		}
 	}
 	

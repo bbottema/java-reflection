@@ -2,6 +2,7 @@ package org.bbottema.javareflection.valueconverter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.bbottema.javareflection.util.Function;
 
 import javax.annotation.Nonnull;
@@ -20,9 +21,10 @@ public interface ValueFunction<F, T> {
 	 */
 	@Getter
 	@RequiredArgsConstructor
+	@ToString(onlyExplicitlyIncluded = true)
 	class ValueFunctionImpl<F, T> implements ValueFunction<F, T> {
-		@Nonnull protected final Class<F> fromType;
-		@Nonnull protected final Class<T> targetType;
+		@Nonnull @ToString.Include protected final Class<F> fromType;
+		@Nonnull @ToString.Include protected final Class<T> targetType;
 		@Nonnull private final Function<F, T> converter;
 		@Nonnull @Override
 		public final T convertValue(@Nonnull F value) {

@@ -30,11 +30,10 @@ class NodePathComparator<T> implements Comparator<List<Node<T>>> {
 		Node<T> currentFromNode = null;
 		int nodesCost = 0;
 		for (Node<T> nodeInPath : nodes) {
-			if (currentFromNode == null) {
-				currentFromNode = nodeInPath;
-			} else {
+			if (currentFromNode != null) {
 				nodesCost += currentFromNode.getToNodes().get(nodeInPath);
 			}
+			currentFromNode = nodeInPath;
 		}
 		return nodesCost;
 	}

@@ -45,24 +45,24 @@ public class NumberConverters {
 	
 	private static final List<Class<? extends Number>> CONVERTABLE_NUMBER_FROM_CLASSES_JDK7 = newArrayList(Number.class, AtomicInteger.class, AtomicLong.class, BigDecimal.class, BigInteger.class, byte.class, Byte.class, double.class, Double.class, float.class, Float.class, int.class, Integer.class, long.class, Long.class, short.class, Short.class);
 	private static final Map<Class<?>, Function<Number, ?>> CONVERTERS_BY_TARGET_TYPE = new HashMap<Class<?>, Function<Number, ?>>() {{
-		CONVERTERS_BY_TARGET_TYPE.put(Number.class, new NumberDoubleFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Integer.class, new NumberIntegerFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(int.class, new NumberIntegerFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Boolean.class, new NumberBooleanFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(boolean.class, new NumberBooleanFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Float.class, new NumberFloatFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(float.class, new NumberFloatFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Double.class, new NumberDoubleFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(double.class, new NumberDoubleFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Long.class, new NumberLongFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(long.class, new NumberLongFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Byte.class, new NumberByteFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(byte.class, new NumberByteFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Short.class, new NumberShortFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(short.class, new NumberShortFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(Character.class, new NumberCharacterFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(char.class, new NumberCharacterFunction());
-		CONVERTERS_BY_TARGET_TYPE.put(String.class, Functions.<Number>simpleToString());
+		put(Number.class, new NumberDoubleFunction());
+		put(Integer.class, new NumberIntegerFunction());
+		put(int.class, new NumberIntegerFunction());
+		put(Boolean.class, new NumberBooleanFunction());
+		put(boolean.class, new NumberBooleanFunction());
+		put(Float.class, new NumberFloatFunction());
+		put(float.class, new NumberFloatFunction());
+		put(Double.class, new NumberDoubleFunction());
+		put(double.class, new NumberDoubleFunction());
+		put(Long.class, new NumberLongFunction());
+		put(long.class, new NumberLongFunction());
+		put(Byte.class, new NumberByteFunction());
+		put(byte.class, new NumberByteFunction());
+		put(Short.class, new NumberShortFunction());
+		put(short.class, new NumberShortFunction());
+		put(Character.class, new NumberCharacterFunction());
+		put(char.class, new NumberCharacterFunction());
+		put(String.class, Functions.<Number>simpleToString());
 	}};
 	
 	public static final Collection<ValueFunction<? extends Number, ?>> NUMBER_CONVERTERS = produceNumberConverters();
@@ -70,11 +70,13 @@ public class NumberConverters {
 	private static Collection<ValueFunction<? extends Number, ?>> produceNumberConverters() {
 		ArrayList<ValueFunction<? extends Number, ?>> valueFunctions = new ArrayList<>();
 		for (Class<? extends Number> numberFromClass : CONVERTABLE_NUMBER_FROM_CLASSES_JDK7) {
-			for (Class<?> targetClass : CONVERTERS_BY_TARGET_TYPE.keySet()) {
-				if (numberFromClass != targetClass && !targetClass.isAssignableFrom(numberFromClass)) {
-					//noinspection unchecked
-					valueFunctions.add(new ValueFunctionImpl(numberFromClass, targetClass, CONVERTERS_BY_TARGET_TYPE.get(targetClass)));
-				}
+			for (Map.Entry<Class<?>, Function<Number, ?>> targetClassConverter : CONVERTERS_BY_TARGET_TYPE.entrySet()) {
+				Class<?> targetClass = targetClassConverter.getKey();
+				Function converter = (numberFromClass == targetClass || targetClass.isAssignableFrom(numberFromClass))
+						? Functions.identity()
+						: targetClassConverter.getValue();
+				//noinspection unchecked
+				valueFunctions.add(new ValueFunctionImpl(numberFromClass, targetClass, converter));
 			}
 		}
 		return valueFunctions;
@@ -82,7 +84,7 @@ public class NumberConverters {
 	
 	public static class NumberIntegerFunction implements Function<Number, Integer> {
 		public Integer apply(Number value) {
-			return null;
+			return value.intValue();
 		}
 	}
 	

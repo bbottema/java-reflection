@@ -11,6 +11,7 @@ import org.bbottema.javareflection.valueconverter.converters.StringConverters;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,15 +36,6 @@ import static java.util.Arrays.asList;
  */
 @UtilityClass
 public final class ValueConversionHelper {
-
-	/**
-	 * List of common types that all other common types can always convert to. For example, <code>String</code> and <code>Integer</code> are
-	 * basic common types and can be converted to any other common type.
-	 */
-	//FIXME move this out
-	public static final Set<Class<?>> COMMON_TYPES = new HashSet<Class<?>>(asList(String.class, Integer.class, int.class, Float.class,
-			float.class, Double.class, double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class,
-			Boolean.class, boolean.class, Character.class, char.class));
 
 	/**
 	 * A list of all primitive number types.
@@ -93,12 +85,12 @@ public final class ValueConversionHelper {
 		
 		// add nodes and edges
 		for (Map.Entry<Class<?>, Map<Class<?>, ValueFunction<Object, Object>>> convertersForFromType : valueConverters.entrySet()) {
-			final Class<?> fromType = convertersForFromType.getKey();
-			final Node<Class<?>> fromNode = new Node<Class<?>>(fromType);
-			converterGraph.put(fromType, fromNode); // from node
+			Class<?> fromType = convertersForFromType.getKey();
+			Node<Class<?>> fromNode = converterGraph.containsKey(fromType) ? converterGraph.get(fromType) : new Node<Class<?>>(fromType);
+			converterGraph.put(fromType, fromNode);
 			for (Class<?> toType : convertersForFromType.getValue().keySet()) {
-				final Node<Class<?>> toNode = new Node<Class<?>>(toType);
-				converterGraph.put(toType, toNode); // to node
+				Node<Class<?>> toNode = converterGraph.containsKey(toType) ? converterGraph.get(toType) : new Node<Class<?>>(toType);
+				converterGraph.put(toType, toNode);
 				fromNode.getToNodes().put(toNode, 1); // edge
 			}
 		}
@@ -114,7 +106,7 @@ public final class ValueConversionHelper {
 	 */
 	@SuppressWarnings("WeakerAccess")
 	public static boolean isCommonType(final Class<?> c) {
-		return COMMON_TYPES.contains(c);
+		return valueConverters.containsKey(c);
 	}
 
 	/**
@@ -126,9 +118,11 @@ public final class ValueConversionHelper {
 	 */
 	@Nonnull
 	public static Set<Class<?>> collectRegisteredCompatibleTargetTypes(final Class<?> fromType) {
-		Set<Class<?>> compatibleTypes = new HashSet<>();
-		for (Node<Class<?>> reachableNode : GraphHelper.findReachableNodes(converterGraph.get(fromType))) {
-			compatibleTypes.add(reachableNode.getType());
+		Set<Class<?>> compatibleTypes = new HashSet<>(Collections.<Class<?>>singleton(fromType));
+		if (converterGraph.containsKey(fromType)) {
+			for (Node<Class<?>> reachableNode : GraphHelper.findReachableNodes(converterGraph.get(fromType))) {
+				compatibleTypes.add(reachableNode.getType());
+			}
 		}
 		return compatibleTypes;
 	}
@@ -148,7 +142,37 @@ public final class ValueConversionHelper {
 		}
 		return false;
 	}
-
+	
+	public static Set<Class<?>> collectCompatibleTargetTypes(Class<?> fromType) {
+		HashSet<Class<?>> universalTargetTypes = new HashSet<>();
+		universalTargetTypes.add(fromType);
+		universalTargetTypes.add(String.class);
+		
+		if (!valueConverters.keySet().contains(fromType)) {
+			return universalTargetTypes;
+		}
+		
+		Set<Class<?>> compatibleTargetTypes = new HashSet<>(universalTargetTypes);
+		Node<Class<?>> fromNode = converterGraph.get(fromType);
+		for (Map<Class<?>, ValueFunction<Object, Object>> convertersForFromTypes : valueConverters.values()) {
+			for (Class<?> targetType : convertersForFromTypes.keySet()) {
+				if (isCompatibleTargetType(fromNode, targetType)) {
+					compatibleTargetTypes.add(targetType);
+				}
+			}
+		}
+		return compatibleTargetTypes;
+	}
+	
+	private static boolean isCompatibleTargetType(Node<Class<?>> fromNode, Class<?> targetType) {
+		for (Node<Class<?>> toNode : collectTypeCompatibleNodes(targetType)) {
+			if (GraphHelper.isPathPossible(fromNode, toNode)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Converts a list of values to their converted form, as indicated by the specified targetTypes.
 	 * 
@@ -196,34 +220,39 @@ public final class ValueConversionHelper {
 	 * @throws IncompatibleTypeException Thrown by the various <code>convert()</code> methods used.
 	 */
 	@Nullable
-	public static Object convert(@Nullable final Object fromValue, final Class<?> targetType)
+	public static <T> T convert(@Nullable final Object fromValue, final Class<T> targetType)
 			throws IncompatibleTypeException {
 		if (fromValue == null) {
 			return null;
 		} else if (targetType.isAssignableFrom(fromValue.getClass())) {
-			return fromValue;
+			//noinspection unchecked
+			return (T) fromValue;
 		} else {
 			checkForAndRegisterEnumConverter(targetType);
+			checkForAndRegisterToStringConverter(fromValue.getClass());
 			return convertWithConversionGraph(fromValue, targetType);
 		}
 	}
 	
 	@Nonnull
-	private static Object convertWithConversionGraph(@Nonnull Object fromValue, @Nonnull Class<?> targetType) {
+	private static <T> T convertWithConversionGraph(@Nonnull Object fromValue, @Nonnull Class<T> targetType) {
 		final Node<Class<?>> fromNode = converterGraph.get(fromValue.getClass());
 		
-		for (Node<Class<?>> toNode : collectTypeCompatibleNodes(targetType)) {
-			for (List<Node<Class<?>>> conversionPathAscending : GraphHelper.findAllPathsAscending(fromNode, toNode)) {
-				try {
-					Object targetValue = fromValue;
-					for (Node<Class<?>> nodeInConversionPath : conversionPathAscending) {
-						Class<?> currentFromType = targetValue.getClass();
-						Class<?> currentToType = nodeInConversionPath.getType();
-						targetValue = locateValueConverter(currentFromType, currentToType).convertValue(targetValue);
+		if (fromNode != null) {
+			for (Node<Class<?>> toNode : collectTypeCompatibleNodes(targetType)) {
+				for (List<Node<Class<?>>> conversionPathAscending : GraphHelper.findAllPathsAscending(fromNode, toNode)) {
+					try {
+						Object evolvingValueToConvert = fromValue;
+						for (Node<Class<?>> nodeInConversionPath : conversionPathAscending) {
+							Class<?> currentFromType = evolvingValueToConvert.getClass();
+							Class<?> currentToType = nodeInConversionPath.getType();
+							evolvingValueToConvert = locateValueConverter(currentFromType, currentToType).convertValue(evolvingValueToConvert);
+						}
+						//noinspection unchecked
+						return (T) evolvingValueToConvert;
+					} catch (IncompatibleTypeException e) {
+						// keep trying conversion paths...
 					}
-					return targetValue;
-				} catch (IncompatibleTypeException e) {
-					// keep trying conversion paths...
 				}
 			}
 		}
@@ -235,9 +264,14 @@ public final class ValueConversionHelper {
 	private static void checkForAndRegisterEnumConverter(Class<?> targetType) {
 		if (Enum.class.isAssignableFrom(targetType)) {
 			if (!valueConverters.get(String.class).containsKey(targetType)) {
-				ValueFunction<?, ?> stringValueFunction = StringConverters.produceStringToEnumConverter((Class<? extends Enum>) targetType);
-				valueConverters.get(String.class).put(targetType, (ValueFunction<Object, Object>) stringValueFunction);
+				registerValueConverter(StringConverters.produceStringToEnumConverter((Class<? extends Enum>) targetType));
 			}
+		}
+	}
+	
+	private static void checkForAndRegisterToStringConverter(Class<?> fromType) {
+		if (!valueConverters.containsKey(fromType) || !valueConverters.get(fromType).containsKey(String.class)) {
+			registerValueConverter(StringConverters.produceTypeToStringConverter(fromType));
 		}
 	}
 	

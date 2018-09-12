@@ -15,34 +15,51 @@ public final class GraphHelper {
 	}
 	
 	@SuppressWarnings("WeakerAccess")
+	public static <T> boolean isPathPossible(Node<T> startingPoint, Node<T> destination) {
+		return findPossiblePaths(startingPoint, destination, new ArrayDeque<Node<T>>(), new ArrayList<List<Node<T>>>(), true, 4);
+	}
+	
+	@SuppressWarnings("WeakerAccess")
 	public static <T> List<List<Node<T>>> findAllPathsAscending(Node<T> startingPoint, Node<T> destination) {
 		List<List<Node<T>>> allPaths = new ArrayList<>();
-		findAllPossiblePaths(startingPoint, destination, new ArrayDeque<Node<T>>(), allPaths);
+		findPossiblePaths(startingPoint, destination, new ArrayDeque<Node<T>>(), allPaths, false, 4);
 		Collections.sort(allPaths, NodePathComparator.<T>INSTANCE());
 		return allPaths;
 	}
 	
 	@SuppressWarnings({"StatementWithEmptyBody"})
-	private static <T> void findAllPossiblePaths(Node<T> currentNode, Node<T> destination, Deque<Node<T>> currentPath, List<List<Node<T>>> possiblePathsSoFar) {
+	private static <T> boolean findPossiblePaths(Node<T> currentNode, Node<T> destination, Deque<Node<T>> currentPath,
+												 List<List<Node<T>>> possiblePathsSoFar,
+												 boolean returnOnFirstPathFound,
+												 int cutOffEdgeCount) {
+		boolean foundAPatch = false;
+		
 		if (!currentPath.contains(currentNode)) {
 			currentPath.addLast(currentNode);
 			
 			if (currentNode.equals(destination)) {
 				if (!currentPath.isEmpty()) {
-					possiblePathsSoFar.add(new ArrayList<>(currentPath));
+					possiblePathsSoFar.add(new ArrayList<>(currentPath).subList(1, currentPath.size()));
+					foundAPatch = true;
 				} else {
 					// startingPoint same as destination
 				}
-			} else {
+			} else if (currentPath.size() <= cutOffEdgeCount) {
 				for (Node<T> nextNode : currentNode.getToNodes().keySet()) {
-					findAllPossiblePaths(nextNode, destination, currentPath, possiblePathsSoFar);
+					boolean	currentPathValid = findPossiblePaths(nextNode, destination, currentPath, possiblePathsSoFar, returnOnFirstPathFound, cutOffEdgeCount);
+					foundAPatch = foundAPatch || currentPathValid;
+					if (foundAPatch && returnOnFirstPathFound) {
+						break;
+					}
 				}
 			}
 			currentPath.removeLast();
 		} else {
 			// cyclic path
 		}
+		return foundAPatch;
 	}
+	
 	
 	@Nonnull
 	public static <T> Set<Node<T>> findReachableNodes(final Node<T> fromNode) {

@@ -1,5 +1,6 @@
 package org.bbottema.javareflection.util.graph;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -12,6 +13,7 @@ import java.util.Map;
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
+@SuppressFBWarnings(justification = "Generated code")
 public class Node<T> {
 	@Nonnull
 	@EqualsAndHashCode.Include

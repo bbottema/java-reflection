@@ -28,6 +28,9 @@ public final class BooleanConverters {
 		ArrayList<ValueFunction<Boolean, ?>> converters = new ArrayList<>();
 		converters.add(new ValueFunctionImpl<>(boolean.class, Boolean.class, Functions.<Boolean>identity()));
 		converters.add(new ValueFunctionImpl<>(Boolean.class, boolean.class, Functions.<Boolean>identity()));
+		converters.add(new ValueFunctionImpl<>(boolean.class, boolean.class, Functions.<Boolean>identity()));
+		converters.add(new ValueFunctionImpl<>(Boolean.class, Boolean.class, Functions.<Boolean>identity()));
+		
 		converters.add(new ValueFunctionImpl<>(Boolean.class, String.class, Functions.<Boolean>simpleToString()));
 		converters.add(new ValueFunctionImpl<>(Boolean.class, Number.class, new BooleanToNumberFunction()));
 		return converters;

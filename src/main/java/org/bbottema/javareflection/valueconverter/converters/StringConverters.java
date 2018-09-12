@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.commonslang25.NumberUtils;
 import org.bbottema.javareflection.util.Function;
+import org.bbottema.javareflection.util.Function.Functions;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueFunction;
 import org.bbottema.javareflection.valueconverter.ValueFunction.ValueFunctionImpl;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -38,6 +38,7 @@ public final class StringConverters {
 	
 	private static Collection<ValueFunction<String, ?>> produceStringConverters() {
 		ArrayList<ValueFunction<String, ?>> converters = new ArrayList<>();
+		converters.add(new ValueFunctionImpl<>(String.class, String.class, Functions.<String>identity()));
 		converters.add(new ValueFunctionImpl<>(String.class, Character.class, new StringToCharacterFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, Boolean.class, new StringToBooleanFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, Number.class, new StringToNumberFunction()));
@@ -55,12 +56,17 @@ public final class StringConverters {
 	 * Creates a converter to convert a <code>String</code> to an Enum instance, by mapping to the enum's name using
 	 * {@link Enum#valueOf(Class, String)}.
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T extends Enum> ValueFunction<String, T> produceStringToEnumConverter(Class<T> targetEnumClass) {
 		return new ValueFunctionImpl<>(String.class, targetEnumClass, new StringToEnumFunction<>(targetEnumClass));
 	}
 	
+	public static <F> ValueFunction<F, String> produceTypeToStringConverter(Class<F> fromType) {
+		return new ValueFunctionImpl<>(fromType, String.class, Functions.<F>simpleToString());
+	}
+	
 	@RequiredArgsConstructor
-	private static class StringToEnumFunction<T extends Enum> implements Function<String, T> {
+	private static class StringToEnumFunction<T extends Enum<T>> implements Function<String, T> {
 		@Nonnull
 		private final Class<T> targetEnumClass;
 		
@@ -69,10 +75,9 @@ public final class StringConverters {
 			// /CLOVER:OFF
 			try {
 				// /CLOVER:ON
-				//noinspection unchecked
-				return (T) targetEnumClass.getMethod("valueOf", String.class).invoke(null, value);
+				return Enum.valueOf(targetEnumClass, value);
 				// /CLOVER:OFF
-			} catch (final IllegalArgumentException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | SecurityException e) {
+			} catch (final IllegalArgumentException | SecurityException e) {
 				throw new IncompatibleTypeException(value, String.class, targetEnumClass, e);
 			}
 			// /CLOVER:ON

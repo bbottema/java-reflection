@@ -8,8 +8,11 @@ import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.Set;
 
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -22,6 +25,10 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings({"WrapperTypeMayBePrimitive", "ConstantConditions"})
 public class ValueConversionHelperTest {
+	
+	private static final Set<Class<?>> COMMON_TYPES = new HashSet<Class<?>>(asList(String.class, Integer.class, int.class, Float.class,
+			float.class, Double.class, double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class,
+			Boolean.class, boolean.class, Character.class, char.class));
 
 	@SuppressWarnings("unused")
 	enum TestEnum {
@@ -59,27 +66,27 @@ public class ValueConversionHelperTest {
 	@Test
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
-		for (Class<?> basicCommonType : ValueConversionHelper.COMMON_TYPES) {
-			assertContainsAllCommonTypes(ValueConversionHelper.collectRegisteredCompatibleTargetTypes(basicCommonType));
+		for (Class<?> basicCommonType : COMMON_TYPES) {
+			assertContainsAllCommonTypes(basicCommonType, ValueConversionHelper.collectCompatibleTargetTypes(basicCommonType));
 		}
 
-		Set<Class<?>> types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(String.class);
-		assertContainsAllCommonTypes(types);
+		Set<Class<?>> types = ValueConversionHelper.collectCompatibleTargetTypes(String.class);
+		assertContainsAllCommonTypes(String.class, types);
 
-		types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(boolean.class);
-		assertContainsAllCommonTypes(types);
+		types = ValueConversionHelper.collectCompatibleTargetTypes(boolean.class);
+		assertContainsAllCommonTypes(boolean.class, types);
 
-		types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(Character.class);
-		assertContainsAllCommonTypes(types);
+		types = ValueConversionHelper.collectCompatibleTargetTypes(Character.class);
+		assertContainsAllCommonTypes(Character.class, types);
 
-		types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(Calendar.class);
-		assertEquals(1, types.size());
+		types = ValueConversionHelper.collectCompatibleTargetTypes(Calendar.class);
+		assertEquals(2, types.size());
 		assertTrue(types.contains(String.class));
 	}
 
-	private void assertContainsAllCommonTypes(Set<Class<?>> types) {
-		for (Class<?> basicCommonType : ValueConversionHelper.COMMON_TYPES) {
-			assertTrue(types.contains(basicCommonType));
+	private void assertContainsAllCommonTypes(Class<?> checkingType, Set<Class<?>> types) {
+		for (Class<?> basicCommonType : COMMON_TYPES) {
+			assertTrue(format("types for %s contains %s?", checkingType, basicCommonType), types.contains(basicCommonType));
 		}
 	}
 
@@ -121,40 +128,40 @@ public class ValueConversionHelperTest {
 	@Test
 	public void testConvertObjectClassOfQ() {
 		// test null value
-		assertNull(ValueConversionHelper.convert((Object) null, Number.class));
+		assertNull(ValueConversionHelper.convert(null, Number.class));
 		// test integer -> number (allowed)
 		Integer integer = 50;
-		assertSame(integer, ValueConversionHelper.convert((Object) integer, Number.class));
+		assertSame(integer, ValueConversionHelper.convert(integer, Number.class));
 		// test with exact same type (allowed, should return the original value)
 		Calendar calendar = Calendar.getInstance();
 		assertSame(calendar, ValueConversionHelper.convert(calendar, Calendar.class));
 		// test number -> integer (not allowed)
 		Number number = 100.5f;
-		Object o = ValueConversionHelper.convert((Object) number, Integer.class);
+		Object o = ValueConversionHelper.convert(number, Integer.class);
 		assertNotSame(number, o);
 		assertEquals(100, o);
 		// test to string conversion
-		assertEquals("a value", ValueConversionHelper.convert((Object) "a value", String.class));
-		assertEquals("100.5", ValueConversionHelper.convert((Object) number, String.class));
+		assertEquals("a value", ValueConversionHelper.convert("a value", String.class));
+		assertEquals("100.5", ValueConversionHelper.convert(number, String.class));
 		// test from string to anything else conversion
-		assertEquals("a value", ValueConversionHelper.convert((Object) "a value", String.class));
-		assertFalse((Boolean) ValueConversionHelper.convert((Object) "false", boolean.class));
-		assertEquals(33f, ValueConversionHelper.convert((Object) "33", float.class));
+		assertEquals("a value", ValueConversionHelper.convert("a value", String.class));
+		assertFalse(ValueConversionHelper.convert("false", boolean.class));
+		assertEquals(33f, (Object) ValueConversionHelper.convert("33", float.class));
 		// test from character
 		Character chara = '5';
 		char charb = '8';
-		assertEquals(5, ValueConversionHelper.convert((Object) chara, Number.class));
-		assertEquals(8f, ValueConversionHelper.convert((Object) charb, float.class));
+		assertEquals(5, ValueConversionHelper.convert(chara, Number.class).intValue());
+		assertEquals(8f, (Object) ValueConversionHelper.convert(charb, float.class));
 		// test from boolean
 		Boolean boola = false;
 		boolean boolb = true;
-		assertEquals(0, ValueConversionHelper.convert((Object) boola, Number.class));
-		assertEquals(1f, ValueConversionHelper.convert((Object) boolb, float.class));
-		assertEquals("false", ValueConversionHelper.convert((Object) boola, String.class));
-		assertEquals("true", ValueConversionHelper.convert((Object) boolb, String.class));
+		assertEquals(0, ValueConversionHelper.convert(boola, Number.class).intValue());
+		assertEquals(1f, (Object) ValueConversionHelper.convert(boolb, float.class));
+		assertEquals("false", ValueConversionHelper.convert(boola, String.class));
+		assertEquals("true", ValueConversionHelper.convert(boolb, String.class));
 		// test for incompatibility error
 		try {
-			ValueConversionHelper.convert((Object) false, Calendar.class);
+			ValueConversionHelper.convert(false, Calendar.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK
@@ -169,17 +176,17 @@ public class ValueConversionHelperTest {
 
 	@Test
 	public void testConvertNumberClassOfQ() {
-		assertNull(ValueConversionHelper.convert((Number) null, boolean.class));
-		assertFalse((Boolean) ValueConversionHelper.convert(0, boolean.class));
-		assertTrue((Boolean) ValueConversionHelper.convert(1, boolean.class));
-		assertTrue((Boolean) ValueConversionHelper.convert(50, boolean.class));
-		assertEquals(50f, ValueConversionHelper.convert(50, float.class));
-		assertEquals(50d, ValueConversionHelper.convert(50, double.class));
-		assertEquals(50L, ValueConversionHelper.convert(50, long.class));
-		assertEquals(50, ValueConversionHelper.convert(50, Integer.class));
-		assertEquals((byte) 50, ValueConversionHelper.convert(50, byte.class));
-		assertEquals((short) 50, ValueConversionHelper.convert(50, short.class));
-		assertEquals('5', ValueConversionHelper.convert(5, char.class));
+		assertNull(ValueConversionHelper.convert(null, boolean.class));
+		assertFalse(ValueConversionHelper.convert(0, boolean.class));
+		assertTrue(ValueConversionHelper.convert(1, boolean.class));
+		assertTrue(ValueConversionHelper.convert(50, boolean.class));
+		assertEquals(50f, (Object) ValueConversionHelper.convert(50, float.class));
+		assertEquals(50d, (Object) ValueConversionHelper.convert(50, double.class));
+		assertEquals(50L, (Object) ValueConversionHelper.convert(50, long.class));
+		assertEquals(50, (Object) ValueConversionHelper.convert(50, Integer.class));
+		assertEquals((byte) 50, (Object) ValueConversionHelper.convert(50, byte.class));
+		assertEquals((short) 50, (Object) ValueConversionHelper.convert(50, short.class));
+		assertEquals('5', (Object) ValueConversionHelper.convert(5, char.class));
 		assertEquals("50", ValueConversionHelper.convert(50, String.class));
 
 		try {
@@ -192,18 +199,18 @@ public class ValueConversionHelperTest {
 
 	@Test
 	public void testConvertBooleanClassOfQ() {
-		assertNull(ValueConversionHelper.convert((Boolean) null, Calendar.class));
-		assertFalse((Boolean) ValueConversionHelper.convert(false, boolean.class));
-		assertTrue((Boolean) ValueConversionHelper.convert(true, boolean.class));
-		assertTrue((Boolean) ValueConversionHelper.convert(true, boolean.class));
+		assertNull(ValueConversionHelper.convert(null, Calendar.class));
+		assertFalse(ValueConversionHelper.convert(false, boolean.class));
+		assertTrue(ValueConversionHelper.convert(true, boolean.class));
+		assertTrue(ValueConversionHelper.convert(true, boolean.class));
 		assertEquals("true", ValueConversionHelper.convert(true, String.class));
 		assertEquals("false", ValueConversionHelper.convert(false, String.class));
-		assertEquals(1, ValueConversionHelper.convert(true, Integer.class));
-		assertEquals(1f, ValueConversionHelper.convert(true, Float.class));
-		assertEquals(1, ValueConversionHelper.convert(true, Number.class));
-		assertEquals(0d, ValueConversionHelper.convert(false, double.class));
-		assertEquals('0', ValueConversionHelper.convert(false, Character.class));
-		assertEquals('1', ValueConversionHelper.convert(true, Character.class));
+		assertEquals(1, (Object) ValueConversionHelper.convert(true, Integer.class));
+		assertEquals(1f, (Object) ValueConversionHelper.convert(true, Float.class));
+		assertEquals(1, ValueConversionHelper.convert(true, Number.class).intValue());
+		assertEquals(0d, (Object) ValueConversionHelper.convert(false, double.class));
+		assertEquals('0', (Object) ValueConversionHelper.convert(false, Character.class));
+		assertEquals('1', (Object) ValueConversionHelper.convert(true, Character.class));
 
 		try {
 			ValueConversionHelper.convert(false, Calendar.class);
@@ -215,15 +222,16 @@ public class ValueConversionHelperTest {
 
 	@Test
 	public void testConvertCharacterClassOfQ() {
-		assertNull(ValueConversionHelper.convert((Character) null, Object.class));
-		assertEquals('5', ValueConversionHelper.convert('5', char.class));
+		assertNull(ValueConversionHelper.convert(null, Object.class));
+		assertEquals('5', (Object) ValueConversionHelper.convert('5', char.class));
 		assertEquals("h", ValueConversionHelper.convert('h', String.class));
-		assertTrue((Boolean) ValueConversionHelper.convert('1', Boolean.class));
-		assertFalse((Boolean) ValueConversionHelper.convert('0', Boolean.class));
-		assertTrue((Boolean) ValueConversionHelper.convert('h', Boolean.class));
-		assertEquals(9, ValueConversionHelper.convert('9', Integer.class));
-		assertEquals(9, ValueConversionHelper.convert('9', Number.class));
-		assertEquals(9d, ValueConversionHelper.convert('9', Double.class));
+		assertTrue(ValueConversionHelper.convert('1', Boolean.class));
+		assertFalse(ValueConversionHelper.convert('0', Boolean.class));
+		assertTrue(ValueConversionHelper.convert('h', Boolean.class));
+		assertEquals(9, (Object) ValueConversionHelper.convert('9', Integer.class));
+		assertEquals(9, ValueConversionHelper.convert('9', Number.class).intValue());
+		assertEquals(9d, (Object) ValueConversionHelper.convert('9', Double.class));
+		assertEquals(100, (Object) ValueConversionHelper.convert("d", Integer.class));
 
 		try {
 			ValueConversionHelper.convert('5', Calendar.class);
@@ -235,23 +243,23 @@ public class ValueConversionHelperTest {
 
 	@Test
 	public void testConvertStringClassOfQ() {
-		assertEquals(0, ValueConversionHelper.convert("0", Integer.class));
-		assertNull(ValueConversionHelper.convert((String) null, Integer.class));
-		assertEquals(10, ValueConversionHelper.convert("10", Integer.class));
-		assertEquals(0f, ValueConversionHelper.convert("0", Float.class));
-		assertEquals(10f, ValueConversionHelper.convert("10", Float.class));
-		assertEquals(0d, ValueConversionHelper.convert("0", double.class));
-		assertEquals(10d, ValueConversionHelper.convert("10", double.class));
-		assertEquals(0, ValueConversionHelper.convert("0", Number.class));
-		assertEquals(10, ValueConversionHelper.convert("10", Number.class));
-		assertFalse((Boolean) ValueConversionHelper.convert("0", Boolean.class));
-		assertTrue((Boolean) ValueConversionHelper.convert("1", Boolean.class));
-		assertTrue((Boolean) ValueConversionHelper.convert("true", Boolean.class));
-		assertFalse((Boolean) ValueConversionHelper.convert("false", Boolean.class));
-		assertEquals('h', ValueConversionHelper.convert("h", char.class));
+		assertEquals(0, (Object) ValueConversionHelper.convert("0", Integer.class));
+		assertNull(ValueConversionHelper.convert(null, Integer.class));
+		assertEquals(10, (Object) ValueConversionHelper.convert("10", Integer.class));
+		assertEquals(0f, (Object) ValueConversionHelper.convert("0", Float.class));
+		assertEquals(10f, (Object) ValueConversionHelper.convert("10", Float.class));
+		assertEquals(0d, (Object) ValueConversionHelper.convert("0", double.class));
+		assertEquals(10d, (Object) ValueConversionHelper.convert("10", double.class));
+		assertEquals(0, ValueConversionHelper.convert("0", Number.class).intValue());
+		assertEquals(10, ValueConversionHelper.convert("10", Number.class).intValue());
+		assertFalse(ValueConversionHelper.convert("0", Boolean.class));
+		assertTrue(ValueConversionHelper.convert("1", Boolean.class));
+		assertTrue(ValueConversionHelper.convert("true", Boolean.class));
+		assertFalse(ValueConversionHelper.convert("false", Boolean.class));
+		assertEquals('h', (Object) ValueConversionHelper.convert("h", char.class));
 		assertEquals("h", ValueConversionHelper.convert("h", String.class));
 		assertSame(TestEnum.ONE, ValueConversionHelper.convert("ONE", TestEnum.class));
-		assertTrue((Boolean) ValueConversionHelper.convert("h", Boolean.class));
+		assertTrue(ValueConversionHelper.convert("h", Boolean.class));
 		try {
 			ValueConversionHelper.convert("falsef", Boolean.class);
 			fail("should not be able to convert value");
@@ -294,13 +302,13 @@ public class ValueConversionHelperTest {
 	@Test
 	public void testConvertNumber() {
 		assertNull(ValueConversionHelper.convert(null, Integer.class));
-		assertEquals(1, ValueConversionHelper.convert("1", Integer.class));
-		assertEquals(1f, ValueConversionHelper.convert("1", Float.class));
-		assertEquals(1d, ValueConversionHelper.convert("1", Double.class));
-		assertEquals((byte) 1, ValueConversionHelper.convert("1", Byte.class));
-		assertEquals(1, ValueConversionHelper.convert("1", Number.class));
-		assertEquals((short) 1, ValueConversionHelper.convert("1", short.class));
-		assertEquals(1L, ValueConversionHelper.convert("1", long.class));
+		assertEquals(1, (Object) ValueConversionHelper.convert("1", Integer.class));
+		assertEquals(1f, (Object) ValueConversionHelper.convert("1", Float.class));
+		assertEquals(1d, (Object) ValueConversionHelper.convert("1", Double.class));
+		assertEquals((byte) 1, (Object) ValueConversionHelper.convert("1", Byte.class));
+		assertEquals(1, ValueConversionHelper.convert("1", Number.class).intValue());
+		assertEquals((short) 1, (Object) ValueConversionHelper.convert("1", short.class));
+		assertEquals(1L, (Object) ValueConversionHelper.convert("1", long.class));
 		assertEquals(BigDecimal.valueOf(1), ValueConversionHelper.convert("1", BigDecimal.class));
 		assertEquals(BigInteger.valueOf(1), ValueConversionHelper.convert("1", BigInteger.class));
 		try {
@@ -310,15 +318,9 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 		try {
-			ValueConversionHelper.convert("d", Integer.class);
-			fail("should not be able to convert value");
-		} catch (IncompatibleTypeException e) {
-			// OK
-		}
-		try {
 			ValueConversionHelper.convert("1", (Class<Integer>) (Object) Calendar.class);
 			fail("should not be able to convert value");
-		} catch (IllegalArgumentException e) {
+		} catch (IncompatibleTypeException e) {
 			// OK
 		}
 		try {

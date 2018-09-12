@@ -1,5 +1,6 @@
 package org.bbottema.javareflection;
 
+import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 
 import javax.annotation.Nonnull;
@@ -45,25 +46,26 @@ import java.util.Set;
  * combinations thereof.
  * <p>
  * <strong>Observe the following (trivial) example:</strong>
- * 
+ *
  * <pre>
  * 	interface Foo {
  * 		void foo(Double value, Fruit fruit, char c);
- * 	}
+ *        }
  * 	abstract class A implements Foo {
- * 	}
+ *    }
  * 	abstract class B extends A {
- * 	}
- * 
+ *    }
+ *
  * 	JReflect.findCompatibleJavaMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Pear.class, String.class)}
  * </pre>
- * 
+ * <p>
  * In the above example, the method foo will be found by finding all methods named "Foo" on the interfaces implemented by supertype <code>A</code>,
  * and then foo's method signature will be matched using autoboxing on the <code>double</code> type, a cast to the <code>Fruit</code> supertype for
  * the <code>Pear</code> type and finally by attempting a common conversion from <code>String</code> to <code>char</code>. This will give you a Java
  * {@link Method}, but you won't be able to invoke it if it was found using a less strict lookup than one with a simple exact match. There are two
- * ways to do this: use {@link #invokeCompatibleMethod(Object, Class, String, Object...)} instead or perform the conversion yourself using
- * {@link ValueConversionHelper#convert(Object[], Class[], boolean)} prior to invoking the method. <code>ValueConverter.convert(args, method.getParameterTypes())</code>.
+ * ways to do this: use {@link #invokeCompatibleMethod(Object, Class, String, Object...)} instead or perform the conversion yourself using {@link
+ * ValueConversionHelper#convert(Object[], Class[], boolean)} prior to invoking the method. <code>ValueConverter.convert(args,
+ * method.getParameterTypes())</code>.
  * <p>
  * A reverse lookup is also possible: given an ordered list of possible types, is a given <code>Method</code> compatible?
  * <p>
@@ -89,8 +91,6 @@ import java.util.Set;
  * @see FieldUtils
  * @see ExternalClassLoader
  */
-
-import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public final class JReflect {
@@ -650,7 +650,7 @@ public final class JReflect {
 
             // 5. generate types the original value could be converted into
             if (lookupMode.contains(LookupMode.COMMON_CONVERT)) {
-                for (final Class<?> convert : ValueConversionHelper.collectRegisteredCompatibleTargetTypes(original)) {
+                for (final Class<?> convert : ValueConversionHelper.collectCompatibleTargetTypes(original)) {
                     final Class<?>[] newSignature = replaceInArray(signature.clone(), index, convert);
                     generateCompatibleSignatures(index + 1, lookupMode, signatures, newSignature);
                 }

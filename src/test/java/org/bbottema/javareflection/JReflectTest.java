@@ -148,6 +148,7 @@ public class JReflectTest {
 		JReflect.invokeCompatibleMethod(new C(new Pear()), B.class, "foo", 50d, new Pear(), "g");
 		JReflect.invokeCompatibleMethod(new C(new Pear()), C.class, "foo", 50d, new Pear(), "g");
 		JReflect.invokeCompatibleMethod("", String.class, "concat", String.class);
+		
 		// shouldn't be able to find the following methods
 		try {
 			JReflect.invokeCompatibleMethod(new C(new Pear()), C.class, "foos", 50d, new Pear(), "g");
@@ -413,6 +414,7 @@ public class JReflectTest {
 	static abstract class Fruit {
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	static class Pear extends Fruit {
 	}
 	
