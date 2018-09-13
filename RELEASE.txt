@@ -1,0 +1,23 @@
+http://code.google.com/p/java-reflection/
+
+
+RELEASE NOTES Java Reflection
+
+
+v3.x.x
+
+Complete overhaul:
+- Conversion now works with graph-based path finding resolution to find all possible conversion paths
+- Converters can now be added by third parties
+- fixed a bug with the cache not working properly
+
+v2.x.x
+
+- Converted to Java 7 and added spotbugs
+- Resolved a bunch of warnings
+- Removed dependencies on external libraries
+
+
+v1.0
+
+Initial upload
