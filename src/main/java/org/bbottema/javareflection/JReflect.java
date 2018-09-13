@@ -147,7 +147,7 @@ public final class JReflect {
     private final static Map<Class<?>, Map<String, Map<AccessibleObject, Class<?>[]>>> methodCache = new LinkedHashMap<>();
 
     /**
-     * {@link Class} cache optionally used when looking up classes with {@link #locateClass(String, boolean, ExternalClassLoader, boolean)}.
+     * {@link Class} cache optionally used when looking up classes with {@link #locateClass(String, boolean, ExternalClassLoader)}.
      */
     private final static Map<String, Class<?>> classCache = new HashMap<>();
 
@@ -172,49 +172,38 @@ public final class JReflect {
     	classCache.clear();
     	methodCache.clear();
 	}
-
-    /**
-     * Delegates to {@link #locateClass(String, ExternalClassLoader)}, using default cache.
-     */
+	
+	/**
+	 * Searches the JVM and optionally all of its packages
+	 *
+	 * @param className The name of the class to locate.
+	 * @param fullscan Whether a full scan through all available java packages is required.
+	 * @param classLoader Optional user-provided classloader.
+	 * @return The <code>Class</code> reference if found or <code>null</code> otherwise.
+	 */
     @Nullable
     @SuppressWarnings("WeakerAccess")
     public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ExternalClassLoader classLoader) {
-        return locateClass(className, fullscan, classLoader, true);
-    }
-
-    /**
-     * Searches the JVM and optionally all of its packages
-     * 
-     * @param className The name of the class to locate.
-     * @param fullscan Whether a full scan through all available java packages is required.
-     * @param classLoader Optional user-provided classloader.
-     * @return The <code>Class</code> reference if found or <code>null</code> otherwise.
-     */
-    @SuppressWarnings("WeakerAccess")
-	@Nullable
-	public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ExternalClassLoader classLoader, final boolean useCache) {
-        final String cacheKey = className + fullscan;
-        if (useCache && classCache.containsKey(cacheKey)) {
-            return classCache.get(className);
-        }
-        Class<?> _class = null;
-        if (fullscan) {
-            // cycle through all packages and try allocating dynamically
-            final Package[] ps = Package.getPackages();
-            for (int i = 0; i < ps.length && _class == null; i++) {
-                _class = locateClass(ps[i].getName() + "." + className, classLoader);
-            }
-        } else {
-            // try standard package used for most common classes
-            _class = locateClass("java.lang." + className, classLoader);
-        }
-        if (useCache) {
-            classCache.put(cacheKey, _class);
-        }
-        return _class;
-    }
-
-    /**
+		final String cacheKey = className + fullscan;
+		if (classCache.containsKey(cacheKey)) {
+			return classCache.get(cacheKey);
+		}
+		Class<?> _class = null;
+		if (fullscan) {
+			// cycle through all packages and try allocating dynamically
+			final Package[] ps = Package.getPackages();
+			for (int i = 0; i < ps.length && _class == null; i++) {
+				_class = locateClass(ps[i].getName() + "." + className, classLoader);
+			}
+		} else {
+			// try standard package used for most common classes
+			_class = locateClass("java.lang." + className, classLoader);
+		}
+		classCache.put(cacheKey, _class);
+		return _class;
+	}
+	
+	/**
      * This function dynamically tries to locate a class. First it searches the class-cache list, then it tries to get it from the Virtual Machine
      * using {@code Class.forName(String)}.
      * 
@@ -227,11 +216,9 @@ public final class JReflect {
 	public static Class<?> locateClass(final String fullClassName, @Nullable final ExternalClassLoader classLoader) {
         try {
             Class<?> _class = null;
-            // /CLOVER:OFF
             if (classLoader != null) {
                 _class = classLoader.loadClass(fullClassName);
             }
-            // /CLOVER:ON
             if (_class == null) {
                 _class = Class.forName(fullClassName);
             }
@@ -251,15 +238,9 @@ public final class JReflect {
     @NotNull
     @SuppressWarnings("WeakerAccess")
     public static <T> T newInstanceSimple(final Class<T> _class) {
-        // /CLOVER:OFF
         try {
-            // /CLOVER:ON
-            return _class.getConstructor().newInstance();
-            // /CLOVER:OFF
-        } catch (IllegalArgumentException e) {
-            assert false : "we don't pass in arguments";
-            throw new RuntimeException("unable to invoke parameterless constructor", e);
-        } catch (SecurityException e) {
+			return _class.getConstructor().newInstance();
+		} catch (SecurityException e) {
             throw new RuntimeException("unable to invoke parameterless constructor; security problem", e);
         } catch (InstantiationException e) {
             throw new RuntimeException("unable to complete instantiation of object", e);
@@ -270,10 +251,9 @@ public final class JReflect {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("unable to find parameterless constructor (not public?)", e);
         }
-        // /CLOVER:ON
     }
-
-    /**
+	
+	/**
      * Locates a method on an Object using serveral searchmodes for optimization. First of all a {@link Method} cache is being maintained to quickly
      * fetch heavily used methods. If not cached before and if a simple search (autoboxing and supertype casts) fails a more complex search is done
      * where all interfaces are searched for the method as well. If this fails as well, this method will try to autoconvert the types of the arguments

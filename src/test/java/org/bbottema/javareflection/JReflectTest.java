@@ -9,6 +9,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.EnumSet;
 
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ThrowableAssert;
 import org.bbottema.javareflection.JReflect.LookupMode;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.junit.Before;
@@ -23,9 +25,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- * Junit test for {@link JReflect}.
- */
 public class JReflectTest {
 	
 	@Before
@@ -33,14 +32,8 @@ public class JReflectTest {
 		JReflect.resetCaches();
 	}
 	
-	/**
-	 * Test for {@link JReflect#newInstanceSimple(Class)}.
-	 * <p>
-	 * We'll ignore all the catch exceptions here, which are not there to provide function: only to hide boilerplate code). Just test happy
-	 * flow here.
-	 */
 	@Test
-	public void testNewInstanceSimple() {
+	public void testNewInstanceHappyFlow() {
 		assertSame(Object.class, JReflect.newInstanceSimple(Object.class).getClass());
 	}
 
@@ -393,7 +386,7 @@ public class JReflectTest {
 		assertNotNull(f2);
 		assertEquals(C.class.getField("numberB_static"), f2);
 	}
-
+	
 	/**
 	 * Test for {@link JReflect#locateClass(String, boolean, ExternalClassLoader)}.
 	 */
