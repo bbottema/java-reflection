@@ -30,10 +30,8 @@ public final class GraphHelper {
 	
 	@SuppressWarnings({"StatementWithEmptyBody"})
 	private static <T> boolean findPossiblePaths(Node<T> currentNode, Node<T> destination, Deque<Node<T>> currentPath,
-												 List<List<Node<T>>> possiblePathsSoFar,
-												 boolean returnOnFirstPathFound,
-												 int cutOffEdgeCount) {
-		boolean foundAPatch = false;
+												 List<List<Node<T>>> possiblePathsSoFar, boolean returnOnFirstPathFound, int cutOffEdgeCount) {
+		boolean foundAPath = false;
 		
 		if (!currentPath.contains(currentNode)) {
 			currentPath.addLast(currentNode);
@@ -41,15 +39,14 @@ public final class GraphHelper {
 			if (currentNode.equals(destination)) {
 				if (!currentPath.isEmpty()) {
 					possiblePathsSoFar.add(new ArrayList<>(currentPath).subList(1, currentPath.size()));
-					foundAPatch = true;
+					foundAPath = true;
 				} else {
 					// startingPoint same as destination
 				}
 			} else if (currentPath.size() <= cutOffEdgeCount) {
 				for (Node<T> nextNode : currentNode.getToNodes().keySet()) {
-					boolean	currentPathValid = findPossiblePaths(nextNode, destination, currentPath, possiblePathsSoFar, returnOnFirstPathFound, cutOffEdgeCount);
-					foundAPatch = foundAPatch || currentPathValid;
-					if (foundAPatch && returnOnFirstPathFound) {
+					foundAPath |= findPossiblePaths(nextNode, destination, currentPath, possiblePathsSoFar, returnOnFirstPathFound, cutOffEdgeCount);
+					if (foundAPath && returnOnFirstPathFound) {
 						break;
 					}
 				}
@@ -58,7 +55,8 @@ public final class GraphHelper {
 		} else {
 			// cyclic path
 		}
-		return foundAPatch;
+		
+		return foundAPath;
 	}
 	
 	
