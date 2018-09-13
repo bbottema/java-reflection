@@ -135,7 +135,7 @@ public final class ValueConversionHelper {
 		if (targetType.isAssignableFrom(fromType)) {
 			return true;
 		} else {
-			for (Class<?> registeredCompatibleTargetType : collectRegisteredCompatibleTargetTypes(fromType)) {
+			for (Class<?> registeredCompatibleTargetType : collectCompatibleTargetTypes(fromType)) {
 				if (targetType.isAssignableFrom(registeredCompatibleTargetType)) {
 					return true;
 				}

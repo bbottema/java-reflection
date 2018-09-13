@@ -1,5 +1,10 @@
 package org.bbottema.javareflection;
 
+import org.bbottema.javareflection.JReflect.LookupMode;
+import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -9,13 +14,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.EnumSet;
 
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.ThrowableAssert;
-import org.bbottema.javareflection.JReflect.LookupMode;
-import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
-import org.junit.Before;
-import org.junit.Test;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -358,17 +357,38 @@ public class JReflectTest {
         assertTrue(cProperties.contains("privateMethod"));
         JReflect.invokeCompatibleMethod(c, C.class, "privateMethod");
     }
+    
+    @Test
+	public void testIsMethodCompatible() throws NoSuchMethodException {
+    	Method m = Math.class.getMethod("min", int.class, int.class);
+    	assertThat(JReflect.isMethodCompatible(m, int.class, int.class)).isTrue();
+    	assertThat(JReflect.isMethodCompatible(m, int.class, boolean.class)).isTrue();
+    	assertThat(JReflect.isMethodCompatible(m, int.class, Calendar.class)).isFalse();
+    	assertThat(JReflect.isMethodCompatible(m, int.class, A.class)).isFalse();
+	
+		Method cFoo = C.class.getMethod("foo", Double.class, Fruit.class, char.class);
+		Method stringConcat = String.class.getMethod("concat", String.class);
+		assertThat(JReflect.isMethodCompatible(cFoo, double.class, Pear.class, String.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(stringConcat, String.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(stringConcat, Calendar.class)).isTrue();
+	}
 
     /**
      * Test for {@link JReflect#collectMethods(Object, boolean)}.
      */
-    @Test
+    @SuppressWarnings("ConstantConditions")
+	@Test
     public void testInvokeMethods() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         final C c = new C(new Pear());
         assertEquals("private 1", JReflect.invokeCompatibleMethod(c, A.class, "privateMethod"));
         assertEquals("protected 2", JReflect.invokeCompatibleMethod(c, B.class, "protectedMethod"));
         assertEquals("private 2", JReflect.invokeCompatibleMethod(c, C.class, "privateMethod"));
         assertEquals("protected 2", JReflect.invokeCompatibleMethod(c, C.class, "protectedMethod"));
+	
+		assertThat(((Number) JReflect.invokeCompatibleMethod(null, Math.class, "min", 1, true)).intValue()).isEqualTo(1);
+		assertThat(((Number) JReflect.invokeCompatibleMethod(null, Math.class, "min", 1, false)).intValue()).isEqualTo(0);
+		assertThat(((Number) JReflect.invokeCompatibleMethod(null, Math.class, "min", 0, true)).intValue()).isEqualTo(0);
+		assertThat(((Number) JReflect.invokeCompatibleMethod(null, Math.class, "min", "d", 1000)).intValue()).isEqualTo(100); // d -> 100
     }
 
 	/**
