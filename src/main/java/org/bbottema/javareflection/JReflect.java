@@ -578,6 +578,7 @@ public final class JReflect {
      * @return The list with converted type-arrays.
      */
     @NotNull
+	@SuppressWarnings({"unused", "WeakerAccess"})
     public static List<Class<?>[]> generateCompatibleSignatures(final EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
         final List<Class<?>[]> signatures = new ArrayList<>();
         generateCompatibleSignatures(0, lookupMode, signatures, signature);
