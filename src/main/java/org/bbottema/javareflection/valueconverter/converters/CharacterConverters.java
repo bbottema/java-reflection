@@ -16,7 +16,8 @@ import java.util.Collection;
  * <ol>
  * <li><strong>String</strong>: <code>value.toString()</code></li>
  * <li><strong>Character (or primitive character)</strong>: <code>value</code></li>
- * <li><strong>Number (or primitive number)</strong>: Deferred to ({@link Character#getNumericValue(char)})</li>
+ * <li><strong>Number (or primitive number)</strong>: Deferred to ({@link Character#getNumericValue(char)}) or cast to {@code int} if not in number
+ * 0-9 range.</li>
  * <li><strong>Boolean (or boolean)</strong>: <code>!value.equals('0')</code></li>
  * </ol>
  */

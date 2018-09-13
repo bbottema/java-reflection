@@ -21,13 +21,16 @@ import java.util.Collection;
  * FIXME add non-Number conversions
  * <ol>
  * <li><strong>Integer (or primitive int)</strong>: <code>Integer.parseInt(value)</code></li>
+ * <li><strong>Character</strong>: <code>value.getCharAt(0)</code></code></li>
+ * <li><strong>Boolean</strong>: value equals {@code "true"} or {@code "1"}</li>
+ * <li><strong>Number</strong>: <code>new BigDecimal(value)</code> (simply attempt the widest number type)</li>
  * <li><strong>Byte (or primitive byte)</strong>: <code>Byte.parseByte(value)</code></li>
  * <li><strong>Short (or primitive short)</strong>: <code>Short.parseShort(value)</code></li>
  * <li><strong>Long (or primitive long)</strong>: <code>Long.parseLong(value)</code></li>
  * <li><strong>Float (or primitive float)</strong>: <code>Float.parseFloat(value)</code></li>
  * <li><strong>Double (or primitive double)</strong>: <code>Double.parseDouble(value)</code></li>
  * <li><strong>BigInteger</strong>: <code>BigInteger.valueOf(Long.parseLong(value))</code></li>
- * <li><strong>BigDecimal</strong>: <code>BigDecimal.valueOf(Long.parseLong(value))</code></li>
+ * <li><strong>BigDecimal</strong>: <code>new BigDecimal(value)</code></li>
  * </ol>
  */
 @Nullable
@@ -180,7 +183,7 @@ public final class StringConverters {
 		@Override
 		public BigDecimal apply(String value) {
 			if (NumberUtils.isNumber(value)) {
-				return BigDecimal.valueOf(Long.parseLong(value));
+				return new BigDecimal(value);
 			}
 			throw new IncompatibleTypeException(value, String.class, BigDecimal.class);
 		}
