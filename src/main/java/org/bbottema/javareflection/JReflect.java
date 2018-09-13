@@ -271,7 +271,7 @@ public final class JReflect {
      */
     @SuppressWarnings({"unchecked", "WeakerAccess"})
 	@Nullable
-    public static <T> T invokeCompatibleMethod(final Object context, final Class<?> datatype, final String identifier, final Object... args)
+    public static <T> T invokeCompatibleMethod(@Nullable final Object context, final Class<?> datatype, final String identifier, final Object... args)
             throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         // determine the signature we want to find a compatible java method for
         final Class<?>[] signature = JReflect.collectTypes(args);
