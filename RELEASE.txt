@@ -11,6 +11,7 @@ Complete overhaul:
 - Converters can now be added by third parties
 - fixed a bug with the cache not working properly
 
+
 v2.x.x
 
 - Converted to Java 7 and added spotbugs
