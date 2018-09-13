@@ -357,20 +357,44 @@ public class JReflectTest {
         assertTrue(cProperties.contains("privateMethod"));
         JReflect.invokeCompatibleMethod(c, C.class, "privateMethod");
     }
-    
-    @Test
-	public void testIsMethodCompatible() throws NoSuchMethodException {
-    	Method m = Math.class.getMethod("min", int.class, int.class);
-    	assertThat(JReflect.isMethodCompatible(m, int.class, int.class)).isTrue();
-    	assertThat(JReflect.isMethodCompatible(m, int.class, boolean.class)).isTrue();
-    	assertThat(JReflect.isMethodCompatible(m, int.class, Calendar.class)).isFalse();
-    	assertThat(JReflect.isMethodCompatible(m, int.class, A.class)).isFalse();
 	
-		Method cFoo = C.class.getMethod("foo", Double.class, Fruit.class, char.class);
+	@Test
+	public void testIsMethodCompatible_Simple() throws NoSuchMethodException {
+		EnumSet<LookupMode> lookupModes = EnumSet.noneOf(LookupMode.class);
+		
+		Method m = Math.class.getMethod("min", int.class, int.class);
+		assertThat(JReflect.isMethodCompatible(m, lookupModes, int.class, int.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(m, lookupModes, int.class, Calendar.class)).isFalse();
+		assertThat(JReflect.isMethodCompatible(m, lookupModes, int.class, A.class)).isFalse();
+		
 		Method stringConcat = String.class.getMethod("concat", String.class);
-		assertThat(JReflect.isMethodCompatible(cFoo, double.class, Pear.class, String.class)).isTrue();
-		assertThat(JReflect.isMethodCompatible(stringConcat, String.class)).isTrue();
-		assertThat(JReflect.isMethodCompatible(stringConcat, Calendar.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(stringConcat, lookupModes, String.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(stringConcat, lookupModes, Calendar.class)).isFalse();
+	}
+	
+	@Test
+	public void testIsMethodCompatible_TestLookupModes() throws NoSuchMethodException {
+		EnumSet<LookupMode> noConversions = EnumSet.noneOf(LookupMode.class);
+		EnumSet<LookupMode> commonConversions = EnumSet.of(LookupMode.COMMON_CONVERT);
+		EnumSet<LookupMode> castConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.CAST_TO_INTERFACE);
+		EnumSet<LookupMode> castThenCommonsConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.COMMON_CONVERT);
+		
+		Method m = Math.class.getMethod("min", int.class, int.class);
+		assertThat(JReflect.isMethodCompatible(m, noConversions, int.class, boolean.class)).isFalse();
+		assertThat(JReflect.isMethodCompatible(m, commonConversions, int.class, boolean.class)).isTrue();
+		
+		Method cFoo = C.class.getMethod("foo", Double.class, Fruit.class, char.class);
+		assertThat(JReflect.isMethodCompatible(cFoo, castConvert, Double.class, Pear.class, char.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(cFoo, noConversions, double.class, Pear.class, String.class)).isFalse();
+		assertThat(JReflect.isMethodCompatible(cFoo, commonConversions, double.class, Pear.class, String.class)).isFalse();
+		assertThat(JReflect.isMethodCompatible(cFoo, castConvert, double.class, Pear.class, String.class)).isFalse();
+		assertThat(JReflect.isMethodCompatible(cFoo, castThenCommonsConvert, double.class, Pear.class, String.class)).isTrue();
+		
+		Method stringConcat = String.class.getMethod("concat", String.class);
+		assertThat(JReflect.isMethodCompatible(stringConcat, noConversions, String.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(stringConcat, noConversions, Calendar.class)).isFalse();
+		assertThat(JReflect.isMethodCompatible(stringConcat, commonConversions, String.class)).isTrue();
+		assertThat(JReflect.isMethodCompatible(stringConcat, commonConversions, Calendar.class)).isTrue();
 	}
 
     /**

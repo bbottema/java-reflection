@@ -543,18 +543,31 @@ public final class JReflect {
         }
     }
     
-    @SuppressWarnings("unused")
-    public static boolean isMethodCompatible(Method method, final Class<?>... signature) {
+    @SuppressWarnings({"unused", "WeakerAccess"})
+    public static boolean isMethodCompatible(Method method, EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
 		final Class<?>[] targetSignature = method.getParameterTypes();
 		if (signature.length != targetSignature.length) {
 			return false;
 		}
-		for (int i = 0; i < signature.length; i++) {
-			if (!ValueConversionHelper.typesCompatible(signature[i], targetSignature[i])) {
-				return false;
+		return isSignatureCompatible(signature, targetSignature, lookupMode);
+	}
+	
+    @SuppressWarnings({"unused", "WeakerAccess"})
+	public static boolean isSignatureCompatible(Class<?>[] signature, Class<?>[] exactTargetSignature, EnumSet<LookupMode> lookupMode) {
+		List<Class<?>[]> derivableSignatures = generateCompatibleSignatures(lookupMode, signature);
+		
+		for (Class<?>[] derivableSignature : derivableSignatures) {
+			boolean currentSignatureCompatible = true;
+			for (int i = 0; i < derivableSignature.length && currentSignatureCompatible; i++) {
+				if (!derivableSignature[i].equals(exactTargetSignature[i])) {
+					currentSignatureCompatible = false;
+				}
+			}
+			if (currentSignatureCompatible) {
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 	
 	/**
@@ -565,7 +578,7 @@ public final class JReflect {
      * @return The list with converted type-arrays.
      */
     @NotNull
-    private static List<Class<?>[]> generateCompatibleSignatures(final EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
+    public static List<Class<?>[]> generateCompatibleSignatures(final EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
         final List<Class<?>[]> signatures = new ArrayList<>();
         generateCompatibleSignatures(0, lookupMode, signatures, signature);
         return signatures;
@@ -590,7 +603,7 @@ public final class JReflect {
      * @param signature The list with current types, to mutate further upon.
      */
     private static void generateCompatibleSignatures(final int index, final EnumSet<LookupMode> lookupMode, final List<Class<?>[]> signatures,
-            final Class<?>... signature) {
+													 final Class<?>... signature) {
         // if new type array is completed
         if (index == signature.length) {
             signatures.add(signature);
