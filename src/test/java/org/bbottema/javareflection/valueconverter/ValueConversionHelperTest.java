@@ -22,12 +22,12 @@ public class ValueConversionHelperTest {
 	private static final Set<Class<?>> COMMON_TYPES = new HashSet<Class<?>>(asList(String.class, Integer.class, int.class, Float.class,
 			float.class, Double.class, double.class, Long.class, long.class, Byte.class, byte.class, Short.class, short.class,
 			Boolean.class, boolean.class, Character.class, char.class));
-
+	
 	@SuppressWarnings("unused")
 	enum TestEnum {
 		ONE, TWO, THREE
 	}
-
+	
 	@Test
 	public void testIsCommonType() {
 		// basic commons
@@ -55,34 +55,34 @@ public class ValueConversionHelperTest {
 		assertThat(ValueConversionHelper.isCommonType(ValueConversionHelper.class)).isFalse();
 		assertThat(ValueConversionHelper.isCommonType(Calendar.class)).isFalse();
 	}
-
+	
 	@Test
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
 		for (Class<?> basicCommonType : COMMON_TYPES) {
 			assertContainsAllCommonTypes(basicCommonType, ValueConversionHelper.collectCompatibleTargetTypes(basicCommonType));
 		}
-
+		
 		Set<Class<?>> types = ValueConversionHelper.collectCompatibleTargetTypes(String.class);
 		assertContainsAllCommonTypes(String.class, types);
-
+		
 		types = ValueConversionHelper.collectCompatibleTargetTypes(boolean.class);
 		assertContainsAllCommonTypes(boolean.class, types);
-
+		
 		types = ValueConversionHelper.collectCompatibleTargetTypes(Character.class);
 		assertContainsAllCommonTypes(Character.class, types);
-
+		
 		types = ValueConversionHelper.collectCompatibleTargetTypes(Calendar.class);
 		assertThat(types.size()).isEqualTo(2);
 		assertThat(types.contains(String.class)).isTrue();
 	}
-
+	
 	private void assertContainsAllCommonTypes(Class<?> checkingType, Set<Class<?>> types) {
 		for (Class<?> basicCommonType : COMMON_TYPES) {
 			assertThat(types.contains(basicCommonType)).as(format("types for %s contains %s?", checkingType, basicCommonType)).isTrue();
 		}
 	}
-
+	
 	@Test
 	public void testConvertObjectArrayClassOfQArray() {
 		// empty list
@@ -116,7 +116,7 @@ public class ValueConversionHelperTest {
 		assertThat(result[3] instanceof Boolean).isTrue();
 		assertThat((Boolean) result[3]).isFalse();
 	}
-
+	
 	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testConvertObjectClassOfQ() {
@@ -166,7 +166,7 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 	}
-
+	
 	@Test
 	public void testConvertNumberClassOfQ() {
 		assertThat(ValueConversionHelper.convert(null, boolean.class)).isNull();
@@ -181,7 +181,7 @@ public class ValueConversionHelperTest {
 		assertThat((Object) ValueConversionHelper.convert(50, short.class)).isEqualTo((short) 50);
 		assertThat((Object) ValueConversionHelper.convert(5, char.class)).isEqualTo('5');
 		assertThat(ValueConversionHelper.convert(50, String.class)).isEqualTo("50");
-
+		
 		try {
 			ValueConversionHelper.convert(50, Calendar.class);
 			fail("should not be able to convert value");
@@ -189,7 +189,7 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 	}
-
+	
 	@Test
 	public void testConvertBooleanClassOfQ() {
 		assertThat(ValueConversionHelper.convert(null, Calendar.class)).isNull();
@@ -204,7 +204,7 @@ public class ValueConversionHelperTest {
 		assertThat((Object) ValueConversionHelper.convert(false, double.class)).isEqualTo(0d);
 		assertThat((Object) ValueConversionHelper.convert(false, Character.class)).isEqualTo('0');
 		assertThat((Object) ValueConversionHelper.convert(true, Character.class)).isEqualTo('1');
-
+		
 		try {
 			ValueConversionHelper.convert(false, Calendar.class);
 			fail("should not be able to convert value");
@@ -212,7 +212,7 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 	}
-
+	
 	@Test
 	public void testConvertCharacterClassOfQ() {
 		assertThat(ValueConversionHelper.convert(null, Object.class)).isNull();
@@ -225,7 +225,7 @@ public class ValueConversionHelperTest {
 		assertThat(ValueConversionHelper.convert('9', Number.class).intValue()).isEqualTo(9);
 		assertThat((Object) ValueConversionHelper.convert('9', Double.class)).isEqualTo(9d);
 		assertThat((Object) ValueConversionHelper.convert("d", Integer.class)).isEqualTo(100);
-
+		
 		try {
 			ValueConversionHelper.convert('5', Calendar.class);
 			fail("should not be able to convert value");
@@ -233,7 +233,7 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 	}
-
+	
 	@Test
 	public void testConvertStringClassOfQ() {
 		assertThat((Object) ValueConversionHelper.convert("0", Integer.class)).isEqualTo(0);
@@ -278,7 +278,7 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 	}
-
+	
 	@Test
 	public void testConvertEnum() {
 		assertThat(ValueConversionHelper.convert(null, TestEnum.class)).isNull();
@@ -290,7 +290,7 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testConvertNumber() {
@@ -323,31 +323,31 @@ public class ValueConversionHelperTest {
 			// OK
 		}
 	}
-
+	
 	@SuppressWarnings("serial")
 	private static class CustomNumber extends Number {
-
+		
 		@Override
 		public int intValue() {
 			throw new NotImplementedException();
 		}
-
+		
 		@Override
 		public long longValue() {
 			throw new NotImplementedException();
 		}
-
+		
 		@Override
 		public float floatValue() {
 			throw new NotImplementedException();
 		}
-
+		
 		@Override
 		public double doubleValue() {
 			throw new NotImplementedException();
 		}
 	}
-
+	
 	/**
 	 * Test for {@link ValueConversionHelper#isPrimitiveNumber(Class)}.
 	 */

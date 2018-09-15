@@ -53,6 +53,9 @@ public final class ValueConversionHelper {
 	 */
 	private static final Map<Class<?>, Node<Class<?>>> converterGraph = new HashMap<>();
 	
+	private static final int LOW_CONVERTER_PRIORITY = 10; // higher edge weight, heavier in cost
+	private static final int HIGH_CONVERTER_PRIORITY = 1; // lower edge weight, lighter in cost
+	
 	static {
 		final Collection<ValueFunction<?, ?>> defaultConverters = new HashSet<>();
 		defaultConverters.addAll(NumberConverters.NUMBER_CONVERTERS);
@@ -90,13 +93,16 @@ public final class ValueConversionHelper {
 			for (Class<?> toType : convertersForFromType.getValue().keySet()) {
 				Node<Class<?>> toNode = converterGraph.containsKey(toType) ? converterGraph.get(toType) : new Node<Class<?>>(toType);
 				converterGraph.put(toType, toNode);
-				fromNode.getToNodes().put(toNode, 1); // edge
+				ValueFunction<Object, Object> converter = convertersForFromType.getValue().get(toType);
+				fromNode.getToNodes().put(toNode, determineConversionCost(converter)); // edge
 			}
 		}
 	}
 	
-	private static ValueFunction<Object, Object> locateValueConverter(Class<?> fromType, Class<?> toType) {
-		return valueConverters.get(fromType).get(toType);
+	private static Integer determineConversionCost(ValueFunction<Object, Object> converter) {
+		String converterPackage = ValueConversionHelper.class.getPackage().toString();
+		boolean isSystemConverter = converter.getClass().getPackage().toString().contains(converterPackage);
+		return isSystemConverter ? LOW_CONVERTER_PRIORITY : HIGH_CONVERTER_PRIORITY;
 	}
 	
 	/**
@@ -246,7 +252,7 @@ public final class ValueConversionHelper {
 						for (Node<Class<?>> nodeInConversionPath : conversionPathAscending) {
 							Class<?> currentFromType = evolvingValueToConvert.getClass();
 							Class<?> currentToType = nodeInConversionPath.getType();
-							evolvingValueToConvert = locateValueConverter(currentFromType, currentToType).convertValue(evolvingValueToConvert);
+							evolvingValueToConvert = valueConverters.get(currentFromType).get(currentToType).convertValue(evolvingValueToConvert);
 						}
 						//noinspection unchecked
 						return (T) evolvingValueToConvert;

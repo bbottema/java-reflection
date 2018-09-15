@@ -25,7 +25,7 @@ import java.util.Set;
  * packages known) and an optional {@link ExternalClassLoader} instance that is able to actually compile a .java file on the fly and load its compile
  * .class file</li>
  * <li>create a new instance while handling all the exceptions</li>
- * <li>find fields or assign values to fields</li>
+ * <li>find fields or assign values to fields, using casting, autoboxing or type conversions</li>
  * <li>simply give back a list of field / method names</li>
  * </ul>
  */

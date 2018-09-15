@@ -24,8 +24,15 @@ public final class GraphHelper {
 	public static <T> List<List<Node<T>>> findAllPathsAscending(Node<T> startingPoint, Node<T> destination) {
 		List<List<Node<T>>> allPaths = new ArrayList<>();
 		findPossiblePaths(startingPoint, destination, new ArrayDeque<Node<T>>(), allPaths, false, 4);
-		Collections.sort(allPaths, NodePathComparator.<T>INSTANCE());
+		Collections.sort(allPaths, NodePathComparator.<T>INSTANCE()); // NodePathComparator needs the startingPoints included in the path
+		removeStartingPoints(allPaths);
 		return allPaths;
+	}
+	
+	private static <T> void removeStartingPoints(List<List<Node<T>>> allPaths) {
+		for (List<Node<T>> path : allPaths) {
+			path.remove(0);
+		}
 	}
 	
 	@SuppressWarnings({"StatementWithEmptyBody"})
@@ -38,7 +45,7 @@ public final class GraphHelper {
 			
 			if (currentNode.equals(destination)) {
 				if (!currentPath.isEmpty()) {
-					possiblePathsSoFar.add(new ArrayList<>(currentPath).subList(1, currentPath.size()));
+					possiblePathsSoFar.add(new ArrayList<>(currentPath));
 					foundAPath = true;
 				} else {
 					// startingPoint same as destination

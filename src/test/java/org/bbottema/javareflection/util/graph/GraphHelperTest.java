@@ -16,6 +16,9 @@ public class GraphHelperTest {
 		Node<String> nodeD = new Node<>("D");
 		Node<String> nodeE = new Node<>("E");
 		Node<String> nodeF = new Node<>("F");
+		Node<String> nodeX = new Node<>("X");
+		Node<String> nodeY = new Node<>("Y");
+		Node<String> nodeZ = new Node<>("Z");
 		// define edges from source
 		nodeA.getToNodes().put(nodeE, 10);
 		nodeA.getToNodes().put(nodeB, 10);
@@ -27,10 +30,16 @@ public class GraphHelperTest {
 		nodeD.getToNodes().put(nodeA, 15); // to A but not reachable
 		nodeF.getToNodes().put(nodeE, 10);
 		nodeF.getToNodes().put(nodeD, 10); // cyclic path
+		// define low cost edges
+		nodeA.getToNodes().put(nodeX, 1);
+		nodeX.getToNodes().put(nodeY, 1);
+		nodeY.getToNodes().put(nodeZ, 1);
+		nodeZ.getToNodes().put(nodeE, 1);
 		
 		assertThat(GraphHelper.findAllPathsAscending(nodeA, nodeD)).isEmpty();
 		assertThat(GraphHelper.findAllPathsAscending(nodeC, nodeF)).isEmpty();
 		assertThat(GraphHelper.findAllPathsAscending(nodeA, nodeE)).containsExactly(
+				Arrays.asList(nodeX, nodeY, nodeZ, nodeE),
 				Arrays.asList(nodeE),
 				Arrays.asList(nodeB, nodeE),
 				Arrays.asList(nodeC, nodeE)
