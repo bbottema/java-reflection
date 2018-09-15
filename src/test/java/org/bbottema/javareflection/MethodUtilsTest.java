@@ -8,6 +8,7 @@ import org.bbottema.javareflection.testmodel.C;
 import org.bbottema.javareflection.testmodel.Foo;
 import org.bbottema.javareflection.testmodel.Fruit;
 import org.bbottema.javareflection.testmodel.Pear;
+import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,6 +27,7 @@ public class MethodUtilsTest {
 	public void resetStaticCaches() {
 		MethodUtils.resetCache();
 		ClassUtils.resetCache();
+		ValueConversionHelper.resetDefaultConverters();
 	}
 	
 	/**
@@ -37,14 +39,17 @@ public class MethodUtilsTest {
 	public void testFindCompatibleMethod()
 			throws NoSuchMethodException {
 		// find method through interface on superclass, using autoboxing, class casting and an auto convert
-		InvokableObject<Method> m = MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Pear.class, String.class);
+		final EnumSet<LookupMode> allButSmartLookup = EnumSet.allOf(LookupMode.class);
+		allButSmartLookup.remove(LookupMode.SMART_CONVERT);
+		
+		InvokableObject<Method> m = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
 		assertThat(m).isNotNull();
 		assertThat(m.getMethod()).isEqualTo(Foo.class.getMethod("foo", Double.class, Fruit.class, char.class));
-		InvokableObject<Method> m2 = MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Pear.class, String.class);
+		InvokableObject<Method> m2 = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
 		assertThat(m2).isNotNull();
 		assertThat(m2).isEqualTo(m);
 		// find the same method, but now the first implementation on C should be returned
-		m = MethodUtils.findCompatibleMethod(C.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Pear.class, String.class);
+		m = MethodUtils.findCompatibleMethod(C.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
 		assertThat(m).isNotNull();
 		assertThat(m.getMethod()).isEqualTo(C.class.getMethod("foo", Double.class, Fruit.class, char.class));
 		// find a String method
@@ -53,23 +58,25 @@ public class MethodUtilsTest {
 		assertThat(m.getMethod()).isEqualTo(String.class.getMethod("concat", String.class));
 		// shouldn't be able to find the following methods
 		try {
-			MethodUtils.findCompatibleMethod(B.class, "foos", EnumSet.allOf(LookupMode.class), double.class, Pear.class, String.class);
+			MethodUtils.findCompatibleMethod(B.class, "foos", allButSmartLookup, double.class, Pear.class, String.class);
 			fail("NoSuchMethodException expected");
 		} catch (NoSuchMethodException e) {
 			// OK
 		}
 		try {
-			MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, String.class, String.class);
+			MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, String.class, String.class);
 			fail("NoSuchMethodException expected");
 		} catch (NoSuchMethodException e) {
 			// OK
 		}
 		try {
-			MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Fruit.class, Math.class);
+			MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Fruit.class, Math.class);
 			fail("NoSuchMethodException expected");
 		} catch (NoSuchMethodException e) {
 			// OK
 		}
+		InvokableObject<Method> result = MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Fruit.class, Math.class);
+		assertThat(result).isNotNull();
 	}
 	
 	/**
@@ -147,7 +154,6 @@ public class MethodUtilsTest {
 			// OK
 		}
 		try {
-			System.out.println("PERFORMING TEST");
 			MethodUtils.invokeCompatibleMethod(new C(new Pear()), C.class, "foo", 50d, new Pear(), Calendar.getInstance());
 			fail("NoSuchMethodException expected");
 		} catch (NoSuchMethodException e) {
@@ -210,6 +216,7 @@ public class MethodUtilsTest {
 		EnumSet<LookupMode> commonConversions = EnumSet.of(LookupMode.COMMON_CONVERT);
 		EnumSet<LookupMode> castConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.CAST_TO_INTERFACE);
 		EnumSet<LookupMode> castThenCommonsConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.COMMON_CONVERT);
+		EnumSet<LookupMode> smartConversions = EnumSet.of(LookupMode.SMART_CONVERT);
 		
 		Method m = Math.class.getMethod("min", int.class, int.class);
 		assertThat(MethodUtils.isMethodCompatible(m, noConversions, int.class, boolean.class)).isFalse();
@@ -223,10 +230,11 @@ public class MethodUtilsTest {
 		assertThat(MethodUtils.isMethodCompatible(cFoo, castThenCommonsConvert, double.class, Pear.class, String.class)).isTrue();
 		
 		Method stringConcat = String.class.getMethod("concat", String.class);
-		assertThat(MethodUtils.isMethodCompatible(stringConcat, noConversions, String.class)).isTrue();
 		assertThat(MethodUtils.isMethodCompatible(stringConcat, noConversions, Calendar.class)).isFalse();
+		assertThat(MethodUtils.isMethodCompatible(stringConcat, noConversions, String.class)).isTrue();
 		assertThat(MethodUtils.isMethodCompatible(stringConcat, commonConversions, String.class)).isTrue();
-		assertThat(MethodUtils.isMethodCompatible(stringConcat, commonConversions, Calendar.class)).isTrue();
+		assertThat(MethodUtils.isMethodCompatible(stringConcat, commonConversions, Calendar.class)).isFalse();
+		assertThat(MethodUtils.isMethodCompatible(stringConcat, smartConversions, Calendar.class)).isTrue();
 	}
 	
 	/**

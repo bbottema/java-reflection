@@ -57,6 +57,12 @@ public final class ValueConversionHelper {
 	private static final int HIGH_CONVERTER_PRIORITY = 1; // lower edge weight, lighter in cost
 	
 	static {
+		resetDefaultConverters();
+	}
+	
+	public static void resetDefaultConverters() {
+		valueConverters.clear();
+		
 		final Collection<ValueFunction<?, ?>> defaultConverters = new HashSet<>();
 		defaultConverters.addAll(NumberConverters.NUMBER_CONVERTERS);
 		defaultConverters.addAll(BooleanConverters.BOOLEAN_CONVERTERS);
@@ -105,13 +111,12 @@ public final class ValueConversionHelper {
 		return isSystemConverter ? LOW_CONVERTER_PRIORITY : HIGH_CONVERTER_PRIORITY;
 	}
 	
-	/**
-	 * @param c The class to inspect.
-	 * @return whether given type is a known common type.
-	 */
 	@SuppressWarnings("WeakerAccess")
 	public static boolean isCommonType(final Class<?> c) {
-		return valueConverters.containsKey(c);
+		Map<Class<?>, ValueFunction<Object, Object>> classValueFunctionMap = valueConverters.get(c);
+		return valueConverters.containsKey(c) &&
+				(classValueFunctionMap.keySet().size() > 1 ||
+				!classValueFunctionMap.keySet().contains(String.class));
 	}
 
 	/**
@@ -150,15 +155,9 @@ public final class ValueConversionHelper {
 	}
 	
 	public static Set<Class<?>> collectCompatibleTargetTypes(Class<?> fromType) {
-		HashSet<Class<?>> universalTargetTypes = new HashSet<>();
-		universalTargetTypes.add(fromType);
-		universalTargetTypes.add(String.class);
+		checkForAndRegisterToStringConverter(fromType);
 		
-		if (!valueConverters.keySet().contains(fromType)) {
-			return universalTargetTypes;
-		}
-		
-		Set<Class<?>> compatibleTargetTypes = new HashSet<>(universalTargetTypes);
+		Set<Class<?>> compatibleTargetTypes = new HashSet<>();
 		Node<Class<?>> fromNode = converterGraph.get(fromType);
 		for (Map<Class<?>, ValueFunction<Object, Object>> convertersForFromTypes : valueConverters.values()) {
 			for (Class<?> targetType : convertersForFromTypes.keySet()) {

@@ -32,7 +32,18 @@ public enum LookupMode {
 	 */
 	CAST_TO_INTERFACE,
 	/**
-	 * Indicates that looking for methods includes trying to find compatible signatures by automatically convert the specified arguments.
+	 * Indicates that looking for methods includes trying to find compatible signatures by automatically converting the specified arguments.
 	 */
-	COMMON_CONVERT
+	COMMON_CONVERT,
+	/**
+	 * Like {@link #COMMON_CONVERT}, but now takes the registered converters and continues finding a conversion path based on the previous outcomes.
+	 * <p>
+	 * Examples:
+	 * <ul>
+	 *     <li>Joda date object -> String -> Java8 date object. This would require only the toJava8 date object converter to work</li>
+	 *     <li>Calendar -> String -> char. Calendar is compatible with String and String with char, but conversion will fail of course.</li>
+	 *     <li>Boolean -> Character -> long. This simply works out of the box, resulting in 0 or 1.</li>
+	 * </ul>
+	 */
+	SMART_CONVERT
 }

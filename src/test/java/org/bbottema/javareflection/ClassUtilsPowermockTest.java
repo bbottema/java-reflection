@@ -3,6 +3,7 @@ package org.bbottema.javareflection;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ThrowableAssert;
 import org.bbottema.javareflection.testmodel.A;
+import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +23,7 @@ public class ClassUtilsPowermockTest {
 	@Before
 	public void resetStaticCaches() {
 		ClassUtils.resetCache();
+		ValueConversionHelper.resetDefaultConverters();
 	}
 	
 	@Test

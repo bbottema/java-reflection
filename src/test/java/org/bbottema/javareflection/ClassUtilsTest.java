@@ -4,6 +4,7 @@ import org.bbottema.javareflection.testmodel.C;
 import org.bbottema.javareflection.testmodel.Pear;
 import org.bbottema.javareflection.util.ExternalClassLoader;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
+import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,6 +21,7 @@ public class ClassUtilsTest {
 	@Before
 	public void resetStaticCaches() {
 		ClassUtils.resetCache();
+		ValueConversionHelper.resetDefaultConverters();
 	}
 	
 	/**
@@ -87,13 +89,8 @@ public class ClassUtilsTest {
 	 */
 	@Test
 	public void testCollectPropertyNames() {
-		Collection<String> properties = ClassUtils.collectPropertyNames(new C(new Pear()));
-		assertThat(properties).isNotNull();
-		assertThat(properties.size()).isEqualTo(4);
-		assertThat(properties.contains("numberA")).isTrue();
-		assertThat(properties.contains("numberB")).isTrue();
-		assertThat(properties.contains("numberB_static")).isTrue();
-		assertThat(properties.contains("numberC")).isTrue();
+		assertThat(ClassUtils.collectPropertyNames(new C(new Pear())))
+				.containsExactlyInAnyOrder("numberA", "numberB", "numberB_static", "numberC");
 	}
 	
 	/**
@@ -101,14 +98,13 @@ public class ClassUtilsTest {
 	 */
 	@Test
 	public void testCollectPublicMethods() {
-		Collection<String> oProperties = ClassUtils.collectMethods(new Object(), true);
+		Collection<String> objectProperties = ClassUtils.collectMethods(new Object(), true);
 		Collection<String> cProperties = ClassUtils.collectMethods(new C(new Pear()), true);
-		assertThat(oProperties).isNotNull();
-		assertThat(oProperties.size() > 0).isTrue();
-		assertThat(cProperties.size()).isEqualTo(oProperties.size() + 1);
-		cProperties.removeAll(oProperties);
-		assertThat(cProperties.size()).isEqualTo(1);
-		assertThat(cProperties.contains("foo")).isTrue();
+		assertThat(objectProperties).isNotEmpty();
+		assertThat(cProperties).hasSize(objectProperties.size() + 1);
+		cProperties.removeAll(objectProperties);
+		assertThat(cProperties).hasSize(1);
+		assertThat(cProperties).contains("foo");
 	}
 	
 	/**
@@ -118,16 +114,12 @@ public class ClassUtilsTest {
 	public void testCollectAllMethods() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final Object o = new Object();
 		final C c = new C(new Pear());
-		Collection<String> oProperties = ClassUtils.collectMethods(o, false);
+		Collection<String> objectProperties = ClassUtils.collectMethods(o, false);
 		Collection<String> cProperties = ClassUtils.collectMethods(c, false);
-		assertThat(oProperties).isNotNull();
-		assertThat(oProperties.size() > 0).isTrue();
-		assertThat(cProperties.size()).isEqualTo(oProperties.size() + 3);
-		cProperties.removeAll(oProperties);
-		assertThat(cProperties.size()).isEqualTo(3);
-		assertThat(cProperties.contains("foo")).isTrue();
-		assertThat(cProperties.contains("protectedMethod")).isTrue();
-		assertThat(cProperties.contains("privateMethod")).isTrue();
+		assertThat(objectProperties).isNotEmpty();
+		assertThat(cProperties).hasSize(objectProperties.size() + 3);
+		cProperties.removeAll(objectProperties);
+		assertThat(cProperties).containsExactlyInAnyOrder("foo", "protectedMethod", "privateMethod");
 		MethodUtils.invokeCompatibleMethod(c, C.class, "privateMethod");
 	}
 }

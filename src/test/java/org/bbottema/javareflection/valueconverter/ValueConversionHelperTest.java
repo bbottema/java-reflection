@@ -2,6 +2,7 @@ package org.bbottema.javareflection.valueconverter;
 
 import org.bbottema.javareflection.util.graph.Node;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -11,7 +12,6 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
-import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -26,6 +26,11 @@ public class ValueConversionHelperTest {
 	@SuppressWarnings("unused")
 	enum TestEnum {
 		ONE, TWO, THREE
+	}
+	
+	@Before
+	public void clearRuntimeTypes() {
+		ValueConversionHelper.resetDefaultConverters();
 	}
 	
 	@Test
@@ -60,27 +65,23 @@ public class ValueConversionHelperTest {
 	public void testCollectCompatibleTypes() {
 		// test that all commons types are convertible to all common types
 		for (Class<?> basicCommonType : COMMON_TYPES) {
-			assertContainsAllCommonTypes(basicCommonType, ValueConversionHelper.collectCompatibleTargetTypes(basicCommonType));
+			assertThat(ValueConversionHelper.collectCompatibleTargetTypes(basicCommonType)).containsAll(COMMON_TYPES);
 		}
 		
 		Set<Class<?>> types = ValueConversionHelper.collectCompatibleTargetTypes(String.class);
-		assertContainsAllCommonTypes(String.class, types);
+		assertThat(types).containsAll(COMMON_TYPES);
 		
 		types = ValueConversionHelper.collectCompatibleTargetTypes(boolean.class);
-		assertContainsAllCommonTypes(boolean.class, types);
+		assertThat(types).containsAll(COMMON_TYPES);
 		
 		types = ValueConversionHelper.collectCompatibleTargetTypes(Character.class);
-		assertContainsAllCommonTypes(Character.class, types);
+		assertThat(types).containsAll(COMMON_TYPES);
 		
+		types = ValueConversionHelper.collectRegisteredCompatibleTargetTypes(Calendar.class);
+		assertThat(types).containsExactly(Calendar.class);
 		types = ValueConversionHelper.collectCompatibleTargetTypes(Calendar.class);
-		assertThat(types.size()).isEqualTo(2);
-		assertThat(types.contains(String.class)).isTrue();
-	}
-	
-	private void assertContainsAllCommonTypes(Class<?> checkingType, Set<Class<?>> types) {
-		for (Class<?> basicCommonType : COMMON_TYPES) {
-			assertThat(types.contains(basicCommonType)).as(format("types for %s contains %s?", checkingType, basicCommonType)).isTrue();
-		}
+		assertThat(types.size()).isGreaterThan(10); // number depends on order of junit execution (due to dynamic runtime type registration)
+		assertThat(types).contains(String.class);
 	}
 	
 	@Test
@@ -88,7 +89,7 @@ public class ValueConversionHelperTest {
 		// empty list
 		Object[] emptyArray = ValueConversionHelper.convert(new Object[] {}, new Class<?>[] {}, true);
 		assertThat(emptyArray).isNotNull();
-		assertThat(emptyArray.length).isEqualTo(0);
+		assertThat(emptyArray).isEmpty();
 		// asymmetric list
 		try {
 			ValueConversionHelper.convert(new Object[] { 1, 2, 3 }, new Class<?>[] { String.class }, true);

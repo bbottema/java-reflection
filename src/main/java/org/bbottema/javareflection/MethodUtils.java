@@ -3,10 +3,11 @@ package org.bbottema.javareflection;
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
-import org.bbottema.javareflection.util.ExternalClassLoader;
+import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -16,6 +17,8 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * This reflection tool is designed to perform advanced method or constructor lookups,
@@ -55,6 +58,8 @@ import java.util.Map;
  */
 @UtilityClass
 public final class MethodUtils {
+	
+	private static final Logger LOGGER = getLogger(MethodUtils.class);
 	
 	/**
      * {@link Method} cache categorized by owning <code>Classes</code> (since several owners can have a method with the same name and signature).
@@ -111,25 +116,29 @@ public final class MethodUtils {
                 lookupMode.add(LookupMode.CAST_TO_INTERFACE);
                 iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
             } catch (final NoSuchMethodException e2) {
-                // full searchmode
-                lookupMode.add(LookupMode.COMMON_CONVERT);
-                iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
-            }
+				try {
+					// limited conversions searchmode
+					lookupMode.add(LookupMode.COMMON_CONVERT);
+					iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
+				} catch (NoSuchMethodException e) {
+					// full searchmode
+					lookupMode.add(LookupMode.SMART_CONVERT);
+					iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
+				}
+			}
         }
 
         Method method = (Method) iMethod.getMethod();
         method.setAccessible(true);
-		
-		Object[] convertedArgs = ValueConversionHelper.convert(args, iMethod.getCompatibleSignature(), true);
-		
-		System.out.println("invoking method: " + method);
-		System.out.println("\tcontext: " + context);
-		System.out.println("\toriginal args: " + Arrays.toString(args));
-		System.out.println("\tcompatible signature: " + Arrays.toString(iMethod.getCompatibleSignature()));
-		System.out.println("\tconverted args: " + Arrays.toString(convertedArgs));
-		
-		//noinspection unchecked
-		return (T) method.invoke(context, convertedArgs);
+	
+		try {
+			Object[] convertedArgs = ValueConversionHelper.convert(args, iMethod.getCompatibleSignature(), false);
+			//noinspection unchecked
+			return (T) method.invoke(context, convertedArgs);
+		} catch (IncompatibleTypeException e) {
+			LOGGER.error("Found a method with compatible parameter list, but not all parameters could be converted", e);
+			throw new NoSuchMethodException();
+		}
     }
 
     /**
@@ -192,9 +201,14 @@ public final class MethodUtils {
             }
         }
 	
-		Object[] convertedArgs = ValueConversionHelper.convert(args, iConstructor.getCompatibleSignature(), true);
-		//noinspection unchecked
-		return (T) iConstructor.getMethod().newInstance(convertedArgs);
+		try {
+			Object[] convertedArgs = ValueConversionHelper.convert(args, iConstructor.getCompatibleSignature(), false);
+			//noinspection unchecked
+			return (T) iConstructor.getMethod().newInstance(convertedArgs);
+		} catch (IncompatibleTypeException e) {
+			LOGGER.error("Found a constructor with compatible parameter list, but not all parameters could be converted", e);
+			throw new NoSuchMethodException();
+		}
     }
 
     /**

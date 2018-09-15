@@ -167,6 +167,14 @@ public final class TypeUtils {
 			
 			// 5. generate types the original value could be converted into
 			if (lookupMode.contains(LookupMode.COMMON_CONVERT)) {
+				for (final Class<?> convert : ValueConversionHelper.collectRegisteredCompatibleTargetTypes(original)) {
+					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
+					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
+				}
+			}
+			
+			// 6. generate types the original value could be converted into with intermediary conversions
+			if (lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				for (final Class<?> convert : ValueConversionHelper.collectCompatibleTargetTypes(original)) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
 					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);

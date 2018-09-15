@@ -26,18 +26,16 @@ public class FieldUtilsTest {
 	public void testCollectFieldsInheritanceAndOnlyGetters() {
 		final Map<Class<?>, List<FieldWrapper>> fields = BeanUtils.collectFields(FieldsTestClass.class, FieldsTestClassGrandparent.class,
 				EnumSet.of(Visibility.PROTECTED), EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER));
-		assertThat(fields.size()).isEqualTo(3);
-		assertThat(fields.keySet().contains(FieldsTestClass.class)).isTrue();
-		assertThat(fields.keySet().contains(FieldsTestClassParent.class)).isTrue();
-		assertThat(fields.keySet().contains(FieldsTestClassGrandparent.class)).isTrue();
+		assertThat(fields.keySet()).containsExactlyInAnyOrder(
+				FieldsTestClass.class, FieldsTestClassParent.class, FieldsTestClassGrandparent.class);
 
 		List<FieldWrapper> fieldWrappers = fields.get(FieldsTestClass.class);
-		assertThat(fieldWrappers.size()).isEqualTo(1);
+		assertThat(fieldWrappers).hasSize(1);
 		assertThat(fieldWrappers.get(0).getField().getName()).isEqualTo("field5");
 		assertThat(fieldWrappers.get(0).getSetter()).isNull();
 		assertThat(fieldWrappers.get(0).getGetter()).isNotNull();
 		fieldWrappers = fields.get(FieldsTestClassParent.class);
-		assertThat(fieldWrappers.size()).isEqualTo(2);
+		assertThat(fieldWrappers).hasSize(2);
 		assertThat(fieldWrappers.get(0).getField().getName()).isEqualTo("field4");
 		assertThat(fieldWrappers.get(0).getSetter()).isNull();
 		assertThat(fieldWrappers.get(0).getGetter()).isNotNull();
@@ -45,7 +43,7 @@ public class FieldUtilsTest {
 		assertThat(fieldWrappers.get(1).getSetter()).isNull();
 		assertThat(fieldWrappers.get(1).getGetter()).isNotNull();
 		fieldWrappers = fields.get(FieldsTestClassGrandparent.class);
-		assertThat(fieldWrappers.size()).isEqualTo(2);
+		assertThat(fieldWrappers).hasSize(2);
 		assertThat(fieldWrappers.get(0).getField().getName()).isEqualTo("field1");
 		assertThat(fieldWrappers.get(0).getSetter()).isNull();
 		assertThat(fieldWrappers.get(0).getGetter()).isNotNull();
@@ -125,10 +123,9 @@ public class FieldUtilsTest {
 	public void testCollectFieldsSimplButOnlySetter() {
 		final Map<Class<?>, List<FieldWrapper>> fields = BeanUtils.collectFields(FieldsTestClassOnlySetter.class,
 				FieldsTestClassOnlySetter.class, EnumSet.allOf(Visibility.class), EnumSet.of(BeanRestriction.YES_SETTER));
-		assertThat(fields.size()).isEqualTo(1);
-		assertThat(fields.keySet().contains(FieldsTestClassOnlySetter.class)).isTrue();
+		assertThat(fields.keySet()).containsExactly(FieldsTestClassOnlySetter.class);
 		final List<FieldWrapper> fieldWrappers = fields.get(FieldsTestClassOnlySetter.class);
-		assertThat(fieldWrappers.size()).isEqualTo(1);
+		assertThat(fieldWrappers).hasSize(1);
 		assertThat(fieldWrappers.get(0).getField().getName()).isEqualTo("field1");
 		assertThat(fieldWrappers.get(0).getGetter()).as("field1").isNull();
 		assertThat(fieldWrappers.get(0).getSetter()).as("field1").isNotNull();
