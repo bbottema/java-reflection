@@ -7,8 +7,6 @@ import static java.lang.String.format;
 /**
  * This exception can be thrown in any of the conversion methods of {@link ValueConversionHelper}, to indicate a value could not be converted into the
  * target datatype. It doesn't mean a failed attempt at a conversion, it means that there was no way to convert the input value to begin with.
- *
- * @author Benny Bottema
  */
 @SuppressWarnings("serial")
 public final class IncompatibleTypeException extends RuntimeException {

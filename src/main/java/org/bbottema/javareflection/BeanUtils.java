@@ -1,10 +1,12 @@
 package org.bbottema.javareflection;
 
 import lombok.experimental.UtilityClass;
-import org.bbottema.javareflection.commonslang25.StringUtils;
-
+import org.bbottema.javareflection.util.commonslang25.StringUtils;
+import org.bbottema.javareflection.model.FieldWrapper;
+import org.bbottema.javareflection.model.InvokableObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -16,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A {@link Field} shorthand utility class mainly used to collect fields from classes meeting certain restrictions/requirements.
+ * A {@link Field} shorthand utility class used to collect fields from classes meeting Java Bean restrictions/requirements.
  * <p>
  * With this utility class you can perform field lookups, by combining lookup restriction criteria.
  * <p>
@@ -28,17 +30,14 @@ import java.util.Map;
  * FieldUtils.collectFields(Apple.class, Apple.class, EnumSet.of(Visibility.PROTECTED),
  *         EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER));
  * </pre>
- * 
- * @author Benny Bottema
+ *
  * @see #collectFields(Class, Class, EnumSet, EnumSet)
  */
 @UtilityClass
-public final class FieldUtils {
+public final class BeanUtils {
 
 	/**
-	 * Determines what visibility modifiers a field is allowed to have in {@link FieldUtils#collectFields(Class, Class, EnumSet, EnumSet)}.
-	 * 
-	 * @author Benny Bottema
+	 * Determines what visibility modifiers a field is allowed to have in {@link BeanUtils#collectFields(Class, Class, EnumSet, EnumSet)}.
 	 */
 	public enum Visibility {
 		/**
@@ -68,8 +67,6 @@ public final class FieldUtils {
 	/**
 	 * Indicates whether a field needs a Bean setter or getter, exactly none or any combination thereof. Determines what kind of fields are
 	 * potential collection candidates.
-	 * 
-	 * @author Benny Bottema
 	 */
 	public enum BeanRestriction {
 		/**
@@ -109,7 +106,7 @@ public final class FieldUtils {
 	 */
 	@NotNull
 	public static Map<Class<?>, List<FieldWrapper>> collectFields(final Class<?> _class, final Class<?> boundaryMarker,
-			final EnumSet<Visibility> visibility, final EnumSet<BeanRestriction> beanRestrictions) {
+																  final EnumSet<Visibility> visibility, final EnumSet<BeanRestriction> beanRestrictions) {
 		final Map<Class<?>, List<FieldWrapper>> fields = new HashMap<>();
 		final Field[] allFields = _class.getDeclaredFields();
 		final List<FieldWrapper> filteredFields = new LinkedList<>();
@@ -179,13 +176,15 @@ public final class FieldUtils {
 		} else {
 			getterName = "get" + StringUtils.capitalize(field.getName());
 		}
-		final Method writeMethod = JReflect.findSimpleCompatibleMethod(field.getDeclaringClass(), setterName, field.getType());
-		final Method readMethod = JReflect.findSimpleCompatibleMethod(field.getDeclaringClass(), getterName);
+		final InvokableObject<Method> iWriteMethod = MethodUtils.findSimpleCompatibleMethod(field.getDeclaringClass(), setterName, field.getType());
+		final InvokableObject<Method> iReadMethod = MethodUtils.findSimpleCompatibleMethod(field.getDeclaringClass(), getterName);
 
-		if (!((readMethod != null && beanRestrictions.contains(BeanRestriction.NO_GETTER)) //
-				|| (readMethod == null && beanRestrictions.contains(BeanRestriction.YES_GETTER)) //
-				|| (writeMethod != null && beanRestrictions.contains(BeanRestriction.NO_SETTER)) //
-		|| (writeMethod == null && beanRestrictions.contains(BeanRestriction.YES_SETTER)))) {
+		if (!((iReadMethod != null && beanRestrictions.contains(BeanRestriction.NO_GETTER)) //
+				|| (iReadMethod == null && beanRestrictions.contains(BeanRestriction.YES_GETTER)) //
+				|| (iWriteMethod != null && beanRestrictions.contains(BeanRestriction.NO_SETTER)) //
+				|| (iWriteMethod == null && beanRestrictions.contains(BeanRestriction.YES_SETTER)))) {
+			Method readMethod = iReadMethod != null ? iReadMethod.getMethod() : null;
+			Method writeMethod = iWriteMethod != null ? iWriteMethod.getMethod() : null;
 			return new FieldWrapper(field, readMethod, writeMethod);
 		} else {
 			return null;

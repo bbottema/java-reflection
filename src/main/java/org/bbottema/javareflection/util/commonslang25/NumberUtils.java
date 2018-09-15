@@ -1,4 +1,4 @@
-package org.bbottema.javareflection.commonslang25;
+package org.bbottema.javareflection.util.commonslang25;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

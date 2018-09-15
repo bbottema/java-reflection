@@ -1,4 +1,4 @@
-package org.bbottema.javareflection;
+package org.bbottema.javareflection.model;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -8,8 +8,6 @@ import java.lang.reflect.Method;
 
 /**
  * A wrapper class that keeps a property ({@link Field}) and its setter/getter method(s) in one place.
- * 
- * @author Benny Bottema
  */
 public class FieldWrapper {
 

@@ -1,4 +1,4 @@
-package org.bbottema.javareflection;
+package org.bbottema.javareflection.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -178,8 +178,6 @@ public final class ExternalClassLoader extends ClassLoader {
 
 	/**
 	 * Parameterized exception used when Java's runtime compiler fails to compile a Java source file.
-	 * 
-	 * @author Benny Bottema
 	 */
 	public static class CompileException extends RuntimeException {
 		private static final long serialVersionUID = -7210219718456902667L;

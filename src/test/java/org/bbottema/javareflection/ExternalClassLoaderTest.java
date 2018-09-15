@@ -1,9 +1,9 @@
 package org.bbottema.javareflection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
+import org.bbottema.javareflection.util.ExternalClassLoader;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Junit test for {@link ExternalClassLoader}.
@@ -24,8 +24,8 @@ public class ExternalClassLoaderTest {
 	@Test
 	public void testSettersGetters() {
 		ExternalClassLoader loader = new ExternalClassLoader();
-		assertNull(loader.getBasepath());
+		assertThat(loader.getBasepath()).isNull();
 		loader.setBasepath("test");
-		assertEquals("test", loader.getBasepath());
+		assertThat(loader.getBasepath()).isEqualTo("test");
 	}
 }

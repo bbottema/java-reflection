@@ -13,20 +13,19 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertSame;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({JReflect.class})
-public class JReflectPowermockTest {
+@PrepareForTest({ClassUtils.class})
+public class ClassUtilsPowermockTest {
 	
 	@Before
 	public void resetStaticCaches() {
-		JReflect.resetCaches();
+		ClassUtils.resetCache();
 	}
 	
 	@Test
 	public void testNewInstanceHappyFlow() {
-		assertSame(Object.class, JReflect.newInstanceSimple(Object.class).getClass());
+		assertThat(ClassUtils.newInstanceSimple(Object.class).getClass()).isEqualTo(Object.class);
 	}
 	
 	@Test
@@ -51,7 +50,7 @@ public class JReflectPowermockTest {
 		
 		Assertions.assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
 			public void call() {
-				JReflect.newInstanceSimple(A.class);
+				ClassUtils.newInstanceSimple(A.class);
 			}
 		})
 				.isInstanceOf(RuntimeException.class)
@@ -63,12 +62,12 @@ public class JReflectPowermockTest {
 	
 	@Test
 	public void testLocateClass_CacheShouldShortcutLookup() throws Exception {
-		PowerMockito.mockStatic(JReflect.class);
-		PowerMockito.when(JReflect.class, "locateClass", "Integer", false, null).thenCallRealMethod().thenCallRealMethod();
-		PowerMockito.when(JReflect.class, "locateClass", "java.lang.Integer", null).thenReturn(Byte.class).thenReturn(Double.class);
+		PowerMockito.mockStatic(ClassUtils.class);
+		PowerMockito.when(ClassUtils.class, "locateClass", "Integer", false, null).thenCallRealMethod().thenCallRealMethod();
+		PowerMockito.when(ClassUtils.class, "locateClass", "java.lang.Integer", null).thenReturn(Byte.class).thenReturn(Double.class);
 		
-		Class<?> resultFromLookup = JReflect.locateClass("Integer", false, null);
-		Class<?> resultFromCache = JReflect.locateClass("Integer", false, null);
+		Class<?> resultFromLookup = ClassUtils.locateClass("Integer", false, null);
+		Class<?> resultFromCache = ClassUtils.locateClass("Integer", false, null);
 		
 		assertThat(resultFromLookup).isSameAs(Byte.class);
 		assertThat(resultFromCache).isSameAs(resultFromLookup);

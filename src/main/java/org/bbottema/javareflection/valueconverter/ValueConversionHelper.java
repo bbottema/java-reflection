@@ -7,9 +7,9 @@ import org.bbottema.javareflection.valueconverter.converters.BooleanConverters;
 import org.bbottema.javareflection.valueconverter.converters.CharacterConverters;
 import org.bbottema.javareflection.valueconverter.converters.NumberConverters;
 import org.bbottema.javareflection.valueconverter.converters.StringConverters;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,8 +30,7 @@ import static java.util.Arrays.asList;
  * <li><code>Character</code></li>
  * </ul>
  * In addition enums can be converted as well.
- * 
- * @author Benny Bottema
+ *
  * @see IncompatibleTypeException
  */
 @UtilityClass

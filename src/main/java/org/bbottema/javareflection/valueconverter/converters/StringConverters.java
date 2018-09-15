@@ -3,14 +3,14 @@ package org.bbottema.javareflection.valueconverter.converters;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
-import org.bbottema.javareflection.commonslang25.NumberUtils;
+import org.bbottema.javareflection.util.commonslang25.NumberUtils;
 import org.bbottema.javareflection.util.Function;
 import org.bbottema.javareflection.util.Function.Functions;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueFunction;
 import org.bbottema.javareflection.valueconverter.ValueFunction.ValueFunctionImpl;
-
 import org.jetbrains.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;

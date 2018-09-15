@@ -1,7 +1,5 @@
 package org.bbottema.javareflection.util.graph;
 
-import org.bbottema.javareflection.util.graph.Dijkstra;
-import org.bbottema.javareflection.util.graph.Node;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -12,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 public class DijkstraTest {
 	
@@ -55,7 +52,7 @@ public class DijkstraTest {
 		expectedShortestPaths.put(boolean.class, Arrays.asList(nodeA, nodeB, nodeD));
 		
 		for (Node<Class<?>> node : destinationNodes) {
-			assertEquals(node.getLeastExpensivePath(), expectedShortestPaths.get(node.getType()));
+			assertThat(expectedShortestPaths.get(node.getType())).isEqualTo(node.getLeastExpensivePath());
 		}
 	}
 }
