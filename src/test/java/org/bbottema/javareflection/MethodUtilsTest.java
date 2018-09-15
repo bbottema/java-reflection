@@ -2,6 +2,12 @@ package org.bbottema.javareflection;
 
 import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
+import org.bbottema.javareflection.testmodel.A;
+import org.bbottema.javareflection.testmodel.B;
+import org.bbottema.javareflection.testmodel.C;
+import org.bbottema.javareflection.testmodel.Foo;
+import org.bbottema.javareflection.testmodel.Fruit;
+import org.bbottema.javareflection.testmodel.Pear;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,10 +27,10 @@ public class MethodUtilsTest {
 		MethodUtils.resetCache();
 		ClassUtils.resetCache();
 	}
-
+	
 	/**
 	 * Test for {@link MethodUtils#findCompatibleMethod(Class, String, EnumSet, Class...)}.
-	 * 
+	 *
 	 * @throws NoSuchMethodException Thrown by tested method.
 	 */
 	@Test
@@ -65,10 +71,10 @@ public class MethodUtilsTest {
 			// OK
 		}
 	}
-
+	
 	/**
 	 * Test for {@link MethodUtils#findCompatibleConstructor(Class, EnumSet, Class...)}.
-	 * 
+	 *
 	 * @throws NoSuchMethodException Thrown by tested method.
 	 */
 	@Test
@@ -111,10 +117,10 @@ public class MethodUtilsTest {
 			// OK
 		}
 	}
-
+	
 	/**
 	 * Test for {@link MethodUtils#invokeCompatibleMethod(Object, Class, String, Object...)}.
-	 * 
+	 *
 	 * @throws NoSuchMethodException Thrown by tested method.
 	 * @throws IllegalArgumentException Thrown by tested method.
 	 * @throws IllegalAccessException Thrown by tested method.
@@ -148,7 +154,7 @@ public class MethodUtilsTest {
 			// OK
 		}
 	}
-
+	
 	/**
 	 * Test for {@link MethodUtils#invokeCompatibleConstructor(Class, Object...)}.
 	 *
@@ -222,101 +228,22 @@ public class MethodUtilsTest {
 		assertThat(MethodUtils.isMethodCompatible(stringConcat, commonConversions, String.class)).isTrue();
 		assertThat(MethodUtils.isMethodCompatible(stringConcat, commonConversions, Calendar.class)).isTrue();
 	}
-
-    /**
-     * Test for {@link MethodUtils#invokeCompatibleMethod(Object, Class, String, Object...)}.
-     */
-    @SuppressWarnings("ConstantConditions")
-	@Test
-    public void testInvokeCompatibleMethod_VariousAccessLevels() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        final C c = new C(new Pear());
-        assertThat(MethodUtils.invokeCompatibleMethod(c, A.class, "privateMethod")).isEqualTo("private 1");
-        assertThat(MethodUtils.invokeCompatibleMethod(c, B.class, "protectedMethod")).isEqualTo("protected 2");
-        assertThat(MethodUtils.invokeCompatibleMethod(c, C.class, "privateMethod")).isEqualTo("private 2");
-        assertThat(MethodUtils.invokeCompatibleMethod(c, C.class, "protectedMethod")).isEqualTo("protected 2");
 	
+	/**
+	 * Test for {@link MethodUtils#invokeCompatibleMethod(Object, Class, String, Object...)}.
+	 */
+	@SuppressWarnings("ConstantConditions")
+	@Test
+	public void testInvokeCompatibleMethod_VariousAccessLevels() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+		final C c = new C(new Pear());
+		assertThat(MethodUtils.invokeCompatibleMethod(c, A.class, "privateMethod")).isEqualTo("private 1");
+		assertThat(MethodUtils.invokeCompatibleMethod(c, B.class, "protectedMethod")).isEqualTo("protected 2");
+		assertThat(MethodUtils.invokeCompatibleMethod(c, C.class, "privateMethod")).isEqualTo("private 2");
+		assertThat(MethodUtils.invokeCompatibleMethod(c, C.class, "protectedMethod")).isEqualTo("protected 2");
+		
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", 1, true)).intValue()).isEqualTo(1);
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", 1, false)).intValue()).isEqualTo(0);
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", 0, true)).intValue()).isEqualTo(0);
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", "d", 1000)).intValue()).isEqualTo(100); // d -> 100
-    }
-
-	/*
-	 * Test classes
-	 */
-
-	static abstract class Fruit {
-	}
-
-	@SuppressWarnings("WeakerAccess")
-	static class Pear extends Fruit {
-	}
-	
-	interface Foo {
-		String foo(Double value, Fruit fruit, char c);
-	}
-
-	@SuppressWarnings({"unused", "SameReturnValue", "WeakerAccess"})
-	static abstract class A implements Foo {
-
-		public Integer numberA;
-		Integer number_privateA;
-
-		public A(Fruit f) {
-		}
-		
-        abstract String protectedMethod();
-        
-        @SuppressWarnings("unused")
-        private String privateMethod() {
-            return "private 1";
-        }
-	}
-	
-	@SuppressWarnings({"unused", "WeakerAccess"})
-	static abstract class B extends A {
-
-		public Integer numberB;
-		Integer number_privateB;
-
-		public static Integer numberB_static;
-
-		public B(Fruit f) {
-			super(f);
-		}
-        
-        @Override
-        String protectedMethod() {
-            return "protected 1";
-        }
-	}
-	
-	@SuppressWarnings({"unused", "SameReturnValue", "WeakerAccess"})
-	static class C extends B {
-		public Integer numberC;
-		Integer number_privateC;
-
-		public C(Fruit f) {
-			super(f);
-		}
-
-		public C(Pear p) {
-			super(p);
-		}
-
-		@Override
-		public String foo(Double value, Fruit fruit, char c) {
-			return String.format("%s-%s-%s", value, fruit.getClass().getSimpleName(), c);
-		}
-        
-        @Override
-        String protectedMethod() {
-            return "protected 2";
-        }
-        
-        @SuppressWarnings("unused")
-        private String privateMethod() {
-            return "private 2";
-        }
 	}
 }

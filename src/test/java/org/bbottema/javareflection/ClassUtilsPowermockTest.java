@@ -2,6 +2,7 @@ package org.bbottema.javareflection;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ThrowableAssert;
+import org.bbottema.javareflection.testmodel.A;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ClassUtils.class})
+@PrepareForTest({ClassUtils.class, A.class})
 public class ClassUtilsPowermockTest {
 	
 	@Before
@@ -57,8 +58,6 @@ public class ClassUtilsPowermockTest {
 				.hasMessage(expectedExceptionMessage)
 				.hasStackTraceContaining("moo");
 	}
-	
-	public static class A {}
 	
 	@Test
 	public void testLocateClass_CacheShouldShortcutLookup() throws Exception {

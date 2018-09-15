@@ -1,5 +1,7 @@
 package org.bbottema.javareflection;
 
+import org.bbottema.javareflection.testmodel.Fruit;
+import org.bbottema.javareflection.testmodel.Pear;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,8 +37,8 @@ public class TypeUtilsTest {
 	 */
 	@Test
 	public void testCollectTypes() {
-		final Class<?>[] expectedTypeList = new Class<?>[] { Pear.class, String.class, Object.class, Double.class };
-		final Object[] objectList = new Object[] { new Pear(), "foo", null, 4d };
+		final Class<?>[] expectedTypeList = new Class<?>[]{Pear.class, String.class, Object.class, Double.class};
+		final Object[] objectList = new Object[]{new Pear(), "foo", null, 4d};
 		assertThat(TypeUtils.collectTypes(objectList)).isEqualTo(expectedTypeList);
 	}
 	
@@ -86,20 +88,9 @@ public class TypeUtilsTest {
 	 */
 	@Test
 	public void testReplaceInArray() {
-		Integer[] initial = new Integer[] { 1, 2, 3, 4 };
+		Integer[] initial = new Integer[]{1, 2, 3, 4};
 		Integer[] second = TypeUtils.replaceInArray(initial, 2, 2);
 		assertThat(second).isEqualTo(initial);
 		assertThat(second).isEqualTo(new Integer[]{1, 2, 2, 4});
-	}
-	
-	/*
-	 * Test classes
-	 */
-	
-	static abstract class Fruit {
-	}
-	
-	@SuppressWarnings("WeakerAccess")
-	static class Pear extends Fruit {
 	}
 }

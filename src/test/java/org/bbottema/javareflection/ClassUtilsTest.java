@@ -1,5 +1,7 @@
 package org.bbottema.javareflection;
 
+import org.bbottema.javareflection.testmodel.C;
+import org.bbottema.javareflection.testmodel.Pear;
 import org.bbottema.javareflection.util.ExternalClassLoader;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.junit.Before;
@@ -100,7 +102,7 @@ public class ClassUtilsTest {
 	@Test
 	public void testCollectPublicMethods() {
 		Collection<String> oProperties = ClassUtils.collectMethods(new Object(), true);
-		Collection<String> cProperties = ClassUtils.collectMethods(new MethodUtilsTest.C(new MethodUtilsTest.Pear()), true);
+		Collection<String> cProperties = ClassUtils.collectMethods(new C(new Pear()), true);
 		assertThat(oProperties).isNotNull();
 		assertThat(oProperties.size() > 0).isTrue();
 		assertThat(cProperties.size()).isEqualTo(oProperties.size() + 1);
@@ -115,7 +117,7 @@ public class ClassUtilsTest {
 	@Test
 	public void testCollectAllMethods() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final Object o = new Object();
-		final MethodUtilsTest.C c = new MethodUtilsTest.C(new MethodUtilsTest.Pear());
+		final C c = new C(new Pear());
 		Collection<String> oProperties = ClassUtils.collectMethods(o, false);
 		Collection<String> cProperties = ClassUtils.collectMethods(c, false);
 		assertThat(oProperties).isNotNull();
@@ -126,81 +128,6 @@ public class ClassUtilsTest {
 		assertThat(cProperties.contains("foo")).isTrue();
 		assertThat(cProperties.contains("protectedMethod")).isTrue();
 		assertThat(cProperties.contains("privateMethod")).isTrue();
-		MethodUtils.invokeCompatibleMethod(c, MethodUtilsTest.C.class, "privateMethod");
-	}
-	
-	static abstract class Fruit {
-	}
-	
-	@SuppressWarnings("WeakerAccess")
-	static class Pear extends Fruit {
-	}
-	
-	interface Foo {
-		String foo(Double value, Fruit fruit, char c);
-	}
-	
-	@SuppressWarnings({"unused", "SameReturnValue", "WeakerAccess"})
-	static abstract class A implements Foo {
-		
-		public Integer numberA;
-		Integer number_privateA;
-		
-		public A(Fruit f) {
-		}
-		
-		abstract String protectedMethod();
-		
-		@SuppressWarnings("unused")
-		private String privateMethod() {
-			return "private 1";
-		}
-	}
-	
-	@SuppressWarnings({"unused", "WeakerAccess"})
-	static abstract class B extends A {
-		
-		public Integer numberB;
-		Integer number_privateB;
-		
-		public static Integer numberB_static;
-		
-		public B(Fruit f) {
-			super(f);
-		}
-		
-		@Override
-		String protectedMethod() {
-			return "protected 1";
-		}
-	}
-	
-	@SuppressWarnings({"unused", "SameReturnValue", "WeakerAccess"})
-	static class C extends B {
-		public Integer numberC;
-		Integer number_privateC;
-		
-		public C(Fruit f) {
-			super(f);
-		}
-		
-		public C(Pear p) {
-			super(p);
-		}
-		
-		@Override
-		public String foo(Double value, Fruit fruit, char c) {
-			return String.format("%s-%s-%s", value, fruit.getClass().getSimpleName(), c);
-		}
-		
-		@Override
-		String protectedMethod() {
-			return "protected 2";
-		}
-		
-		@SuppressWarnings("unused")
-		private String privateMethod() {
-			return "private 2";
-		}
+		MethodUtils.invokeCompatibleMethod(c, C.class, "privateMethod");
 	}
 }
