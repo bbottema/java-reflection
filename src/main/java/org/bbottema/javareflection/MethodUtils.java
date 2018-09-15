@@ -121,6 +121,13 @@ public final class MethodUtils {
         method.setAccessible(true);
 		
 		Object[] convertedArgs = ValueConversionHelper.convert(args, iMethod.getCompatibleSignature(), true);
+		
+		System.out.println("invoking method: " + method);
+		System.out.println("\tcontext: " + context);
+		System.out.println("\toriginal args: " + Arrays.toString(args));
+		System.out.println("\tcompatible signature: " + Arrays.toString(iMethod.getCompatibleSignature()));
+		System.out.println("\tconverted args: " + Arrays.toString(convertedArgs));
+		
 		//noinspection unchecked
 		return (T) method.invoke(context, convertedArgs);
     }

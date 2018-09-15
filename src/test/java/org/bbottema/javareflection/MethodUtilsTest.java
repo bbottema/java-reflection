@@ -141,6 +141,7 @@ public class MethodUtilsTest {
 			// OK
 		}
 		try {
+			System.out.println("PERFORMING TEST");
 			MethodUtils.invokeCompatibleMethod(new C(new Pear()), C.class, "foo", 50d, new Pear(), Calendar.getInstance());
 			fail("NoSuchMethodException expected");
 		} catch (NoSuchMethodException e) {
