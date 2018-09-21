@@ -76,9 +76,9 @@ public class ClassUtilsTest {
 	}
 	
 	@Test
-	public void testCollectPublicMethods() {
-		Collection<String> objectProperties = ClassUtils.collectMethods(new Object(), true);
-		Collection<String> cProperties = ClassUtils.collectMethods(new C(new Pear()), true);
+	public void testCollectPublicMethodNames() {
+		Collection<String> objectProperties = ClassUtils.collectMethodNames(new Object(), true);
+		Collection<String> cProperties = ClassUtils.collectMethodNames(new C(new Pear()), true);
 		assertThat(objectProperties).isNotEmpty();
 		assertThat(cProperties).hasSize(objectProperties.size() + 1);
 		cProperties.removeAll(objectProperties);
@@ -87,11 +87,11 @@ public class ClassUtilsTest {
 	}
 	
 	@Test
-	public void testCollectAllMethods() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+	public void testCollectAllMethodNames() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final Object o = new Object();
 		final C c = new C(new Pear());
-		Collection<String> objectProperties = ClassUtils.collectMethods(o, false);
-		Collection<String> cProperties = ClassUtils.collectMethods(c, false);
+		Collection<String> objectProperties = ClassUtils.collectMethodNames(o, false);
+		Collection<String> cProperties = ClassUtils.collectMethodNames(c, false);
 		assertThat(objectProperties).isNotEmpty();
 		assertThat(cProperties).hasSize(objectProperties.size() + 3);
 		cProperties.removeAll(objectProperties);

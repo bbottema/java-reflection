@@ -204,8 +204,26 @@ public final class ClassUtils {
 	 */
 	@NotNull
 	@SuppressWarnings("WeakerAccess")
-	public static Set<String> collectMethods(final Object subject, final boolean publicOnly) {
-		final Set<String> methodNames = new LinkedHashSet<>();
+	public static Set<String> collectMethodNames(final Object subject, final boolean publicOnly) {
+		Set<Method> methods = collectMethods(subject, publicOnly);
+		Set<String> methodNames = new HashSet<>();
+		for (Method m : methods) {
+			methodNames.add(m.getName());
+		}
+		return methodNames;
+	}
+	
+	/**
+	 * Returns a list of names that represent the methods on an <code>Object</code>
+	 *
+	 * @param subject The <code>Object</code> who's methods need to be reflected.
+	 * @param publicOnly Indicates whether only public (albeit inherited) members should be returned. Else also private and protected methods will be
+	 *            included
+	 * @return Returns a list with methods, either {@link Method}s.
+	 */
+	@NotNull
+	@SuppressWarnings("WeakerAccess")
+	public static Set<Method> collectMethods(final Object subject, final boolean publicOnly) {
 		final Set<Method> allMethods = new HashSet<>(Arrays.asList(subject.getClass().getMethods()));
 		if (!publicOnly) {
 			Class<?> _class = subject.getClass();
@@ -214,9 +232,6 @@ public final class ClassUtils {
 				_class = _class.getSuperclass();
 			}
 		}
-		for (final Method m : allMethods) {
-			methodNames.add(m.getName());
-		}
-		return methodNames;
+		return allMethods;
 	}
 }
