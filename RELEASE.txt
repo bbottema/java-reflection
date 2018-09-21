@@ -4,6 +4,12 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.2.0
+
+- Added alternative lookup method for Methods based on type names rather than types
+- Streamlines ClassUtils API a bit
+
+
 v3.1.0
 
 Complete overhaul:
