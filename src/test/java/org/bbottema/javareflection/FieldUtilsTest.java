@@ -13,15 +13,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-/**
- * Junit test for {@link BeanUtils}.
- */
 @SuppressWarnings("javadoc")
 public class FieldUtilsTest {
 
-	/**
-	 * Test method for {@link BeanUtils#collectFields(Class, Class, EnumSet, EnumSet)}.
-	 */
 	@Test
 	public void testCollectFieldsInheritanceAndOnlyGetters() {
 		final Map<Class<?>, List<FieldWrapper>> fields = BeanUtils.collectFields(FieldsTestClass.class, FieldsTestClassGrandparent.class,
@@ -52,9 +46,6 @@ public class FieldUtilsTest {
 		assertThat(fieldWrappers.get(1).getGetter()).isNotNull();
 	}
 
-	/**
-	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
-	 */
 	@SuppressWarnings({"unused", "WeakerAccess"})
 	public class FieldsTestClassGrandparent {
 		protected Object field1; // yes
@@ -78,9 +69,6 @@ public class FieldUtilsTest {
 		}
 	}
 
-	/**
-	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
-	 */
 	@SuppressWarnings({"unused", "WeakerAccess"})
 	public class FieldsTestClassParent extends FieldsTestClassGrandparent {
 		protected Object field2; // no, parent has setter
@@ -103,9 +91,6 @@ public class FieldUtilsTest {
 		}
 	}
 
-	/**
-	 * Test subject with specific combinations of fields, visibilities and setters/getters availability.
-	 */
 	@SuppressWarnings({"unused", "WeakerAccess"})
 	public class FieldsTestClass extends FieldsTestClassParent {
 		protected Object field5; // yes
@@ -116,9 +101,6 @@ public class FieldUtilsTest {
 		}
 	}
 
-	/**
-	 * Test method for {@link BeanUtils#collectFields(Class, Class, EnumSet, EnumSet)}.
-	 */
 	@Test
 	public void testCollectFieldsSimplButOnlySetter() {
 		final Map<Class<?>, List<FieldWrapper>> fields = BeanUtils.collectFields(FieldsTestClassOnlySetter.class,
@@ -140,12 +122,6 @@ public class FieldUtilsTest {
 		}
 	}
 
-	/**
-	 * Test method for {@link BeanUtils#meetsVisibilityRequirements(Field, EnumSet)}.
-	 * 
-	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
-	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
-	 */
 	@Test
 	public void testMeetVisibilityRequirements()
 			throws SecurityException, NoSuchFieldException {
@@ -190,12 +166,6 @@ public class FieldUtilsTest {
 		public Object _public;
 	}
 
-	/**
-	 * Test method for {@link BeanUtils#resolveBeanProperty(Field, EnumSet)}.
-	 * 
-	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
-	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
-	 */
 	@Test
 	public void testResolveBeanProperty()
 			throws SecurityException, NoSuchFieldException {
@@ -243,12 +213,7 @@ public class FieldUtilsTest {
 		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER))).isNull();
 		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER))).isNull();
 	}
-	/**
-	 * Test method for {@link BeanUtils#resolveBeanProperty(Field, EnumSet)}.
-	 * 
-	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
-	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
-	 */
+	
 	@Test
 	public void testResolvePrimitiveBooleanProperty()
 			throws SecurityException, NoSuchFieldException {
@@ -263,12 +228,6 @@ public class FieldUtilsTest {
 		assertThat(resolvedBeanProperty.getSetter() != null).isEqualTo(hasSetter);
 	}
 
-	/**
-	 * Test method for {@link BeanUtils#resolveBeanProperty(Field, EnumSet)}.
-	 * 
-	 * @throws SecurityException Can be thrown by JDK, but won't since it is our own test class.
-	 * @throws NoSuchFieldException Can be thrown by JDK, but won't since it is our own test class.
-	 */
 	@Test
 	public void testResolveBeanPropertyExceptions()
 			throws SecurityException, NoSuchFieldException {

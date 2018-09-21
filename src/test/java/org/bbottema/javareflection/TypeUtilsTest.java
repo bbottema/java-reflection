@@ -8,9 +8,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TypeUtilsTest {
 	
-	/**
-	 * Test for {@link TypeUtils#autobox(Class)}.
-	 */
 	@Test
 	public void testAutobox() {
 		assertThat(TypeUtils.autobox(boolean.class)).isEqualTo(Boolean.class);
@@ -32,9 +29,6 @@ public class TypeUtilsTest {
 		assertThat(TypeUtils.autobox(Fruit.class)).isNull();
 	}
 	
-	/**
-	 * Test for {@link TypeUtils#collectTypes(Object[])}.
-	 */
 	@Test
 	public void testCollectTypes() {
 		final Class<?>[] expectedTypeList = new Class<?>[]{Pear.class, String.class, Object.class, Double.class};
@@ -42,9 +36,6 @@ public class TypeUtilsTest {
 		assertThat(TypeUtils.collectTypes(objectList)).isEqualTo(expectedTypeList);
 	}
 	
-	/**
-	 * Test for {@link TypeUtils#widestNumberClass(Number...)}.
-	 */
 	@Test
 	public void testWidestNumberClass() {
 		byte b = 1;
@@ -69,9 +60,6 @@ public class TypeUtilsTest {
 		assertThat(TypeUtils.widestNumberClass(i, D)).isEqualTo(Double.class);
 	}
 	
-	/**
-	 * Test for {@link TypeUtils#isPackage(String)}.
-	 */
 	@Test
 	public void testIsPackage() {
 		assertThat(TypeUtils.isPackage("java")).isTrue();
@@ -83,9 +71,6 @@ public class TypeUtilsTest {
 		assertThat(TypeUtils.isPackage("org.bbottema")).isFalse();
 	}
 	
-	/**
-	 * Test for {@link TypeUtils#replaceInArray(Object[], int, Object)}.
-	 */
 	@Test
 	public void testReplaceInArray() {
 		Integer[] initial = new Integer[]{1, 2, 3, 4};

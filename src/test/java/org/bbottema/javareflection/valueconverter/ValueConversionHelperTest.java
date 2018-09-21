@@ -349,9 +349,6 @@ public class ValueConversionHelperTest {
 		}
 	}
 	
-	/**
-	 * Test for {@link ValueConversionHelper#isPrimitiveNumber(Class)}.
-	 */
 	@Test
 	public void testIsPrimitiveNumber() {
 		assertThat(ValueConversionHelper.isPrimitiveNumber(char.class)).isFalse();

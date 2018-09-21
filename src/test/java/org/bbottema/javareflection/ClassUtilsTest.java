@@ -24,9 +24,6 @@ public class ClassUtilsTest {
 		ValueConversionHelper.resetDefaultConverters();
 	}
 	
-	/**
-	 * Test for {@link ClassUtils#locateClass(String, boolean, ExternalClassLoader)}.
-	 */
 	@Test
 	public void testLocateClass() {
 		assertThat(ClassUtils.locateClass("Math", false, null)).isEqualTo(Math.class);
@@ -42,11 +39,6 @@ public class ClassUtilsTest {
 		assertThat(ClassUtils.newInstanceSimple(Object.class).getClass()).isEqualTo(Object.class);
 	}
 	
-	/**
-	 * Test for {@link ClassUtils#solveField(Object, String)}.
-	 *
-	 * @throws NoSuchFieldException Thrown by tested method.
-	 */
 	@Test
 	public void testSolveField()
 			throws NoSuchFieldException {
@@ -58,12 +50,6 @@ public class ClassUtilsTest {
 		assertThat(f2).isEqualTo(C.class.getField("numberB_static"));
 	}
 	
-	/**
-	 * Test for {@link ClassUtils#assignToField(Object, String, Object)}.
-	 *
-	 * @throws IllegalAccessException Thrown by tested method.
-	 * @throws NoSuchFieldException Thrown by tested method.
-	 */
 	@Test
 	public void testAssignToField()
 			throws IllegalAccessException, NoSuchFieldException {
@@ -84,18 +70,12 @@ public class ClassUtilsTest {
 		}
 	}
 	
-	/**
-	 * Test for {@link ClassUtils#collectPropertyNames(Object)}.
-	 */
 	@Test
 	public void testCollectPropertyNames() {
 		assertThat(ClassUtils.collectPropertyNames(new C(new Pear())))
 				.containsExactlyInAnyOrder("numberA", "numberB", "numberB_static", "numberC");
 	}
 	
-	/**
-	 * Test for {@link ClassUtils#collectMethods(Object, boolean)}.
-	 */
 	@Test
 	public void testCollectPublicMethods() {
 		Collection<String> objectProperties = ClassUtils.collectMethods(new Object(), true);
@@ -107,9 +87,6 @@ public class ClassUtilsTest {
 		assertThat(cProperties).contains("foo");
 	}
 	
-	/**
-	 * Test for {@link ClassUtils#collectMethods(Object, boolean)}.
-	 */
 	@Test
 	public void testCollectAllMethods() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final Object o = new Object();

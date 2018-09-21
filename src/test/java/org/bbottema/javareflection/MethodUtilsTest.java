@@ -30,11 +30,6 @@ public class MethodUtilsTest {
 		ValueConversionHelper.resetDefaultConverters();
 	}
 	
-	/**
-	 * Test for {@link MethodUtils#findCompatibleMethod(Class, String, EnumSet, Class...)}.
-	 *
-	 * @throws NoSuchMethodException Thrown by tested method.
-	 */
 	@Test
 	public void testFindCompatibleMethod()
 			throws NoSuchMethodException {
@@ -79,11 +74,6 @@ public class MethodUtilsTest {
 		assertThat(result).isNotNull();
 	}
 	
-	/**
-	 * Test for {@link MethodUtils#findCompatibleConstructor(Class, EnumSet, Class...)}.
-	 *
-	 * @throws NoSuchMethodException Thrown by tested method.
-	 */
 	@Test
 	public void testFindCompatibleConstructor()
 			throws NoSuchMethodException {
@@ -125,14 +115,6 @@ public class MethodUtilsTest {
 		}
 	}
 	
-	/**
-	 * Test for {@link MethodUtils#invokeCompatibleMethod(Object, Class, String, Object...)}.
-	 *
-	 * @throws NoSuchMethodException Thrown by tested method.
-	 * @throws IllegalArgumentException Thrown by tested method.
-	 * @throws IllegalAccessException Thrown by tested method.
-	 * @throws InvocationTargetException Thrown by tested method.
-	 */
 	@Test
 	public void testInvokeCompatibleMethod()
 			throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
@@ -161,15 +143,6 @@ public class MethodUtilsTest {
 		}
 	}
 	
-	/**
-	 * Test for {@link MethodUtils#invokeCompatibleConstructor(Class, Object...)}.
-	 *
-	 * @throws NoSuchMethodException Thrown by tested method.
-	 * @throws IllegalArgumentException Thrown by tested method.
-	 * @throws IllegalAccessException Thrown by tested method.
-	 * @throws InvocationTargetException Thrown by tested method.
-	 * @throws InstantiationException Thrown by tested method.
-	 */
 	@Test
 	public void testInvokeCompatibleConstructor()
 			throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -237,9 +210,6 @@ public class MethodUtilsTest {
 		assertThat(MethodUtils.isMethodCompatible(stringConcat, smartConversions, Calendar.class)).isTrue();
 	}
 	
-	/**
-	 * Test for {@link MethodUtils#invokeCompatibleMethod(Object, Class, String, Object...)}.
-	 */
 	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testInvokeCompatibleMethod_VariousAccessLevels() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {

@@ -5,22 +5,14 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Junit test for {@link ExternalClassLoader}.
- */
 public class ExternalClassLoaderTest {
-	/**
-	 * Test for {@link ExternalClassLoader#ExternalClassLoader()}.
-	 */
+	
 	@Test
 	public void testConstructor() {
 		new ExternalClassLoader();
 		// ok, no exception
 	}
 
-	/**
-	 * Test for ExternalClassLoader setters/getters.
-	 */
 	@Test
 	public void testSettersGetters() {
 		ExternalClassLoader loader = new ExternalClassLoader();
