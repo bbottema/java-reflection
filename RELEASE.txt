@@ -4,12 +4,13 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
-v3.x.x
+v3.1.0
 
 Complete overhaul:
 - Conversion now works with graph-based path finding resolution to find all possible conversion paths
 - Converters can now be added by third parties
 - fixed a bug with the cache not working properly
+- restructured classes and packages so it makes a lot more sense
 
 
 v2.x.x
