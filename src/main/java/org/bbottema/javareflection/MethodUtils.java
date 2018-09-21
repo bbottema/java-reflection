@@ -120,7 +120,7 @@ public final class MethodUtils {
 					// limited conversions searchmode
 					lookupMode.add(LookupMode.COMMON_CONVERT);
 					iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
-				} catch (NoSuchMethodException e) {
+				} catch (NoSuchMethodException e3) {
 					// full searchmode
 					lookupMode.add(LookupMode.SMART_CONVERT);
 					iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
@@ -187,17 +187,19 @@ public final class MethodUtils {
 
         // try to find a compatible Java constructor
         try {
-            // simple search mode
             iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
         } catch (final NoSuchMethodException e1) {
             try {
-                // moderate search mode
                 lookupMode.add(LookupMode.CAST_TO_INTERFACE);
                 iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
             } catch (final NoSuchMethodException e2) {
-                // full searchmode
-                lookupMode.add(LookupMode.COMMON_CONVERT);
-                iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
+				try {
+					lookupMode.add(LookupMode.COMMON_CONVERT);
+					iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
+	            } catch (final NoSuchMethodException e3) {
+					lookupMode.add(LookupMode.SMART_CONVERT);
+					iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
+				}
             }
         }
 	
