@@ -7,7 +7,11 @@ import org.bbottema.javareflection.testmodel.B;
 import org.bbottema.javareflection.testmodel.C;
 import org.bbottema.javareflection.testmodel.Foo;
 import org.bbottema.javareflection.testmodel.Fruit;
+import org.bbottema.javareflection.testmodel.Meta;
+import org.bbottema.javareflection.testmodel.Moo;
 import org.bbottema.javareflection.testmodel.Pear;
+import org.bbottema.javareflection.util.MetaAnnotationExtractor;
+import org.bbottema.javareflection.util.MethodCallingExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.EnumSet;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -224,4 +229,18 @@ public class MethodUtilsTest {
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", 0, true)).intValue()).isEqualTo(0);
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", "d", 1000)).intValue()).isEqualTo(100); // d -> 100
 	}
+	
+	@Test
+	public void testFindMatchingMethods() {
+		assertThat(MethodUtils.findMatchingMethods(Moo.class, "method1", "Integer"))
+				.extracting(new MetaAnnotationExtractor<>(Meta.class))
+				.extracting(new MethodCallingExtractor<String>("value"))
+				.containsExactlyInAnyOrder("Moo.method1-A", "Shmoo.method1-A");
+		
+		assertThat(MethodUtils.findMatchingMethods(Moo.class, "method1", "Object", "java.lang.Integer"))
+				.extracting(new MetaAnnotationExtractor<>(Meta.class))
+				.extracting(new MethodCallingExtractor<String>("value"))
+				.containsExactlyInAnyOrder("Moo.method1-C");
+	}
+	
 }

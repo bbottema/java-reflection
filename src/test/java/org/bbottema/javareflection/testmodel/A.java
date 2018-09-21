@@ -15,4 +15,6 @@ public abstract class A implements Foo {
 	private String privateMethod() {
 		return "private 1";
 	}
+	
+	public void bar() {}
 }

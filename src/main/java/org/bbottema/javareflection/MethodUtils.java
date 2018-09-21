@@ -14,9 +14,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -75,7 +77,7 @@ public final class MethodUtils {
      */
 	private final static Map<Class<?>, Map<String, Map<InvokableObject, Class<?>[]>>> methodCache = new LinkedHashMap<>();
     
-    @SuppressWarnings("WeakerAccess")
+    @SuppressWarnings({"WeakerAccess", "unused"})
     public static void resetCache() {
     	methodCache.clear();
 	}
@@ -154,7 +156,7 @@ public final class MethodUtils {
      * @throws NoSuchMethodException Thrown by {@link #invokeConstructor(Class, Class[], Object[])}.
      * @see java.lang.reflect.Constructor#newInstance(Object[])
      */
-    @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
+    @SuppressWarnings({"UnusedReturnValue", "WeakerAccess", "unused"})
 	@NotNull
     public static <T> T invokeCompatibleConstructor(final Class<T> datatype, final Object... args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -438,4 +440,29 @@ public final class MethodUtils {
             methodCache.put(datatype, owner);
         }
     }
+	
+	@SuppressWarnings("unused")
+	public static Set<Method> findMatchingMethods(final Class<?> datatype, String methodName, String... paramTypeNames) {
+    	Set<Method> matchingMethods = new HashSet<>();
+		for (Method method : ClassUtils.collectMethods(datatype, false)) {
+			Class<?>[] methodParameterTypes = method.getParameterTypes();
+			if (method.getName().equals(methodName) &&
+					methodParameterTypes.length == paramTypeNames.length &&
+					typeNamesMatch(methodParameterTypes, paramTypeNames)) {
+				matchingMethods.add(method);
+			}
+		}
+		return matchingMethods;
+	}
+	
+	private static boolean typeNamesMatch(Class<?>[] parameterTypes, String[] typeNamesToMatch) {
+		for (int i = 0; i < parameterTypes.length; i++) {
+			final Class<?> parameterType = parameterTypes[i];
+			final String typeNameToMatch = typeNamesToMatch[i];
+			if (!parameterType.getName().equals(typeNameToMatch) && !parameterType.getSimpleName().equals(typeNameToMatch)) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

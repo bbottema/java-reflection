@@ -77,25 +77,24 @@ public class ClassUtilsTest {
 	
 	@Test
 	public void testCollectPublicMethodNames() {
-		Collection<String> objectProperties = ClassUtils.collectMethodNames(new Object(), true);
-		Collection<String> cProperties = ClassUtils.collectMethodNames(new C(new Pear()), true);
+		final Object subject = new Object();
+		Collection<String> objectProperties = ClassUtils.collectMethodNames(subject.getClass(), true);
+		final C subject1 = new C(new Pear());
+		Collection<String> cProperties = ClassUtils.collectMethodNames(subject1.getClass(), true);
 		assertThat(objectProperties).isNotEmpty();
-		assertThat(cProperties).hasSize(objectProperties.size() + 1);
+		assertThat(cProperties).hasSize(objectProperties.size() + 2);
 		cProperties.removeAll(objectProperties);
-		assertThat(cProperties).hasSize(1);
-		assertThat(cProperties).contains("foo");
+		assertThat(cProperties).containsExactlyInAnyOrder("foo", "bar");
 	}
 	
 	@Test
 	public void testCollectAllMethodNames() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-		final Object o = new Object();
-		final C c = new C(new Pear());
-		Collection<String> objectProperties = ClassUtils.collectMethodNames(o, false);
-		Collection<String> cProperties = ClassUtils.collectMethodNames(c, false);
+		Collection<String> objectProperties = ClassUtils.collectMethodNames(Object.class, false);
+		Collection<String> cProperties = ClassUtils.collectMethodNames(C.class, false);
 		assertThat(objectProperties).isNotEmpty();
-		assertThat(cProperties).hasSize(objectProperties.size() + 3);
+		assertThat(cProperties).hasSize(objectProperties.size() + 4);
 		cProperties.removeAll(objectProperties);
-		assertThat(cProperties).containsExactlyInAnyOrder("foo", "protectedMethod", "privateMethod");
-		MethodUtils.invokeCompatibleMethod(c, C.class, "privateMethod");
+		assertThat(cProperties).containsExactlyInAnyOrder("foo", "bar", "protectedMethod", "privateMethod");
+		MethodUtils.invokeCompatibleMethod(new C(new Pear()), C.class, "privateMethod");
 	}
 }
