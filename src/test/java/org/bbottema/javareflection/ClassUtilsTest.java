@@ -2,7 +2,6 @@ package org.bbottema.javareflection;
 
 import org.bbottema.javareflection.testmodel.C;
 import org.bbottema.javareflection.testmodel.Pear;
-import org.bbottema.javareflection.util.ExternalClassLoader;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
