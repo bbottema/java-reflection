@@ -1,5 +1,6 @@
 package org.bbottema.javareflection.util.graph;
 
+import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
@@ -10,10 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@UtilityClass
 public final class GraphHelper {
-	
-	private GraphHelper() {
-	}
 	
 	@SuppressWarnings("WeakerAccess")
 	public static <T> boolean isPathPossible(Node<T> startingPoint, Node<T> destination) {
@@ -65,7 +64,6 @@ public final class GraphHelper {
 		
 		return foundAPath;
 	}
-	
 	
 	@NotNull
 	public static <T> Set<Node<T>> findReachableNodes(final Node<T> fromNode) {
