@@ -108,9 +108,13 @@ public final class ValueConversionHelper {
 	}
 	
 	private static Integer determineConversionCost(ValueFunction<Object, Object> converter) {
-		String converterPackage = ValueConversionHelper.class.getPackage().toString();
-		boolean isSystemConverter = converter.getClass().getPackage().toString().contains(converterPackage);
-		return isSystemConverter ? LOW_CONVERTER_PRIORITY : HIGH_CONVERTER_PRIORITY;
+		if (converter.getFromType() == converter.getTargetType()) {
+			return 0;
+		} else {
+			String converterPackage = ValueConversionHelper.class.getPackage().toString();
+			boolean isSystemConverter = converter.getClass().getPackage().toString().contains(converterPackage);
+			return isSystemConverter ? LOW_CONVERTER_PRIORITY : HIGH_CONVERTER_PRIORITY;
+		}
 	}
 	
 	@SuppressWarnings("WeakerAccess")
