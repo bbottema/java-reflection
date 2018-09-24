@@ -1,6 +1,7 @@
 package org.bbottema.javareflection.valueconverter;
 
 import lombok.experimental.UtilityClass;
+import org.bbottema.javareflection.TypeUtils;
 import org.bbottema.javareflection.util.graph.GraphHelper;
 import org.bbottema.javareflection.util.graph.Node;
 import org.bbottema.javareflection.valueconverter.converters.BooleanConverters;
@@ -86,6 +87,7 @@ public final class ValueConversionHelper {
 		valueConverters.get(userConverter.getFromType()).put(userConverter.getTargetType(), (ValueFunction<Object, Object>) userConverter);
 		
 		updateTypeGraph();
+		TypeUtils.clearCaches();
 	}
 	
 	private static void updateTypeGraph() {
@@ -141,6 +143,7 @@ public final class ValueConversionHelper {
 	/**
 	 * @return Whether <code>targetType</code> can be derived from <code>fromType</code>.
 	 */
+	@SuppressWarnings("unused")
 	public static boolean typesCompatible(final Class<?> fromType, final Class<?> targetType) {
 		if (targetType.isAssignableFrom(fromType)) {
 			return true;
