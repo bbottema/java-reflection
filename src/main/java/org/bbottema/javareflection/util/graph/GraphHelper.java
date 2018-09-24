@@ -43,12 +43,8 @@ public final class GraphHelper {
 			currentPath.addLast(currentNode);
 			
 			if (currentNode.equals(destination)) {
-				if (!currentPath.isEmpty()) {
-					possiblePathsSoFar.add(new ArrayList<>(currentPath));
-					foundAPath = true;
-				} else {
-					// startingPoint same as destination
-				}
+				possiblePathsSoFar.add(new ArrayList<>(currentPath));
+				foundAPath = true;
 			} else if (currentPath.size() <= cutOffEdgeCount) {
 				for (Node<T> nextNode : currentNode.getToNodes().keySet()) {
 					foundAPath |= findPossiblePaths(nextNode, destination, currentPath, possiblePathsSoFar, returnOnFirstPathFound, cutOffEdgeCount);
