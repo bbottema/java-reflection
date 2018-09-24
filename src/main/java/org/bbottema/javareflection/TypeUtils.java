@@ -8,9 +8,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility functions that deal with type information, conversions and autoboxing.
@@ -51,6 +53,14 @@ public final class TypeUtils {
 		numSizes.put(Long.class, ++size);
 		numSizes.put(Float.class, ++size);
 		numSizes.put(Double.class, ++size);
+	}
+	
+	private static final Map<Class<?>, Set<Class<?>>> CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
+	private static final Map<Class<?>, Set<Class<?>>> CACHED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
+	
+	public static void clearCaches() {
+		CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES.clear();
+		CACHED_COMPATIBLE_TARGET_TYPES.clear();
 	}
 	
 	/**
@@ -139,7 +149,7 @@ public final class TypeUtils {
 			generateCompatibleTypeLists(index + 1, lookupMode, typeLists, currentTypelist.clone());
 			
 			// 2. generate type in which the original can be (un)wrapped
-			if (lookupMode.contains(LookupMode.AUTOBOX)) {
+			if (lookupMode.contains(LookupMode.AUTOBOX) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				final Class<?> autoboxed = autobox(original);
 				if (autoboxed != null) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, autoboxed);
@@ -166,8 +176,8 @@ public final class TypeUtils {
 			}
 			
 			// 5. generate types the original value could be converted into
-			if (lookupMode.contains(LookupMode.COMMON_CONVERT)) {
-				for (final Class<?> convert : ValueConversionHelper.collectRegisteredCompatibleTargetTypes(original)) {
+			if (lookupMode.contains(LookupMode.COMMON_CONVERT) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
+				for (final Class<?> convert : collectRegisteredCompatibleTargetTypes(original)) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
 					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
 				}
@@ -175,12 +185,28 @@ public final class TypeUtils {
 			
 			// 6. generate types the original value could be converted into with intermediary conversions
 			if (lookupMode.contains(LookupMode.SMART_CONVERT)) {
-				for (final Class<?> convert : ValueConversionHelper.collectCompatibleTargetTypes(original)) {
+				for (final Class<?> convert : collectCompatibleTargetTypes(original)) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
 					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
 				}
 			}
 		}
+	}
+	
+	@NotNull
+	private static Set<Class<?>> collectRegisteredCompatibleTargetTypes(Class<?> fromType) {
+		if (!CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES.containsKey(fromType)) {
+			CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES.put(fromType, ValueConversionHelper.collectRegisteredCompatibleTargetTypes(fromType));
+		}
+		return CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES.get(fromType);
+	}
+	
+	@NotNull
+	private static Set<Class<?>> collectCompatibleTargetTypes(Class<?> fromType) {
+		if (!CACHED_COMPATIBLE_TARGET_TYPES.containsKey(fromType)) {
+			CACHED_COMPATIBLE_TARGET_TYPES.put(fromType, ValueConversionHelper.collectCompatibleTargetTypes(fromType));
+		}
+		return CACHED_COMPATIBLE_TARGET_TYPES.get(fromType);
 	}
 	
 	/**
