@@ -4,6 +4,11 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.2.1
+
+- Optimized recursive code and implemented some caches
+
+
 v3.2.0
 
 - Added alternative lookup method for Methods based on type names rather than types
