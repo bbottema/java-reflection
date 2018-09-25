@@ -65,7 +65,7 @@ public class ClassUtilsPowermockTest {
 	public void testLocateClass_CacheShouldShortcutLookup() throws Exception {
 		PowerMockito.mockStatic(ClassUtils.class);
 		PowerMockito.when(ClassUtils.class, "locateClass", "Integer", false, null).thenCallRealMethod().thenCallRealMethod();
-		PowerMockito.when(ClassUtils.class, "locateClass", "java.lang.Integer", null).thenReturn(Byte.class).thenReturn(Double.class);
+		PowerMockito.when(ClassUtils.class, "locateClass", "Integer", "java.lang", null).thenReturn(Byte.class).thenReturn(Double.class);
 		
 		Class<?> resultFromLookup = ClassUtils.locateClass("Integer", false, null);
 		Class<?> resultFromCache = ClassUtils.locateClass("Integer", false, null);

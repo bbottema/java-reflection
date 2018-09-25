@@ -58,16 +58,36 @@ public final class ClassUtils {
 		if (classCache.containsKey(cacheKey)) {
 			return classCache.get(cacheKey);
 		}
-		Class<?> _class = null;
+		final Class<?> _class;
 		if (fullscan) {
-			// cycle through all packages and try allocating dynamically
-			final Package[] ps = Package.getPackages();
-			for (int i = 0; i < ps.length && _class == null; i++) {
-				_class = locateClass(ps[i].getName() + "." + className, classLoader);
-			}
+			_class = locateClass(className, null, classLoader);
 		} else {
 			// try standard package used for most common classes
-			_class = locateClass("java.lang." + className, classLoader);
+			_class = locateClass(className, "java.lang", classLoader);
+		}
+		classCache.put(cacheKey, _class);
+		return _class;
+	}
+	
+	@Nullable
+	@SuppressWarnings("WeakerAccess")
+	public static Class<?> locateClass(final String className, @Nullable final String inPackage, @Nullable final ClassLoader classLoader) {
+		final String cacheKey = className + inPackage;
+		if (classCache.containsKey(cacheKey)) {
+			return classCache.get(cacheKey);
+		}
+		
+		Class<?> _class = locateClass(className, classLoader);
+		
+		if (_class == null) {
+			// cycle through all sub-packages and try allocating dynamically
+			final Package[] ps = Package.getPackages();
+			for (int i = 0; i < ps.length && _class == null; i++) {
+				String currentPackage = ps[i].getName();
+				if (inPackage == null || currentPackage.startsWith(inPackage)) {
+					_class = locateClass(currentPackage + "." + className, classLoader);
+				}
+			}
 		}
 		classCache.put(cacheKey, _class);
 		return _class;
