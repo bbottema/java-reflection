@@ -197,7 +197,6 @@ public final class ClassUtils {
 	/**
 	 * Returns a list of names that represent the methods on an <code>Object</code>
 	 *
-	 * @param dataType
 	 * @param publicOnly Indicates whether only public (albeit inherited) members should be returned. Else also private and protected methods will be
 	 *            included
 	 * @return Returns a list with methods, either {@link Method}s.
@@ -215,7 +214,6 @@ public final class ClassUtils {
 	/**
 	 * Returns a list of names that represent the methods on an <code>Object</code>
 	 *
-	 * @param dataType
 	 * @param publicOnly Indicates whether only public (albeit inherited) members should be returned. Else also private and protected methods will be
 	 *            included
 	 * @return Returns a list with methods, either {@link Method}s.
