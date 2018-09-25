@@ -21,7 +21,7 @@ import java.util.Set;
  * Utility with convenience methods that operate on the class level.
  * <ul>
  * <li>With this helper class you can locate and/or load classes. An advanced <code>Class</code> lookup ({@link #locateClass(String, boolean,
- * ExternalClassLoader)}), that allows a full scan (to try all
+ * ClassLoader)}), that allows a full scan (to try all
  * packages known) and an optional {@link ExternalClassLoader} instance that is able to actually compile a .java file on the fly and load its compile
  * .class file</li>
  * <li>create a new instance while handling all the exceptions</li>
@@ -33,7 +33,7 @@ import java.util.Set;
 public final class ClassUtils {
 	
 	/**
-	 * {@link Class} cache optionally used when looking up classes with {@link #locateClass(String, boolean, ExternalClassLoader)}.
+	 * {@link Class} cache optionally used when looking up classes with {@link #locateClass(String, boolean, ClassLoader)}.
 	 */
 	private final static Map<String, Class<?>> classCache = new HashMap<>();
 	
@@ -53,7 +53,7 @@ public final class ClassUtils {
 	 */
 	@Nullable
 	@SuppressWarnings("WeakerAccess")
-	public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ExternalClassLoader classLoader) {
+	public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ClassLoader classLoader) {
 		final String cacheKey = className + fullscan;
 		if (classCache.containsKey(cacheKey)) {
 			return classCache.get(cacheKey);
@@ -83,7 +83,7 @@ public final class ClassUtils {
 	 */
 	@SuppressWarnings("WeakerAccess")
 	@Nullable
-	public static Class<?> locateClass(final String fullClassName, @Nullable final ExternalClassLoader classLoader) {
+	public static Class<?> locateClass(final String fullClassName, @Nullable final ClassLoader classLoader) {
 		try {
 			Class<?> _class = null;
 			if (classLoader != null) {
