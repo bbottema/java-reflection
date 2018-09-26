@@ -6,23 +6,26 @@ import org.bbottema.javareflection.model.FieldWrapper;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.EnumSet.allOf;
+import static java.util.EnumSet.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 @SuppressWarnings("javadoc")
 public class FieldUtilsTest {
-
+	
 	@Test
 	public void testCollectFieldsInheritanceAndOnlyGetters() {
 		final Map<Class<?>, List<FieldWrapper>> fields = BeanUtils.collectFields(FieldsTestClass.class, FieldsTestClassGrandparent.class,
-				EnumSet.of(Visibility.PROTECTED), EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER));
+				of(Visibility.PROTECTED), of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER));
 		assertThat(fields.keySet()).containsExactlyInAnyOrder(
 				FieldsTestClass.class, FieldsTestClassParent.class, FieldsTestClassGrandparent.class);
-
+		
 		List<FieldWrapper> fieldWrappers = fields.get(FieldsTestClass.class);
 		assertThat(fieldWrappers).hasSize(1);
 		assertThat(fieldWrappers.get(0).getField().getName()).isEqualTo("field5");
@@ -44,6 +47,37 @@ public class FieldUtilsTest {
 		assertThat(fieldWrappers.get(1).getField().getName()).isEqualTo("fieldA");
 		assertThat(fieldWrappers.get(1).getSetter()).isNull();
 		assertThat(fieldWrappers.get(1).getGetter()).isNotNull();
+	}
+	
+	@Test
+	public void testIsBeanMethodVariousScenarios() throws NoSuchMethodException {
+		Method notABeanSetter = FieldsTestClass.class.getDeclaredMethod("notABeanSetter");
+		assertThat(BeanUtils.isBeanMethod(notABeanSetter, FieldsTestClassGrandparent.class, allOf(Visibility.class))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanSetter, FieldsTestClassGrandparent.class, of(Visibility.PROTECTED))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanSetter, FieldsTestClassGrandparent.class, of(Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanSetter, FieldsTestClassGrandparent.class, of(Visibility.PRIVATE))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanSetter, FieldsTestClassGrandparent.class, of(Visibility.PUBLIC))).isFalse();
+		
+		Method notABeanGetter = FieldsTestClass.class.getDeclaredMethod("notABeanGetter");
+		assertThat(BeanUtils.isBeanMethod(notABeanGetter, FieldsTestClassGrandparent.class, allOf(Visibility.class))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanGetter, FieldsTestClassGrandparent.class, of(Visibility.PROTECTED))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanGetter, FieldsTestClassGrandparent.class, of(Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanGetter, FieldsTestClassGrandparent.class, of(Visibility.PRIVATE))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(notABeanGetter, FieldsTestClassGrandparent.class, of(Visibility.PUBLIC))).isFalse();
+		
+		Method getField5 = FieldsTestClass.class.getDeclaredMethod("getField5");
+		assertThat(BeanUtils.isBeanMethod(getField5, FieldsTestClassGrandparent.class, allOf(Visibility.class))).isTrue();
+		assertThat(BeanUtils.isBeanMethod(getField5, FieldsTestClassGrandparent.class, of(Visibility.PROTECTED))).isTrue();
+		assertThat(BeanUtils.isBeanMethod(getField5, FieldsTestClassGrandparent.class, of(Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(getField5, FieldsTestClassGrandparent.class, of(Visibility.PRIVATE))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(getField5, FieldsTestClassGrandparent.class, of(Visibility.PUBLIC))).isFalse();
+		
+		Method setField2 = FieldsTestClassGrandparent.class.getDeclaredMethod("setField2", Object.class);
+		assertThat(BeanUtils.isBeanMethod(setField2, FieldsTestClassGrandparent.class, allOf(Visibility.class))).isTrue();
+		assertThat(BeanUtils.isBeanMethod(setField2, FieldsTestClassGrandparent.class, of(Visibility.PROTECTED))).isTrue();
+		assertThat(BeanUtils.isBeanMethod(setField2, FieldsTestClassGrandparent.class, of(Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(setField2, FieldsTestClassGrandparent.class, of(Visibility.PRIVATE))).isFalse();
+		assertThat(BeanUtils.isBeanMethod(setField2, FieldsTestClassGrandparent.class, of(Visibility.PUBLIC))).isFalse();
 	}
 
 	@SuppressWarnings({"unused", "WeakerAccess"})
@@ -95,16 +129,19 @@ public class FieldUtilsTest {
 	public class FieldsTestClass extends FieldsTestClassParent {
 		protected Object field5; // yes
 		public Object field6; // no, not protected
-
+		
 		public Object getField5() {
 			return field5;
 		}
+		
+		public void notABeanSetter() { }
+		public String notABeanGetter() { return "moo"; }
 	}
 
 	@Test
-	public void testCollectFieldsSimplButOnlySetter() {
+	public void testCollectFieldsSimpleButOnlySetter() {
 		final Map<Class<?>, List<FieldWrapper>> fields = BeanUtils.collectFields(FieldsTestClassOnlySetter.class,
-				FieldsTestClassOnlySetter.class, EnumSet.allOf(Visibility.class), EnumSet.of(BeanRestriction.YES_SETTER));
+				FieldsTestClassOnlySetter.class, allOf(Visibility.class), of(BeanRestriction.YES_SETTER));
 		assertThat(fields.keySet()).containsExactly(FieldsTestClassOnlySetter.class);
 		final List<FieldWrapper> fieldWrappers = fields.get(FieldsTestClassOnlySetter.class);
 		assertThat(fieldWrappers).hasSize(1);
@@ -126,36 +163,36 @@ public class FieldUtilsTest {
 	public void testMeetVisibilityRequirements()
 			throws SecurityException, NoSuchFieldException {
 		Field field = FieldModifiers.class.getDeclaredField("_private");
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE))).isTrue();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PUBLIC))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.DEFAULT))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE, Visibility.PUBLIC))).isTrue();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED, Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PUBLIC))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE, Visibility.PUBLIC))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED, Visibility.DEFAULT))).isFalse();
 
 		field = FieldModifiers.class.getDeclaredField("_protected");
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PUBLIC))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.DEFAULT))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED))).isTrue();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE, Visibility.PUBLIC))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED, Visibility.DEFAULT))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PUBLIC))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE, Visibility.PUBLIC))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED, Visibility.DEFAULT))).isTrue();
 
 		field = FieldModifiers.class.getDeclaredField("_public");
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PUBLIC))).isTrue();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.DEFAULT))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE, Visibility.PUBLIC))).isTrue();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED, Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PUBLIC))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.DEFAULT))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE, Visibility.PUBLIC))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED, Visibility.DEFAULT))).isFalse();
 
 		field = FieldModifiers.class.getDeclaredField("_default");
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PUBLIC))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.DEFAULT))).isTrue();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PRIVATE, Visibility.PUBLIC))).isFalse();
-		assertThat(BeanUtils.meetsVisibilityRequirements(field, EnumSet.of(Visibility.PROTECTED, Visibility.DEFAULT))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PUBLIC))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.DEFAULT))).isTrue();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PRIVATE, Visibility.PUBLIC))).isFalse();
+		assertThat(BeanUtils.meetsVisibilityRequirements(field, of(Visibility.PROTECTED, Visibility.DEFAULT))).isTrue();
 	}
 	
 	@SuppressWarnings({"unused", "WeakerAccess"})
@@ -170,48 +207,48 @@ public class FieldUtilsTest {
 	public void testResolveBeanProperty()
 			throws SecurityException, NoSuchFieldException {
 		Field field = BeanFields.class.getDeclaredField("withGetter");
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER))).isNull();
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER)), true, false);
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER)), true, false);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER))).isNull();
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER)),
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER))).isNull();
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER)), true, false);
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER)), true, false);
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER))).isNull();
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER)),
 				true, false);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER))).isNull();
 
 		field = BeanFields.class.getDeclaredField("withGetterAndSetter");
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER))).isNull();
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER)), true, true);
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_SETTER)), true, true);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER))).isNull();
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER)),
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER))).isNull();
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER)), true, true);
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_SETTER)), true, true);
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER))).isNull();
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER)),
 				true, true);
 
 		field = BeanFields.class.getDeclaredField("withSetter");
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER)), false, true);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER))).isNull();
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_SETTER)), false, true);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER))).isNull();
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER)),
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER)), false, true);
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER))).isNull();
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_SETTER)), false, true);
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER))).isNull();
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER)),
 				false, true);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER))).isNull();
 
 		field = BeanFields.class.getDeclaredField("withNone");
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER)), false, false);
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER)), false, false);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_SETTER))).isNull();
-		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER)),
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER)), false, false);
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER)), false, false);
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_SETTER))).isNull();
+		assertNotNullProperty(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.NO_SETTER)),
 				false, false);
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER))).isNull();
-		assertThat(BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.NO_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_SETTER))).isNull();
+		assertThat(BeanUtils.resolveBeanProperty(field, of(BeanRestriction.YES_GETTER, BeanRestriction.YES_SETTER))).isNull();
 	}
 	
 	@Test
@@ -233,58 +270,58 @@ public class FieldUtilsTest {
 			throws SecurityException, NoSuchFieldException {
 		Field field = BeanFields.class.getDeclaredField("withGetter");
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 		field = BeanFields.class.getDeclaredField("withGetterAndSetter");
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 		field = BeanFields.class.getDeclaredField("withSetter");
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 		field = BeanFields.class.getDeclaredField("withNone");
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_GETTER, BeanRestriction.YES_GETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 		try {
-			BeanUtils.resolveBeanProperty(field, EnumSet.of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
+			BeanUtils.resolveBeanProperty(field, of(BeanRestriction.NO_SETTER, BeanRestriction.YES_SETTER));
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
 		}
 	}
-
+	
 	@SuppressWarnings("unused")
 	private static class BeanFields {
 		private Object withGetter;

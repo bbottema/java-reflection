@@ -86,6 +86,33 @@ public final class BeanUtils {
 		 */
 		NO_GETTER
 	}
+	
+	/**
+	 * Verifies is a given method occurs as setter or getter in the declaring class chain.
+	 * <p>
+	 * Lookup can be configured to check only against specific visibility.
+	 *
+	 * @param method The method to match against getters/setters of a certain visibility
+	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that methods are matched against. Can
+	 *            be used to prevent matching methods on a super class.
+	 * @param visibility A set of visibility requirements (ie. {@link Visibility#PROTECTED} indicates a *field* for which getter/setter are checked
+	 *                      is allowed to have <code>protected</code> visibility). Note: the visibility modifiers for methods are ignored.
+	 * @return Whether given method is a setter / getter within given restriction boundaries.
+	 */
+	@SuppressWarnings({"unused", "WeakerAccess"})
+	public static boolean isBeanMethod(final Method method, final Class<?> boundaryMarker,
+									   final EnumSet<Visibility> visibility) {
+		Map<Class<?>, List<FieldWrapper>> fields = collectFields(method.getDeclaringClass(), boundaryMarker, visibility,
+				EnumSet.noneOf(BeanRestriction.class));
+		for (List<FieldWrapper> fieldWrappers : fields.values()) {
+			for (FieldWrapper fieldWrapper : fieldWrappers) {
+				if (method.equals(fieldWrapper.getGetter()) || method.equals(fieldWrapper.getSetter())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Returns a pool of {@link Field} wrappers including optional relevant setter/getter methods, collected from the given class tested
@@ -96,7 +123,7 @@ public final class BeanUtils {
 	 * 
 	 * @param _class The class (and chain) to harvest fields from.
 	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that fields are collected from. Can
-	 *            be used to prevent finding fields on a supper class.
+	 *            be used to prevent finding fields on a super class.
 	 * @param visibility A set of visibility requirements (ie. {@link Visibility#PROTECTED} indicates a field is allowed to have
 	 *            <code>protected</code> visibility).
 	 * @param beanRestrictions A set of Bean restriction requirements indicating a field should or shouldn't have a setter, getter or both.
@@ -104,6 +131,7 @@ public final class BeanUtils {
 	 * @see #meetsVisibilityRequirements(Field, EnumSet)
 	 * @see #resolveBeanProperty(Field, EnumSet)
 	 */
+	@SuppressWarnings("WeakerAccess")
 	@NotNull
 	public static Map<Class<?>, List<FieldWrapper>> collectFields(final Class<?> _class, final Class<?> boundaryMarker,
 																  final EnumSet<Visibility> visibility, final EnumSet<BeanRestriction> beanRestrictions) {
@@ -117,16 +145,14 @@ public final class BeanUtils {
 					filteredFields.add(property);
 				}
 			}
-			fields.put(_class, filteredFields);
 		}
+		fields.put(_class, filteredFields);
 		// determine if we need to look deeper
 		final List<Class<?>> interfaces = Arrays.asList(_class.getInterfaces());
-		if (_class.equals(boundaryMarker) || interfaces.contains(boundaryMarker)) {
-			return fields;
-		} else {
+		if (!_class.equals(boundaryMarker) && !interfaces.contains(boundaryMarker)) {
 			fields.putAll(collectFields(_class.getSuperclass(), boundaryMarker, visibility, beanRestrictions));
-			return fields;
 		}
+		return fields;
 	}
 
 	/**
