@@ -4,6 +4,12 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.3.0
+
+- More robust class location facility
+- Support any custom classloader for locating classes
+
+
 v3.2.1
 
 - Optimized recursive code and implemented some caches
