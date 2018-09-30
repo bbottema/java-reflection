@@ -4,6 +4,12 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.5.0
+
+- Made method collection facilities in ClassUtil much more robust by allowing any combination of method modifiers to find methods for rather than just
+ a boolean "publicOnly". This includes modifiers other than for visibility as well.
+
+
 v3.4.0
 
 - Added BeanUtils API to verify if a given Method is a bean setter / getter
