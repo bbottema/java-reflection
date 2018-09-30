@@ -3,15 +3,6 @@ package org.bbottema.javareflection;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-
-import static java.util.Objects.requireNonNull;
-import static org.bbottema.javareflection.ClassUtils.locateClass;
-
 @UtilityClass
 public final class PackageUtils {
 	
