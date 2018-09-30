@@ -163,9 +163,10 @@ public final class BeanUtils {
 	 * @return Whether a given field has one of the specified visibility flags.
 	 */
 	static boolean meetsVisibilityRequirements(final Field field, final EnumSet<Visibility> visibility) {
-		for (final Visibility visibilityModifier : visibility) {
-			final int m = field.getModifiers();
-			if (!visibilityModifier.equals(Visibility.DEFAULT)) {
+		final int m = field.getModifiers();
+		
+		for (Visibility visibilityModifier : visibility) {
+			if (visibilityModifier != Visibility.DEFAULT) {
 				if ((m & visibilityModifier.modifierFlag) != 0) {
 					return true;
 				}
