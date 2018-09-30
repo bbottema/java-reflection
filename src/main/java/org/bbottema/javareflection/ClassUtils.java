@@ -81,15 +81,9 @@ public final class ClassUtils {
 		Class<?> _class = locateClass(className, classLoader);
 		
 		if (_class == null) {
-			// cycle through all sub-packages and try allocating dynamically
-			final Package[] ps = Package.getPackages();
-			for (int i = 0; i < ps.length && _class == null; i++) {
-				String currentPackage = ps[i].getName();
-				if (inPackage == null || currentPackage.startsWith(inPackage)) {
-					_class = locateClass(currentPackage + "." + className, classLoader);
-				}
-			}
+			_class = PackageUtils.scanPackagesForClass(className, inPackage, classLoader);
 		}
+		
 		classCache.put(cacheKey, _class);
 		return _class;
 	}
