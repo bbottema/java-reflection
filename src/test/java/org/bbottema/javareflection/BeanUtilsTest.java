@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 @SuppressWarnings("javadoc")
-public class FieldUtilsTest {
+public class BeanUtilsTest {
 	
 	@Test
 	public void testCollectFieldsInheritanceAndOnlyGetters() {

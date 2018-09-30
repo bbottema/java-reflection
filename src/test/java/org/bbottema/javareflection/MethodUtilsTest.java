@@ -10,8 +10,8 @@ import org.bbottema.javareflection.testmodel.Fruit;
 import org.bbottema.javareflection.testmodel.Meta;
 import org.bbottema.javareflection.testmodel.Moo;
 import org.bbottema.javareflection.testmodel.Pear;
+import org.bbottema.javareflection.testmodel.Skree;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
-import org.bbottema.javareflection.util.MethodCallingExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,10 +21,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.EnumSet;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
+import static org.bbottema.javareflection.model.MethodModifier.MATCH_ANY;
 
 public class MethodUtilsTest {
 	
@@ -232,15 +233,31 @@ public class MethodUtilsTest {
 	
 	@Test
 	public void testFindMatchingMethods() {
-		assertThat(MethodUtils.findMatchingMethods(Moo.class, "method1", "Integer"))
+		assertThat(MethodUtils.findMatchingMethods(Moo.class, Object.class, "method1", "Integer"))
 				.extracting(new MetaAnnotationExtractor<>(Meta.class))
-				.extracting(new MethodCallingExtractor<String>("value"))
+				.extractingResultOf("value")
 				.containsExactlyInAnyOrder("Moo.method1-A", "Shmoo.method1-A");
 		
-		assertThat(MethodUtils.findMatchingMethods(Moo.class, "method1", "Object", "java.lang.Integer"))
+		assertThat(MethodUtils.findMatchingMethods(Moo.class, Object.class, "method1", "Object", "java.lang.Integer"))
 				.extracting(new MetaAnnotationExtractor<>(Meta.class))
-				.extracting(new MethodCallingExtractor<String>("value"))
+				.extractingResultOf("value")
 				.containsExactlyInAnyOrder("Moo.method1-C");
 	}
 	
+	@Test
+	public void testMethodHasCollectionParameter() {
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithArray"))).isTrue();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithCollection1"))).isTrue();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithCollection2"))).isTrue();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithCollection3"))).isTrue();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithCollection4"))).isTrue();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithCollection5"))).isTrue();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithoutCollection1"))).isFalse();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithoutCollection2"))).isFalse();
+		assertThat(MethodUtils.methodHasCollectionParameter(findSkreeMethod("methodWithoutCollection3"))).isFalse();
+	}
+	
+	private Method findSkreeMethod(String methodName) {
+		return collectMethodsByName(Skree.class, Skree.class, MATCH_ANY, methodName).iterator().next();
+	}
 }

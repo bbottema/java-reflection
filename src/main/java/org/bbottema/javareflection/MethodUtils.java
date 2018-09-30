@@ -3,6 +3,7 @@ package org.bbottema.javareflection;
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
+import org.bbottema.javareflection.model.MethodModifier;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
@@ -441,10 +442,14 @@ public final class MethodUtils {
         }
     }
 	
+	/**
+	 * @return Methods found using {@link ClassUtils#collectMethods(Class, Class, EnumSet)}
+	 * and then filters based on the parameter <em>type</em> names.
+	 */
 	@SuppressWarnings("unused")
-	public static Set<Method> findMatchingMethods(final Class<?> datatype, String methodName, String... paramTypeNames) {
+	public static Set<Method> findMatchingMethods(final Class<?> datatype, @Nullable Class<?> boundaryMarker, String methodName, String... paramTypeNames) {
     	Set<Method> matchingMethods = new HashSet<>();
-		for (Method method : ClassUtils.collectMethods(datatype, false)) {
+		for (Method method : ClassUtils.collectMethods(datatype, boundaryMarker, MethodModifier.MATCH_ANY)) {
 			Class<?>[] methodParameterTypes = method.getParameterTypes();
 			if (method.getName().equals(methodName) &&
 					methodParameterTypes.length == paramTypeNames.length &&
@@ -464,5 +469,19 @@ public final class MethodUtils {
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * @return True if the given method contains a parameter that is an array of an {@link Iterable}.
+	 */
+	public static boolean methodHasCollectionParameter(final Method m) {
+		for (Class<?> parameterType : m.getParameterTypes()) {
+			if (parameterType.isArray() ||
+					Iterable.class.isAssignableFrom(parameterType) ||
+					Map.class.isAssignableFrom(parameterType)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

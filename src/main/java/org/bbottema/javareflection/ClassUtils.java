@@ -1,6 +1,7 @@
 package org.bbottema.javareflection;
 
 import lombok.experimental.UtilityClass;
+import org.bbottema.javareflection.model.MethodModifier;
 import org.bbottema.javareflection.util.ExternalClassLoader;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
@@ -9,8 +10,8 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -215,38 +216,59 @@ public final class ClassUtils {
 	}
 	
 	/**
-	 * Returns a list of names that represent the methods on an <code>Object</code>
-	 *
-	 * @param publicOnly Indicates whether only public (albeit inherited) members should be returned. Else also private and protected methods will be
-	 *            included
-	 * @return Returns a list with methods, either {@link Method}s.
+	 * @return Returns the result of {@link #collectMethods(Class, Class, EnumSet)} mapped to the method names.
 	 */
 	@SuppressWarnings("WeakerAccess")
-	public static Set<String> collectMethodNames(Class<?> dataType, boolean publicOnly) {
-		Set<Method> methods = collectMethods(dataType, publicOnly);
+	public static Set<String> collectMethodNames(Class<?> dataType, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers) {
 		Set<String> methodNames = new HashSet<>();
-		for (Method m : methods) {
+		for (Method m : collectMethods(dataType, boundaryMarker, methodModifiers)) {
 			methodNames.add(m.getName());
 		}
 		return methodNames;
 	}
 	
 	/**
+	 * @return The result of {@link #collectMethodsMappingToName(Class, Class, EnumSet)} filtered on method name.
+	 */
+	@SuppressWarnings("WeakerAccess")
+	public static Set<Method> collectMethodsByName(final Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers, final String methodName) {
+		return collectMethodsMappingToName(type, boundaryMarker, methodModifiers).get(methodName);
+	}
+	
+	/**
+	 * @return The result of {@link #collectMethods(Class, Class, EnumSet)} filtered on method name.
+	 */
+	@SuppressWarnings("WeakerAccess")
+	public static Map<String, Set<Method>> collectMethodsMappingToName(Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers) {
+		Map<String, Set<Method>> methodsMappedToName = new HashMap<>();
+		for (Method method : collectMethods(type, boundaryMarker, methodModifiers)) {
+			if (!methodsMappedToName.containsKey(method.getName())) {
+				methodsMappedToName.put(method.getName(), new HashSet<Method>());
+			}
+			methodsMappedToName.get(method.getName()).add(method);
+		}
+		return methodsMappedToName;
+	}
+	
+	/**
 	 * Returns a list of names that represent the methods on an <code>Object</code>
 	 *
-	 * @param publicOnly Indicates whether only public (albeit inherited) members should be returned. Else also private and protected methods will be
-	 *            included
+	 * @param methodModifiers List of method modifiers that will match any method that has one of them.
+	 * @param boundaryMarker Optional type to limit (including) how far back up the inheritance chain we go for discovering methods.
 	 * @return Returns a list with methods, either {@link Method}s.
 	 */
 	@SuppressWarnings("WeakerAccess")
-	public static Set<Method> collectMethods(Class<?> dataType, boolean publicOnly) {
-		final Set<Method> allMethods = new HashSet<>(Arrays.asList(dataType.getMethods()));
-		if (!publicOnly) {
-			Class<?> _class = dataType;
-			while (_class != null) {
-				allMethods.addAll(Arrays.asList(_class.getDeclaredMethods()));
-				_class = _class.getSuperclass();
+	public static Set<Method> collectMethods(Class<?> dataType, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers) {
+		final Set<Method> allMethods = new HashSet<>();
+		
+		for (Method declaredMethod : dataType.getDeclaredMethods()) {
+			if (MethodModifier.meetsModifierRequirements(declaredMethod, methodModifiers)) {
+				allMethods.add(declaredMethod);
 			}
+		}
+		
+		if (dataType != boundaryMarker && dataType.getSuperclass() != null) {
+			allMethods.addAll(collectMethods(dataType.getSuperclass(), boundaryMarker, methodModifiers));
 		}
 		return allMethods;
 	}
