@@ -6,6 +6,7 @@ import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -285,6 +286,18 @@ public final class TypeUtils {
 	@SuppressWarnings("WeakerAccess")
 	public static boolean isPackage(final String name) {
 		return name.equals("java") || Package.getPackage(name) != null;
+	}
+	
+	/**
+	 * @return Whether a given list of Annotation contains a certain annotation type.
+	 */
+	public static boolean containsAnnotation(List<Annotation> myListOfAnnotations, Class<? extends Annotation> annotationClass) {
+		for (Annotation annotation : myListOfAnnotations) {
+			if (annotation.annotationType() == annotationClass) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
