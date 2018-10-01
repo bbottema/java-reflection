@@ -4,6 +4,12 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.5.1
+
+- Added overloaded version of MethodUtils.findMatchingMethods(..) that also supports Collection in addition to varargs...
+- Fixed name based type matching to properly work with arrays vs varargs...
+
+
 v3.5.0
 
 - Made method collection facilities in ClassUtil much more robust by allowing any combination of method modifiers to find methods for rather than just
