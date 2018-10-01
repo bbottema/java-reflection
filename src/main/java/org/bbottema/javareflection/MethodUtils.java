@@ -442,6 +442,15 @@ public final class MethodUtils {
         }
     }
 	
+	
+	/**
+	 * Delegates to {@link #findMatchingMethods(Class, Class, String, String...)}
+	 */
+	@SuppressWarnings("unused")
+	public static Set<Method> findMatchingMethods(final Class<?> datatype, @Nullable Class<?> boundaryMarker, String methodName, List<String> paramTypeNames) {
+		return findMatchingMethods(datatype, boundaryMarker, methodName, paramTypeNames.toArray(new String[0]));
+	}
+	
 	/**
 	 * @return Methods found using {@link ClassUtils#collectMethods(Class, Class, EnumSet)}
 	 * and then filters based on the parameter <em>type</em> names.
