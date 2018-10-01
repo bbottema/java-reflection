@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.EnumSet;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
@@ -232,13 +233,27 @@ public class MethodUtilsTest {
 	}
 	
 	@Test
-	public void testFindMatchingMethods() {
+	public void testFindMatchingMethodsParamArray() {
 		assertThat(MethodUtils.findMatchingMethods(Moo.class, Object.class, "method1", "Integer"))
 				.extracting(new MetaAnnotationExtractor<>(Meta.class))
 				.extractingResultOf("value")
 				.containsExactlyInAnyOrder("Moo.method1-A", "Shmoo.method1-A");
 		
 		assertThat(MethodUtils.findMatchingMethods(Moo.class, Object.class, "method1", "Object", "java.lang.Integer"))
+				.extracting(new MetaAnnotationExtractor<>(Meta.class))
+				.extractingResultOf("value")
+				.containsExactlyInAnyOrder("Moo.method1-C");
+	}
+	
+	@Test
+	public void testFindMatchingMethodsParamCollection() {
+		//noinspection ArraysAsListWithZeroOrOneArgument
+		assertThat(MethodUtils.findMatchingMethods(Moo.class, Object.class, "method1", asList("Integer")))
+				.extracting(new MetaAnnotationExtractor<>(Meta.class))
+				.extractingResultOf("value")
+				.containsExactlyInAnyOrder("Moo.method1-A", "Shmoo.method1-A");
+		
+		assertThat(MethodUtils.findMatchingMethods(Moo.class, Object.class, "method1", asList("Object", "java.lang.Integer")))
 				.extracting(new MetaAnnotationExtractor<>(Meta.class))
 				.extractingResultOf("value")
 				.containsExactlyInAnyOrder("Moo.method1-C");

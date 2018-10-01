@@ -474,11 +474,22 @@ public final class MethodUtils {
 		for (int i = 0; i < parameterTypes.length; i++) {
 			final Class<?> parameterType = parameterTypes[i];
 			final String typeNameToMatch = typeNamesToMatch[i];
-			if (!parameterType.getName().equals(typeNameToMatch) && !parameterType.getSimpleName().equals(typeNameToMatch)) {
+			if (parameterType.isArray()) {
+				final String arrayTypeNameToMatch = typeNameToMatch.endsWith("...")
+						? typeNameToMatch.substring(0, typeNameToMatch.indexOf("..."))
+						: typeNameToMatch;
+				if (typeNamesDontMatch(parameterType.getComponentType(), arrayTypeNameToMatch)) {
+					return false;
+				}
+			} else if (typeNamesDontMatch(parameterType, typeNameToMatch)) {
 				return false;
 			}
 		}
 		return true;
+	}
+	
+	private static boolean typeNamesDontMatch(Class<?> parameterType, String typeNameToMatch) {
+		return !parameterType.getName().equals(typeNameToMatch) && !parameterType.getSimpleName().equals(typeNameToMatch);
 	}
 	
 	/**
