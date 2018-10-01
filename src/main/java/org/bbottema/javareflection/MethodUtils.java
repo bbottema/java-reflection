@@ -403,7 +403,8 @@ public final class MethodUtils {
     }
 	
 	@SuppressWarnings("unchecked")
-	private static @Nullable <T> InvokableObject<Method> getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
+	@Nullable
+	private static <T> InvokableObject<Method> getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
 		return getInvokableObjectFromCache(datatype, method, signature);
 	}
 	

@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 @UtilityClass
 public final class PackageUtils {
 	
+	@Nullable
 	static Class<?> scanPackagesForClass(String className, @Nullable String inPackage, @Nullable ClassLoader classLoader) {
 		// cycle through all sub-packages and try allocating class dynamically
 		for (Package currentPackage : Package.getPackages()) {
