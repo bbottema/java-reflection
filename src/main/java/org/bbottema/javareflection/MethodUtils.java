@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -136,8 +137,7 @@ public final class MethodUtils {
 	
 		try {
 			Object[] convertedArgs = ValueConversionHelper.convert(args, iMethod.getCompatibleSignature(), false);
-			//noinspection unchecked
-			return (T) method.invoke(context, convertedArgs);
+			return trustedCast(method.invoke(context, convertedArgs));
 		} catch (IncompatibleTypeException e) {
 			LOGGER.error("Found a method with compatible parameter list, but not all parameters could be converted", e);
 			throw new NoSuchMethodException();
@@ -208,8 +208,7 @@ public final class MethodUtils {
 	
 		try {
 			Object[] convertedArgs = ValueConversionHelper.convert(args, iConstructor.getCompatibleSignature(), false);
-			//noinspection unchecked
-			return (T) iConstructor.getMethod().newInstance(convertedArgs);
+			return trustedCast(iConstructor.getMethod().newInstance(convertedArgs));
 		} catch (IncompatibleTypeException e) {
 			LOGGER.error("Found a constructor with compatible parameter list, but not all parameters could be converted", e);
 			throw new NoSuchMethodException();
@@ -402,16 +401,14 @@ public final class MethodUtils {
         return null;
     }
 	
-	@SuppressWarnings("unchecked")
 	@Nullable
 	private static <T> InvokableObject<Method> getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
-		return getInvokableObjectFromCache(datatype, method, signature);
+		return trustedCast(getInvokableObjectFromCache(datatype, method, signature));
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Nullable
 	private static <T> InvokableObject<Constructor> getConstructorFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
-		return getInvokableObjectFromCache(datatype, method, signature);
+		return trustedCast(getInvokableObjectFromCache(datatype, method, signature));
 	}
 
     /**

@@ -18,7 +18,6 @@ public final class MiscUtil {
 		return l;
 	}
 
-	// FIXME replace all unchecked surpressions with call to trustedCast()
 	@SuppressWarnings("unchecked")
 	@Nullable
 	public static <T> T trustedCast(@Nullable Object o) {

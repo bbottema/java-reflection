@@ -2,6 +2,7 @@ package org.bbottema.javareflection.valueconverter;
 
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.TypeUtils;
+import org.bbottema.javareflection.util.MiscUtil;
 import org.bbottema.javareflection.util.graph.GraphHelper;
 import org.bbottema.javareflection.util.graph.Node;
 import org.bbottema.javareflection.valueconverter.converters.BooleanConverters;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
+import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
 
 /**
  * This reflection utility class predicts (and converts) which types a specified value can be converted into. It can only do conversions of
@@ -79,12 +81,12 @@ public final class ValueConversionHelper {
 	 * Registers a user-provided converter. User converters also act as intermediate converters, ie. if a user converter can go to <code>int</code>,
 	 * <code>double</code> is automatically supported as well as common conversion.
 	 */
-	@SuppressWarnings({"unchecked", "unused", "WeakerAccess"})
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	public static void registerValueConverter(final ValueFunction<?, ?> userConverter) {
 		if (!valueConverters.containsKey(userConverter.getFromType())) {
 			valueConverters.put(userConverter.getFromType(), new HashMap<Class<?>, ValueFunction<Object, Object>>());
 		}
-		valueConverters.get(userConverter.getFromType()).put(userConverter.getTargetType(), (ValueFunction<Object, Object>) userConverter);
+		valueConverters.get(userConverter.getFromType()).put(userConverter.getTargetType(), MiscUtil.<ValueFunction<Object, Object>>trustedCast(userConverter));
 		
 		updateTypeGraph();
 		TypeUtils.clearCaches();
@@ -238,7 +240,7 @@ public final class ValueConversionHelper {
 		if (fromValue == null) {
 			return null;
 		} else if (targetType.isAssignableFrom(fromValue.getClass())) {
-			return (T) fromValue;
+			return trustedCast(fromValue);
 		} else {
 			checkForAndRegisterEnumConverter(targetType);
 			checkForAndRegisterToStringConverter(fromValue.getClass());
@@ -246,6 +248,7 @@ public final class ValueConversionHelper {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	@NotNull
 	private static <T> T convertWithConversionGraph(@NotNull Object fromValue, @NotNull Class<T> targetType) {
 		final Node<Class<?>> fromNode = converterGraph.get(fromValue.getClass());
@@ -260,7 +263,6 @@ public final class ValueConversionHelper {
 							Class<?> currentToType = nodeInConversionPath.getType();
 							evolvingValueToConvert = valueConverters.get(currentFromType).get(currentToType).convertValue(evolvingValueToConvert);
 						}
-						//noinspection unchecked
 						return (T) evolvingValueToConvert;
 					} catch (IncompatibleTypeException e) {
 						// keep trying conversion paths...
@@ -271,7 +273,7 @@ public final class ValueConversionHelper {
 		// conversion paths exhausted.
 		throw new IncompatibleTypeException(fromValue, fromValue.getClass(), targetType);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private static <T extends Enum<T>> void checkForAndRegisterEnumConverter(Class<?> targetType) {
 		if (Enum.class.isAssignableFrom(targetType)) {

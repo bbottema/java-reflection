@@ -67,6 +67,7 @@ public class NumberConverters {
 	
 	public static final Collection<ValueFunction<? extends Number, ?>> NUMBER_CONVERTERS = produceNumberConverters();
 	
+	@SuppressWarnings("unchecked")
 	private static Collection<ValueFunction<? extends Number, ?>> produceNumberConverters() {
 		ArrayList<ValueFunction<? extends Number, ?>> valueFunctions = new ArrayList<>();
 		for (Class<? extends Number> numberFromClass : CONVERTABLE_NUMBER_FROM_CLASSES_JDK7) {
@@ -75,7 +76,6 @@ public class NumberConverters {
 				Function<?, ?> converter = (numberFromClass == targetClass || targetClass.isAssignableFrom(numberFromClass))
 						? Functions.identity()
 						: targetClassConverter.getValue();
-				//noinspection unchecked
 				valueFunctions.add(new ValueFunctionImpl(numberFromClass, targetClass, converter));
 			}
 		}

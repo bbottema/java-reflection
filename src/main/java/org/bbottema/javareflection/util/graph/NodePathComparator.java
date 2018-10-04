@@ -3,13 +3,14 @@ package org.bbottema.javareflection.util.graph;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
+
 class NodePathComparator<T> implements Comparator<List<Node<T>>> {
 	
 	private static final NodePathComparator<?> INSTANCE = new NodePathComparator<>();
 	
-	@SuppressWarnings("unchecked")
 	static <T> NodePathComparator<T> INSTANCE() {
-		return (NodePathComparator<T>) INSTANCE;
+		return trustedCast(INSTANCE);
 	}
 	
 	private NodePathComparator() {

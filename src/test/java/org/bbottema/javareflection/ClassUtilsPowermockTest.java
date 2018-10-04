@@ -3,6 +3,7 @@ package org.bbottema.javareflection;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ThrowableAssert;
 import org.bbottema.javareflection.testmodel.A;
+import org.bbottema.javareflection.testmodel.Fruit;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,12 +41,12 @@ public class ClassUtilsPowermockTest {
 		testExceptionHandling(new NoSuchMethodException("moo"), "unable to find parameterless constructor (not public?)", true);
 	}
 	
+	@SuppressWarnings({ "unchecked", "JavaReflectionMemberAccess" })
 	private void testExceptionHandling(Throwable exceptionThatShouldBeHandled, String expectedExceptionMessage, boolean onGetConstructor) throws Exception {
 		PowerMockito.mockStatic(A.class);
 		if (onGetConstructor) {
 			PowerMockito.when(A.class.getConstructor()).thenThrow(exceptionThatShouldBeHandled);
 		} else {
-			@SuppressWarnings("unchecked")
 			Constructor<A> constructorMock = PowerMockito.mock(Constructor.class);
 			PowerMockito.when(A.class.getConstructor()).thenReturn(constructorMock);
 			PowerMockito.when(constructorMock.newInstance()).thenThrow(exceptionThatShouldBeHandled);

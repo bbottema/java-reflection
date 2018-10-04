@@ -1,5 +1,7 @@
 package org.bbottema.javareflection.util;
 
+import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
+
 public interface Function<F, T> {
 	T apply(F value);
 	
@@ -19,14 +21,12 @@ public interface Function<F, T> {
 			}
 		};
 		
-		@SuppressWarnings("unchecked")
 		public static <FT> Function<FT, FT> identity() {
-			return (Function<FT, FT>) IDENTITY_FUNCTION;
+			return trustedCast(IDENTITY_FUNCTION);
 		}
 		
-		@SuppressWarnings("unchecked")
 		public static <F> Function<F, String> simpleToString() {
-			return (Function<F, String>) TOSTRING_FUNCTION;
+			return trustedCast(TOSTRING_FUNCTION);
 		}
 	}
 }

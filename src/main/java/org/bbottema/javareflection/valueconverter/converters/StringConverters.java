@@ -59,7 +59,6 @@ public final class StringConverters {
 	 * Creates a converter to convert a <code>String</code> to an Enum instance, by mapping to the enum's name using
 	 * {@link Enum#valueOf(Class, String)}.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <T extends Enum<T>> ValueFunction<String, T> produceStringToEnumConverter(Class<T> targetEnumClass) {
 		return new ValueFunctionImpl<>(String.class, targetEnumClass, new StringToEnumFunction<>(targetEnumClass));
 	}
