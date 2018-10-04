@@ -4,6 +4,12 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.6.0
+
+- Added API for resolving field values
+- Fixed API for searching fields. Now fields of any visibility can be resolved
+
+
 v3.5.1
 
 - Added overloaded version of MethodUtils.findMatchingMethods(..) that also supports Collection in addition to varargs...
