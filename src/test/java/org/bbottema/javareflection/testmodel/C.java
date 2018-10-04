@@ -27,4 +27,14 @@ public class C extends B {
 	private String privateMethod() {
 		return "private 2";
 	}
+
+	// specficially don't use Bean setter convention here, to avoid breaking existing Bean-related tests
+	public void updateNumberC(Integer value) {
+		numberC = value;
+	}
+
+	// specficially don't use Bean setter convention here, to avoid breaking existing Bean-related tests
+	public void updateNumber_privateC(Integer value) {
+		number_privateC = value;
+	}
 }

@@ -7,12 +7,10 @@ import org.bbottema.javareflection.testmodel.Moo;
 import org.bbottema.javareflection.testmodel.Pear;
 import org.bbottema.javareflection.testmodel.Shmoo;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
-import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
@@ -52,12 +50,20 @@ public class ClassUtilsTest {
 	@Test
 	public void testSolveField()
 			throws NoSuchFieldException {
-		Field f1 = ClassUtils.solveField(new C(new Pear()), "numberB");
-		assertThat(f1).isNotNull();
-		assertThat(f1).isEqualTo(C.class.getField("numberB"));
-		Field f2 = ClassUtils.solveField(C.class, "numberB_static");
-		assertThat(f2).isNotNull();
-		assertThat(f2).isEqualTo(C.class.getField("numberB_static"));
+		assertThat(ClassUtils.solveField(new C(new Pear()), "numberB")).isEqualTo(C.class.getField("numberB"));
+		assertThat(ClassUtils.solveField(C.class, "numberB_static")).isEqualTo(C.class.getField("numberB_static"));
+		assertThat(ClassUtils.solveField(C.class, "number_privateC")).isEqualTo(C.class.getDeclaredField("number_privateC"));
+	}
+
+	@Test
+	public void testSolveFieldValue() {
+		assertThat(ClassUtils.solveFieldValue(Integer.class, "MAX_VALUE")).isEqualTo(Integer.MAX_VALUE);
+		final C instance = new C(new Pear());
+		assertThat(ClassUtils.solveFieldValue(instance, "numberC")).isNull();
+		instance.updateNumberC(100);
+		assertThat(ClassUtils.solveFieldValue(instance, "numberC")).isEqualTo(100);
+		instance.updateNumber_privateC(1234);
+		assertThat(ClassUtils.solveFieldValue(instance, "number_privateC")).isEqualTo(1234);
 	}
 	
 	@Test
@@ -69,14 +75,14 @@ public class ClassUtilsTest {
 		try {
 			ClassUtils.assignToField(new C(new Pear()), "numberB", new Pear());
 			fail("IllegalAccessException expected due to incompatible types");
-		} catch (IncompatibleTypeException e) {
-			// ok
+		} catch (NoSuchFieldException e) {
+			assertThat(e.getMessage()).contains("unable to convert value");
 		}
 		try {
 			ClassUtils.assignToField(new C(new Pear()), "number_privateB", new Pear());
 			fail("IllegalAccessException expected due to incompatible types");
 		} catch (NoSuchFieldException e) {
-			// ok
+			assertThat(e.getMessage()).contains("unable to convert value");
 		}
 	}
 	
@@ -93,9 +99,9 @@ public class ClassUtilsTest {
 		final C subject1 = new C(new Pear());
 		Collection<String> cProperties = ClassUtils.collectMethodNames(subject1.getClass(), Object.class, of(PUBLIC));
 		assertThat(objectProperties).isNotEmpty();
-		assertThat(cProperties).hasSize(objectProperties.size() + 2);
+		assertThat(cProperties).hasSize(objectProperties.size() + 4);
 		cProperties.removeAll(objectProperties);
-		assertThat(cProperties).containsExactlyInAnyOrder("foo", "bar");
+		assertThat(cProperties).containsExactlyInAnyOrder("foo", "bar", "updateNumberC", "updateNumber_privateC");
 	}
 	
 	@Test
@@ -103,16 +109,16 @@ public class ClassUtilsTest {
 		Collection<String> objectProperties = ClassUtils.collectMethodNames(Object.class, Object.class, MATCH_ANY);
 		Collection<String> cProperties = ClassUtils.collectMethodNames(C.class, Object.class, MATCH_ANY);
 		assertThat(objectProperties).isNotEmpty();
-		assertThat(cProperties).hasSize(objectProperties.size() + 4);
+		assertThat(cProperties).hasSize(objectProperties.size() + 6);
 		cProperties.removeAll(objectProperties);
-		assertThat(cProperties).containsExactlyInAnyOrder("foo", "bar", "protectedMethod", "privateMethod");
+		assertThat(cProperties).containsExactlyInAnyOrder("foo", "bar", "protectedMethod", "privateMethod", "updateNumberC", "updateNumber_privateC");
 		MethodUtils.invokeCompatibleMethod(new C(new Pear()), C.class, "privateMethod");
 	}
 	
 	@Test
 	public void testCollectMethods() {
 		Set<Method> methodsOnC = ClassUtils.collectMethods(C.class, A.class, of(PUBLIC));
-		assertThat(methodsOnC).extracting("name").containsExactlyInAnyOrder("foo", "bar");
+		assertThat(methodsOnC).extracting("name").containsExactlyInAnyOrder("foo", "bar", "updateNumberC", "updateNumber_privateC");
 	}
 	
 	@Test

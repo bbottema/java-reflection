@@ -3,6 +3,7 @@ package org.bbottema.javareflection;
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.model.MethodModifier;
 import org.bbottema.javareflection.util.ExternalClassLoader;
+import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,6 +18,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
 
 /**
  * Utility with convenience methods that operate on the class level.
@@ -137,29 +140,58 @@ public final class ClassUtils {
 			throw new RuntimeException("unable to find parameterless constructor (not public?)", e);
 		}
 	}
-	
+
 	/**
-	 * Returns a field from the given object that goes by the name of <code>fieldName</code>. If <code>o</code> is a Class object, a static field will
-	 * be returned.
+	 * Gets value from the field returned by {@link #solveField(Object, String)}.;
+	 */
+	@Nullable
+	@SuppressWarnings("WeakerAccess")
+	public static <T> T solveFieldValue(final Object object, final String fieldName) {
+		final Field field = solveField(object, fieldName);
+		if (field == null) {
+			throw new RuntimeException(new NoSuchFieldException());
+		}
+		field.setAccessible(true);
+		try {
+			return trustedCast(field.get(object));
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException("Was unable to retrieve value from field %s", e);
+		}
+	}
+
+	/**
+	 * Delegates to {@link #solveField(Class, String)} by using the class of given object <code>object</code> or if <code>object</code> itself if it ss a class.
+	 */
+	@Nullable
+	@SuppressWarnings("WeakerAccess")
+	public static Field solveField(final Object object, final String fieldName) {
+		return object.getClass().equals(Class.class)
+				? solveField((Class<?>) object, fieldName) // Java static field
+				: solveField(object.getClass(), fieldName); // Java instance field
+	}
+
+	/**
+	 * Returns a field from the given Class that goes by the name of <code>fieldName</code>. Will search for fields on implemented interfaces and superclasses.
 	 *
-	 * @param o The reference to the object to fetch the property value from.
+	 * @param _class The reference to the Class to fetch the field from.
 	 * @param fieldName The identifier or name of the member field/property.
 	 * @return The value of the <code>Field</code>.
 	 */
 	@Nullable
 	@SuppressWarnings("WeakerAccess")
-	public static Field solveField(final Object o, final String fieldName) {
+	public static Field solveField(final Class<?> _class, final String fieldName) {
+		Field resolvedField = null;
 		try {
-			if (o.getClass().equals(Class.class)) {
-				// Java static field
-				return ((Class<?>) o).getField(fieldName);
-			} else {
-				// Java instance field
-				return o.getClass().getField(fieldName);
-			}
+			resolvedField = _class.getDeclaredField(fieldName);
 		} catch (NoSuchFieldException e) {
-			return null;
+			for (int i = 0; resolvedField == null && i < _class.getInterfaces().length; i++) {
+				resolvedField = solveField(_class.getInterfaces()[i], fieldName);
+			}
+			for (Class<?> superclass = _class.getSuperclass(); resolvedField == null && superclass != null; superclass = superclass.getSuperclass()) {
+				resolvedField = solveField(superclass, fieldName);
+			}
 		}
+		return resolvedField;
 	}
 	
 	/**
@@ -179,11 +211,16 @@ public final class ClassUtils {
 	public static Object assignToField(final Object o, final String property, final Object value) throws IllegalAccessException, NoSuchFieldException {
 		final Field field = solveField(o, property);
 		if (field != null) {
+			field.setAccessible(true);
 			Object assignedValue = value;
 			try {
 				field.set(o, value);
 			} catch (final IllegalArgumentException ie) {
-				assignedValue = ValueConversionHelper.convert(value, field.getType());
+				try {
+					assignedValue = ValueConversionHelper.convert(value, field.getType());
+				} catch (IncompatibleTypeException e) {
+					throw new NoSuchFieldException(e.getMessage());
+				}
 				field.set(o, assignedValue);
 			}
 			return assignedValue;
