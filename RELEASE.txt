@@ -4,6 +4,11 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.7.0
+
+- Added API for find declared Generic types in inheritance chains
+
+
 v3.6.0
 
 - Added API for resolving field values
