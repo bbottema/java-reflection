@@ -4,12 +4,14 @@ import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
 import org.bbottema.javareflection.model.MethodModifier;
+import org.bbottema.javareflection.util.MiscUtil;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -74,10 +77,10 @@ public final class MethodUtils {
      * combinations using autoboxing and/or automatic common conversions can become very large (7000+ with only three parameters) and can become a
      * real problem. The more frequently a method is being called the larger the performance gain, especially for methods with long parameter lists
      * 
-     * @see MethodUtils#addMethodToCache(Class, String, InvokableObject, Class[])
+     * @see MethodUtils#addMethodToCache(Class, String, Set, Class[])
      * @see MethodUtils#getMethodFromCache(Class, String, Class[])
      */
-	private final static Map<Class<?>, Map<String, Map<InvokableObject, Class<?>[]>>> methodCache = new LinkedHashMap<>();
+	private final static Map<Class<?>, Map<String, Map<Class<?>[], Set<InvokableObject>>>> methodCache = new LinkedHashMap<>();
     
     @SuppressWarnings({"WeakerAccess", "unused"})
     public static void resetCache() {
@@ -105,43 +108,46 @@ public final class MethodUtils {
     public static <T> T invokeCompatibleMethod(@Nullable final Object context, final Class<?> datatype, final String identifier, final Object... args)
             throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         // determine the signature we want to find a compatible java method for
-        final Class<?>[] parameterList = TypeUtils.collectTypes(args);
+        final Class<?>[] parameterSignature = TypeUtils.collectTypes(args);
 
         // setup lookup procedure starting with simple search mode
         EnumSet<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
-		InvokableObject iMethod;
+		Set<InvokableObject<Method>> iMethods;
 
         // try to find a compatible Java method using various lookup modes
         try {
-            iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
+            iMethods = findCompatibleMethod(datatype, identifier, lookupMode, parameterSignature);
         } catch (final NoSuchMethodException e1) {
             try {
                 // moderate search mode
                 lookupMode.add(LookupMode.CAST_TO_INTERFACE);
-                iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
+                iMethods = findCompatibleMethod(datatype, identifier, lookupMode, parameterSignature);
             } catch (final NoSuchMethodException e2) {
 				try {
 					// limited conversions searchmode
 					lookupMode.add(LookupMode.COMMON_CONVERT);
-					iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
+					iMethods = findCompatibleMethod(datatype, identifier, lookupMode, parameterSignature);
 				} catch (NoSuchMethodException e3) {
 					// full searchmode
 					lookupMode.add(LookupMode.SMART_CONVERT);
-					iMethod = findCompatibleMethod(datatype, identifier, lookupMode, parameterList);
+					iMethods = findCompatibleMethod(datatype, identifier, lookupMode, parameterSignature);
 				}
 			}
         }
 
-        Method method = (Method) iMethod.getMethod();
-        method.setAccessible(true);
-	
-		try {
-			Object[] convertedArgs = ValueConversionHelper.convert(args, iMethod.getCompatibleSignature(), false);
-			return trustedCast(method.invoke(context, convertedArgs));
-		} catch (IncompatibleTypeException e) {
-			LOGGER.error("Found a method with compatible parameter list, but not all parameters could be converted", e);
-			throw new NoSuchMethodException();
+		for (InvokableObject<Method> iMethod : iMethods) {
+			iMethod.getMethod().setAccessible(true);
+
+			try {
+				Object[] convertedArgs = ValueConversionHelper.convert(args, iMethod.getCompatibleSignature(), false);
+				return trustedCast(iMethod.getMethod().invoke(context, convertedArgs));
+			} catch (IncompatibleTypeException e) {
+				// keep trying conversion candidates...
+			}
 		}
+
+		LOGGER.error(format("Was unable to find a suitable method on %s for the parameter signature %s", datatype, Arrays.toString(parameterSignature)));
+		throw new NoSuchMethodException();
     }
 
     /**
@@ -171,7 +177,7 @@ public final class MethodUtils {
      * 
      * @param <T> Used to parameterize the returned object so that the caller doesn't need to cast.
      * @param datatype The class to find the constructor for.
-     * @param signature The typelist used to find correct constructor.
+     * @param parameterSignature The typelist used to find correct constructor.
      * @param args A list of [non-formal] arguments.
      * @return The instantiated object of class datatype.
      * @throws IllegalAccessException Thrown by {@link Constructor#newInstance(Object...)}.
@@ -182,37 +188,41 @@ public final class MethodUtils {
      */
     @SuppressWarnings("WeakerAccess")
 	@NotNull
-    public static <T> T invokeConstructor(final Class<T> datatype, final Class<?>[] signature, final Object[] args) throws NoSuchMethodException,
+    public static <T> T invokeConstructor(final Class<T> datatype, final Class<?>[] parameterSignature, final Object[] args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
         // setup lookup procedure
         EnumSet<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
-        InvokableObject<Constructor> iConstructor;
+        Set<InvokableObject<Constructor>> iConstructors;
 
         // try to find a compatible Java constructor
         try {
-            iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
+            iConstructors = findCompatibleConstructor(datatype, lookupMode, parameterSignature);
         } catch (final NoSuchMethodException e1) {
             try {
                 lookupMode.add(LookupMode.CAST_TO_INTERFACE);
-                iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
+                iConstructors = findCompatibleConstructor(datatype, lookupMode, parameterSignature);
             } catch (final NoSuchMethodException e2) {
 				try {
 					lookupMode.add(LookupMode.COMMON_CONVERT);
-					iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
+					iConstructors = findCompatibleConstructor(datatype, lookupMode, parameterSignature);
 	            } catch (final NoSuchMethodException e3) {
 					lookupMode.add(LookupMode.SMART_CONVERT);
-					iConstructor = findCompatibleConstructor(datatype, lookupMode, signature);
+					iConstructors = findCompatibleConstructor(datatype, lookupMode, parameterSignature);
 				}
             }
         }
-	
-		try {
-			Object[] convertedArgs = ValueConversionHelper.convert(args, iConstructor.getCompatibleSignature(), false);
-			return trustedCast(iConstructor.getMethod().newInstance(convertedArgs));
-		} catch (IncompatibleTypeException e) {
-			LOGGER.error("Found a constructor with compatible parameter list, but not all parameters could be converted", e);
-			throw new NoSuchMethodException();
+
+		for (InvokableObject<Constructor> iConstructor : iConstructors) {
+			try {
+				Object[] convertedArgs = ValueConversionHelper.convert(args, iConstructor.getCompatibleSignature(), false);
+				return trustedCast(iConstructor.getMethod().newInstance(convertedArgs));
+			} catch (IncompatibleTypeException e) {
+				// keep trying conversion candidates...
+			}
 		}
+
+		LOGGER.error(format("Was unable to find a suitable constructor on %s for the parameter signature %s", datatype, Arrays.toString(parameterSignature)));
+		throw new NoSuchMethodException();
     }
 
     /**
@@ -229,23 +239,22 @@ public final class MethodUtils {
      *                conversions.
      */
     @SuppressWarnings({"WeakerAccess"})
-	public static <T> InvokableObject<Constructor> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode, final Class<?>... signature)
+	public static <T> Set<InvokableObject<Constructor>> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode, final Class<?>... signature)
             throws NoSuchMethodException {
         // first try to find the constructor in the method cache
-        InvokableObject<Constructor> constructor = getConstructorFromCache(datatype, datatype.getName(), signature);
-        if (constructor != null) {
-            return constructor;
+        Set<InvokableObject<Constructor>> iConstructors = getConstructorFromCache(datatype, datatype.getName(), signature);
+        if (iConstructors != null) {
+            return iConstructors;
         } else {
+			iConstructors = new HashSet<>();
+
             try {
                 // try standard call
-                constructor = new InvokableObject<Constructor>(datatype.getConstructor(signature), signature, signature);
+                iConstructors.add(new InvokableObject<Constructor>(datatype.getConstructor(signature), signature, signature));
             } catch (final NoSuchMethodException e) {
-                // failed, try all possible wraps/unwraps
-                final List<Class<?>[]> compatibleSignatures = TypeUtils.generateCompatibleTypeLists(lookupMode, signature);
-                for (final Class<?>[] compatibleSignature : compatibleSignatures) {
+				for (final Class<?>[] compatibleSignature : TypeUtils.generateCompatibleTypeLists(lookupMode, signature)) {
                     try {
-                        constructor = new InvokableObject<Constructor>(datatype.getConstructor(compatibleSignature), signature, compatibleSignature);
-                        break;
+						iConstructors.add(new InvokableObject<Constructor>(datatype.getConstructor(compatibleSignature), signature, compatibleSignature));
                     } catch (final NoSuchMethodException x) {
                         // do nothing
                     }
@@ -253,10 +262,8 @@ public final class MethodUtils {
             }
         }
 
-        // if a constructor was found (and it wasn't in the cache, because method would've returned already)
-        if (constructor != null) {
-            addMethodToCache(datatype, datatype.getName(), constructor, signature);
-            return constructor;
+        if (!iConstructors.isEmpty()) {
+            return addMethodToCache(datatype, datatype.getName(), iConstructors, signature);
         } else {
             throw new NoSuchMethodException();
         }
@@ -272,13 +279,13 @@ public final class MethodUtils {
      * @return <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
      * @see #findCompatibleMethod(Class, String, EnumSet, Class...)
      */
-    @Nullable
+    @NotNull
     @SuppressWarnings("WeakerAccess")
-    public static InvokableObject<Method> findSimpleCompatibleMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
+    public static Set<InvokableObject<Method>> findSimpleCompatibleMethod(final Class<?> datatype, final String methodName, final Class<?>... signature) {
         try {
             return findCompatibleMethod(datatype, methodName, EnumSet.noneOf(LookupMode.class), signature);
         } catch (final NoSuchMethodException e) {
-            return null;
+            return new HashSet<>();
         }
     }
 
@@ -296,23 +303,21 @@ public final class MethodUtils {
      */
     @NotNull
     @SuppressWarnings("WeakerAccess")
-    public static InvokableObject<Method> findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
+    public static Set<InvokableObject<Method>> findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
 															   final Class<?>... signature) throws NoSuchMethodException {
         // first try to find the method in the method cache
-        InvokableObject<Method> iMethod = getMethodFromCache(datatype, methodName, signature);
-        if (iMethod != null) {
-            return iMethod;
+        Set<InvokableObject<Method>> iMethods = getMethodFromCache(datatype, methodName, signature);
+        if (iMethods != null) {
+            return iMethods;
         } else {
+        	iMethods = new HashSet<>();
             try {
                 // try standard call
-                iMethod = new InvokableObject<>(getMethod(datatype, methodName, signature), signature, signature);
+                iMethods.add(new InvokableObject<>(getMethod(datatype, methodName, signature), signature, signature));
             } catch (final NoSuchMethodException e) {
-                // failed, try all possible wraps/unwraps
-                final List<Class<?>[]> signatures = TypeUtils.generateCompatibleTypeLists(lookupMode, signature);
-                for (final Class<?>[] compatibleSignature : signatures) {
+				for (final Class<?>[] compatibleSignature : TypeUtils.generateCompatibleTypeLists(lookupMode, signature)) {
                     try {
-                        iMethod = new InvokableObject<>(getMethod(datatype, methodName, compatibleSignature), signature, compatibleSignature);
-                        break;
+						iMethods.add(new InvokableObject<>(getMethod(datatype, methodName, compatibleSignature), signature, compatibleSignature));
                     } catch (final NoSuchMethodException x) {
                         // do nothing
                     }
@@ -320,10 +325,8 @@ public final class MethodUtils {
             }
         }
 
-        // if a method was found (and it wasn't in the cache, because method would've returned already)
-        if (iMethod != null) {
-            addMethodToCache(datatype, methodName, iMethod, signature);
-            return iMethod;
+        if (!iMethods.isEmpty()) {
+            return addMethodToCache(datatype, methodName, iMethods, signature);
         } else {
             throw new NoSuchMethodException();
         }
@@ -378,23 +381,16 @@ public final class MethodUtils {
      * @param signature The parameter list of the method we need to match if a method was found by name.
      * @return The <code>Method</code> found on the specified owner with matching name and signature.
      * @see MethodUtils#methodCache
-     * @see MethodUtils#addMethodToCache(Class, String, InvokableObject, Class[])
+     * @see MethodUtils#addMethodToCache(Class, String, Set, Class[])
      */
     @Nullable
-    private static <T> InvokableObject getInvokableObjectFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
-        final Map<String, Map<InvokableObject, Class<?>[]>> owner = methodCache.get(datatype);
+    private static <T> Set<InvokableObject> getInvokableObjectFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
+        final Map<String, Map<Class<?>[], Set<InvokableObject>>> owner = methodCache.get(datatype);
         // we know only methods with parameter list are stored in the cache
         if (signature.length > 0) {
             // get owner, its methods matching specified name and match their signatures
-            if (owner != null) {
-                final Map<InvokableObject, Class<?>[]> signatures = owner.get(method);
-                if (signatures != null) {
-                    for (final Map.Entry<InvokableObject, Class<?>[]> entry : signatures.entrySet()) {
-                        if (Arrays.equals(entry.getValue(), signature)) {
-                            return entry.getKey();
-                        }
-                    }
-                }
+            if (owner != null && owner.containsKey(method)) {
+            	return owner.get(method).get(signature);
             }
         }
         // method not found or known not to be stored due to absent parameter list
@@ -402,12 +398,12 @@ public final class MethodUtils {
     }
 	
 	@Nullable
-	private static <T> InvokableObject<Method> getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
+	private static <T> Set<InvokableObject<Method>> getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
 		return trustedCast(getInvokableObjectFromCache(datatype, method, signature));
 	}
-	
+
 	@Nullable
-	private static <T> InvokableObject<Constructor> getConstructorFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
+	private static <T> Set<InvokableObject<Constructor>> getConstructorFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
 		return trustedCast(getInvokableObjectFromCache(datatype, method, signature));
 	}
 
@@ -416,35 +412,36 @@ public final class MethodUtils {
      * 
      * @param datatype The <code>Class</code> that owns the <code>Method</code>.
      * @param method The <code>Method</code>'s name by which methods can be found on the specified owner.
-     * @param methodRef The <code>Method</code> reference that's actually being stored in the cache.
+     * @param methodInvocationCandidates The <code>Method</code> reference that's actually being stored in the cache.
      * @param signature The parameter list of the <code>Method</code> being stored.
      * @see MethodUtils#methodCache
      * @see MethodUtils#getMethodFromCache(Class, String, Class...)
      */
-    private static void addMethodToCache(final Class<?> datatype, final String method, final InvokableObject methodRef,
-                                         final Class<?>... signature) {
+	private static <T extends InvokableObject<T2>, T2 extends AccessibleObject> Set<T> addMethodToCache(final Class<?> datatype, final String method,
+			final Set<T> methodInvocationCandidates, final Class<?>... signature) {
         // only store methods with a parameter list
         if (signature.length > 0) {
             // get or create owner entry
-            Map<String, Map<InvokableObject, Class<?>[]>> owner = methodCache.get(datatype);
-            owner = owner != null ? owner : new LinkedHashMap<String, Map<InvokableObject, Class<?>[]>>();
+            Map<String, Map<Class<?>[], Set<InvokableObject>>> owner = methodCache.get(datatype);
+            owner = owner != null ? owner : new LinkedHashMap<String, Map<Class<?>[], Set<InvokableObject>>>();
             // get or create list of methods with specified method name
-            Map<InvokableObject, Class<?>[]> methods = owner.get(method);
-            methods = methods != null ? methods : new LinkedHashMap<InvokableObject, Class<?>[]>();
+            Map<Class<?>[], Set<InvokableObject>> methods = owner.get(method);
+            methods = methods != null ? methods : new LinkedHashMap<Class<?>[], Set<InvokableObject>>();
             // add or overwrite method entry
-            methods.put(methodRef, signature);
+            methods.put(signature, MiscUtil.<Set<InvokableObject>>trustedCast(methodInvocationCandidates));
             // finally shelve all the stuff back
-            methods.put(methodRef, signature);
+            methods.put(signature, MiscUtil.<Set<InvokableObject>>trustedCast(methodInvocationCandidates));
             owner.put(method, methods);
             methodCache.put(datatype, owner);
         }
+        return methodInvocationCandidates;
     }
 	
 	
 	/**
 	 * Delegates to {@link #findMatchingMethods(Class, Class, String, String...)}
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused", "WeakerAccess" })
 	public static Set<Method> findMatchingMethods(final Class<?> datatype, @Nullable Class<?> boundaryMarker, String methodName, List<String> paramTypeNames) {
 		return findMatchingMethods(datatype, boundaryMarker, methodName, paramTypeNames.toArray(new String[0]));
 	}
@@ -453,7 +450,7 @@ public final class MethodUtils {
 	 * @return Methods found using {@link ClassUtils#collectMethods(Class, Class, EnumSet)}
 	 * and then filters based on the parameter <em>type</em> names.
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused", "WeakerAccess" })
 	public static Set<Method> findMatchingMethods(final Class<?> datatype, @Nullable Class<?> boundaryMarker, String methodName, String... paramTypeNames) {
     	Set<Method> matchingMethods = new HashSet<>();
 		for (Method method : ClassUtils.collectMethods(datatype, boundaryMarker, MethodModifier.MATCH_ANY)) {
@@ -492,6 +489,7 @@ public final class MethodUtils {
 	/**
 	 * @return True if the given method contains a parameter that is an array of an {@link Iterable}.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public static boolean methodHasCollectionParameter(final Method m) {
 		for (Class<?> parameterType : m.getParameterTypes()) {
 			if (parameterType.isArray() ||

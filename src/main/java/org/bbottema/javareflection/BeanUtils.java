@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A {@link Field} shorthand utility class used to collect fields from classes meeting Java Bean restrictions/requirements.
@@ -203,15 +204,15 @@ public final class BeanUtils {
 		} else {
 			getterName = "get" + StringUtils.capitalize(field.getName());
 		}
-		final InvokableObject<Method> iWriteMethod = MethodUtils.findSimpleCompatibleMethod(field.getDeclaringClass(), setterName, field.getType());
-		final InvokableObject<Method> iReadMethod = MethodUtils.findSimpleCompatibleMethod(field.getDeclaringClass(), getterName);
+		final Set<InvokableObject<Method>> iWriteMethod = MethodUtils.findSimpleCompatibleMethod(field.getDeclaringClass(), setterName, field.getType());
+		final Set<InvokableObject<Method>> iReadMethod = MethodUtils.findSimpleCompatibleMethod(field.getDeclaringClass(), getterName);
 
-		if (!((iReadMethod != null && beanRestrictions.contains(BeanRestriction.NO_GETTER)) //
-				|| (iReadMethod == null && beanRestrictions.contains(BeanRestriction.YES_GETTER)) //
-				|| (iWriteMethod != null && beanRestrictions.contains(BeanRestriction.NO_SETTER)) //
-				|| (iWriteMethod == null && beanRestrictions.contains(BeanRestriction.YES_SETTER)))) {
-			Method readMethod = iReadMethod != null ? iReadMethod.getMethod() : null;
-			Method writeMethod = iWriteMethod != null ? iWriteMethod.getMethod() : null;
+		if (!((!iReadMethod.isEmpty() && beanRestrictions.contains(BeanRestriction.NO_GETTER)) //
+				|| (iReadMethod.isEmpty() && beanRestrictions.contains(BeanRestriction.YES_GETTER)) //
+				|| (!iWriteMethod.isEmpty() && beanRestrictions.contains(BeanRestriction.NO_SETTER)) //
+				|| (iWriteMethod.isEmpty() && beanRestrictions.contains(BeanRestriction.YES_SETTER)))) {
+			Method readMethod = !iReadMethod.isEmpty() ? iReadMethod.iterator().next().getMethod() : null;
+			Method writeMethod = !iWriteMethod.isEmpty() ? iWriteMethod.iterator().next().getMethod() : null;
 			return new FieldWrapper(field, readMethod, writeMethod);
 		} else {
 			return null;

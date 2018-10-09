@@ -13,6 +13,7 @@ import org.bbottema.javareflection.testmodel.Pear;
 import org.bbottema.javareflection.testmodel.Skree;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.EnumSet;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,20 +46,20 @@ public class MethodUtilsTest {
 		final EnumSet<LookupMode> allButSmartLookup = EnumSet.allOf(LookupMode.class);
 		allButSmartLookup.remove(LookupMode.SMART_CONVERT);
 		
-		InvokableObject<Method> m = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(Foo.class.getMethod("foo", Double.class, Fruit.class, char.class));
-		InvokableObject<Method> m2 = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
-		assertThat(m2).isNotNull();
+		Set<InvokableObject<Method>> m = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(Foo.class.getMethod("foo", Double.class, Fruit.class, char.class));
+		Set<InvokableObject<Method>> m2 = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
+		assertThat(m2).isNotEmpty();
 		assertThat(m2).isEqualTo(m);
 		// find the same method, but now the first implementation on C should be returned
 		m = MethodUtils.findCompatibleMethod(C.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(C.class.getMethod("foo", Double.class, Fruit.class, char.class));
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(C.class.getMethod("foo", Double.class, Fruit.class, char.class));
 		// find a String method
 		m = MethodUtils.findCompatibleMethod(String.class, "concat", EnumSet.noneOf(LookupMode.class), String.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(String.class.getMethod("concat", String.class));
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(String.class.getMethod("concat", String.class));
 		// shouldn't be able to find the following methods
 		try {
 			MethodUtils.findCompatibleMethod(B.class, "foos", allButSmartLookup, double.class, Pear.class, String.class);
@@ -77,36 +79,36 @@ public class MethodUtilsTest {
 		} catch (NoSuchMethodException e) {
 			// OK
 		}
-		InvokableObject<Method> result = MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Fruit.class, Math.class);
-		assertThat(result).isNotNull();
+		Set<InvokableObject<Method>> result = MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Fruit.class, Math.class);
+		assertThat(result).isNotEmpty();
 	}
 	
 	@Test
 	public void testFindCompatibleConstructor()
 			throws NoSuchMethodException {
 		// find constructor on superclass, using autoboxing
-		InvokableObject<Constructor> m = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Fruit.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(B.class.getConstructor(Fruit.class));
-		InvokableObject<Constructor> m2 = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Fruit.class);
-		assertThat(m2).isNotNull();
+		Set<InvokableObject<Constructor>> m = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Fruit.class);
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(B.class.getConstructor(Fruit.class));
+		Set<InvokableObject<Constructor>> m2 = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Fruit.class);
+		assertThat(m2).isNotEmpty();
 		assertThat(m2).isEqualTo(m);
 		// find constructor on superclass, using autoboxing and class casting
 		m = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Pear.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(B.class.getConstructor(Fruit.class));
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(B.class.getConstructor(Fruit.class));
 		// still find constructor on superclass
 		m = MethodUtils.findCompatibleConstructor(C.class, EnumSet.allOf(LookupMode.class), Fruit.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(C.class.getConstructor(Fruit.class));
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(C.class.getConstructor(Fruit.class));
 		// still find constructor on subclass
 		m = MethodUtils.findCompatibleConstructor(C.class, EnumSet.allOf(LookupMode.class), Pear.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(C.class.getConstructor(Pear.class));
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(C.class.getConstructor(Pear.class));
 		// find a String constructor
 		m = MethodUtils.findCompatibleConstructor(String.class, EnumSet.noneOf(LookupMode.class), String.class);
-		assertThat(m).isNotNull();
-		assertThat(m.getMethod()).isEqualTo(String.class.getConstructor(String.class));
+		assertThat(m).isNotEmpty();
+		assertThat(m.iterator().next().getMethod()).isEqualTo(String.class.getConstructor(String.class));
 		// shouldn't be able to find the following methods
 		try {
 			MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), double.class);
