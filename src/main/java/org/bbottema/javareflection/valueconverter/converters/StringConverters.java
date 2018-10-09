@@ -3,18 +3,22 @@ package org.bbottema.javareflection.valueconverter.converters;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
-import org.bbottema.javareflection.util.commonslang25.NumberUtils;
 import org.bbottema.javareflection.util.Function;
 import org.bbottema.javareflection.util.Function.Functions;
+import org.bbottema.javareflection.util.commonslang25.NumberUtils;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueFunction;
 import org.bbottema.javareflection.valueconverter.ValueFunction.ValueFunctionImpl;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Conversions are as follows:
@@ -52,6 +56,7 @@ public final class StringConverters {
 		converters.add(new ValueFunctionImpl<>(String.class, Double.class, new StringToDoubleFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, BigInteger.class, new StringToBigIntegerFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, BigDecimal.class, new StringToBigDecimalFunction()));
+		converters.add(new ValueFunctionImpl<>(String.class, File.class, new StringToFileFunction()));
 		return converters;
 	}
 	
@@ -185,6 +190,21 @@ public final class StringConverters {
 				return new BigDecimal(value);
 			}
 			throw new IncompatibleTypeException(value, String.class, BigDecimal.class);
+		}
+	}
+	
+	private static class StringToFileFunction implements Function<String, File> {
+		
+		private static final Logger LOGGER = getLogger(StringToBigDecimalFunction.class);
+		
+		@Override
+		public File apply(String value) {
+			File file = new File(value);
+			if (!file.exists()) {
+				LOGGER.debug("file not found for [" + value + "]");
+				throw new IncompatibleTypeException(value, String.class, File.class);
+			}
+			return file;
 		}
 	}
 }

@@ -7,6 +7,7 @@ import org.bbottema.javareflection.util.graph.GraphHelper;
 import org.bbottema.javareflection.util.graph.Node;
 import org.bbottema.javareflection.valueconverter.converters.BooleanConverters;
 import org.bbottema.javareflection.valueconverter.converters.CharacterConverters;
+import org.bbottema.javareflection.valueconverter.converters.FileConverters;
 import org.bbottema.javareflection.valueconverter.converters.NumberConverters;
 import org.bbottema.javareflection.valueconverter.converters.StringConverters;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +72,7 @@ public final class ValueConversionHelper {
 		defaultConverters.addAll(BooleanConverters.BOOLEAN_CONVERTERS);
 		defaultConverters.addAll(CharacterConverters.CHARACTER_CONVERTERS);
 		defaultConverters.addAll(StringConverters.STRING_CONVERTERS);
+		defaultConverters.addAll(FileConverters.FILE_CONVERTERS);
 		
 		for (ValueFunction<?, ?> numberConverter : defaultConverters) {
 			registerValueConverter(numberConverter);
@@ -86,7 +88,8 @@ public final class ValueConversionHelper {
 		if (!valueConverters.containsKey(userConverter.getFromType())) {
 			valueConverters.put(userConverter.getFromType(), new HashMap<Class<?>, ValueFunction<Object, Object>>());
 		}
-		valueConverters.get(userConverter.getFromType()).put(userConverter.getTargetType(), MiscUtil.<ValueFunction<Object, Object>>trustedCast(userConverter));
+		valueConverters.get(userConverter.getFromType()).put(userConverter.getTargetType(),
+				MiscUtil.<ValueFunction<Object, Object>>trustedCast(userConverter));
 		
 		updateTypeGraph();
 		TypeUtils.clearCaches();
