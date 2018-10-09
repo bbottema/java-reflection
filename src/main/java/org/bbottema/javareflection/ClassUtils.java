@@ -19,7 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
+import static org.bbottema.javareflection.util.MiscUtil.trustedNullableCast;
 
 /**
  * Utility with convenience methods that operate on the class level.
@@ -153,7 +153,7 @@ public final class ClassUtils {
 		}
 		field.setAccessible(true);
 		try {
-			return trustedCast(field.get(object));
+			return trustedNullableCast(field.get(object));
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException("Was unable to retrieve value from field %s", e);
 		}

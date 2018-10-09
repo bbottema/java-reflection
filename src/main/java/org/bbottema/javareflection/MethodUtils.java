@@ -25,6 +25,7 @@ import java.util.Set;
 
 import static java.lang.String.format;
 import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
+import static org.bbottema.javareflection.util.MiscUtil.trustedNullableCast;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -140,7 +141,7 @@ public final class MethodUtils {
 
 			try {
 				Object[] convertedArgs = ValueConversionHelper.convert(args, iMethod.getCompatibleSignature(), false);
-				return trustedCast(iMethod.getMethod().invoke(context, convertedArgs));
+				return trustedNullableCast(iMethod.getMethod().invoke(context, convertedArgs));
 			} catch (IncompatibleTypeException e) {
 				// keep trying conversion candidates...
 			}
@@ -399,12 +400,12 @@ public final class MethodUtils {
 	
 	@Nullable
 	private static <T> Set<InvokableObject<Method>> getMethodFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
-		return trustedCast(getInvokableObjectFromCache(datatype, method, signature));
+		return trustedNullableCast(getInvokableObjectFromCache(datatype, method, signature));
 	}
 
 	@Nullable
 	private static <T> Set<InvokableObject<Constructor>> getConstructorFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
-		return trustedCast(getInvokableObjectFromCache(datatype, method, signature));
+		return trustedNullableCast(getInvokableObjectFromCache(datatype, method, signature));
 	}
 
     /**

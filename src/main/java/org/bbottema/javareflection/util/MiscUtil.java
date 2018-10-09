@@ -1,6 +1,7 @@
 package org.bbottema.javareflection.util;
 
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -17,10 +18,16 @@ public final class MiscUtil {
 		Collections.addAll(l, o);
 		return l;
 	}
-
+	
+	@SuppressWarnings("unchecked")
+	@NotNull
+	public static <T> T trustedCast(@NotNull Object o) {
+		return (T) o;
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Nullable
-	public static <T> T trustedCast(@Nullable Object o) {
+	public static <T> T trustedNullableCast(@Nullable Object o) {
 		return (T) o;
 	}
 }
