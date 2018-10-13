@@ -4,6 +4,11 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.8.1
+
+- Performance update: implemented cache for generateComptibleSignatureLists
+
+
 v3.8.0
 
 - Added File based converters to InputStream, DataSource and byte[]
