@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+
 @UtilityClass
 public final class MiscUtil {
 	
@@ -28,6 +31,14 @@ public final class MiscUtil {
 	@SuppressWarnings("unchecked")
 	@Nullable
 	public static <T> T trustedNullableCast(@Nullable Object o) {
+		return (T) o;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T requireNonNullOfType(Object o, Class<T> type) {
+		if (requireNonNull(o).getClass() != type) {
+			throw new AssertionError(format("got type %s, expected type %s", o.getClass(), type));
+		}
 		return (T) o;
 	}
 }

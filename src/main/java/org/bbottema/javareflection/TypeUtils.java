@@ -2,6 +2,7 @@ package org.bbottema.javareflection;
 
 import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.model.LookupMode;
+import org.bbottema.javareflection.util.ArrayKey;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +59,7 @@ public final class TypeUtils {
 	
 	private static final Map<Class<?>, Set<Class<?>>> CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
 	private static final Map<Class<?>, Set<Class<?>>> CACHED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
+	private static final Map<ArrayKey, List<Class<?>[]>> CACHED_COMPATIBLE_TYPE_LISTS = new HashMap<>();
 	
 	public static void clearCaches() {
 		CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES.clear();
@@ -113,9 +115,7 @@ public final class TypeUtils {
 	@NotNull
 	@SuppressWarnings({"unused", "WeakerAccess"})
 	public static List<Class<?>[]> generateCompatibleTypeLists(final EnumSet<LookupMode> lookupMode, final Class<?>... typeList) {
-		final List<Class<?>[]> typeLists = new ArrayList<>();
-		generateCompatibleTypeLists(0, lookupMode, typeLists, typeList);
-		return typeLists;
+		return generateCompatibleTypeLists(0, lookupMode, typeList);
 	}
 	
 	/**
@@ -133,11 +133,18 @@ public final class TypeUtils {
 	 *
 	 * @param index The current index to start mutating from.
 	 * @param lookupMode Flag indicating the search steps that need to be done.
-	 * @param typeLists The central storage list for new type-arrays.
 	 * @param currentTypelist The list with current types, to mutate further upon.
 	 */
-	private static void generateCompatibleTypeLists(final int index, final EnumSet<LookupMode> lookupMode, final List<Class<?>[]> typeLists,
-													final Class<?>... currentTypelist) {
+	private static List<Class<?>[]> generateCompatibleTypeLists(final int index, final EnumSet<LookupMode> lookupMode, final Class<?>... currentTypelist) {
+		final ArrayKey arrayKey = new ArrayKey(currentTypelist);
+		
+		final List<Class<?>[]> cachedResult = CACHED_COMPATIBLE_TYPE_LISTS.get(arrayKey);
+		if (cachedResult != null) {
+			//return cachedResult;
+		}
+		
+		final List<Class<?>[]> typeLists = new ArrayList<>();
+		
 		// if new type array is completed
 		if (index == currentTypelist.length) {
 			typeLists.add(currentTypelist);
@@ -147,14 +154,14 @@ public final class TypeUtils {
 			
 			// 1. don't generate compatible list; just try the normal type first
 			// remember, in combinations types should be allowed to be converted)
-			generateCompatibleTypeLists(index + 1, lookupMode, typeLists, currentTypelist.clone());
+			typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, currentTypelist.clone()));
 			
 			// 2. generate type in which the original can be (un)wrapped
 			if (lookupMode.contains(LookupMode.AUTOBOX) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				final Class<?> autoboxed = autobox(original);
 				if (autoboxed != null) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, autoboxed);
-					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
+					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
@@ -163,7 +170,7 @@ public final class TypeUtils {
 				// 3. generate implemented interfaces the original value could be converted (cast) into
 				for (final Class<?> iface : original.getInterfaces()) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, iface);
-					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
+					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
@@ -172,7 +179,7 @@ public final class TypeUtils {
 				Class<?> supertype = original;
 				while ((supertype = supertype.getSuperclass()) != null) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, supertype);
-					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
+					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
@@ -180,7 +187,7 @@ public final class TypeUtils {
 			if (lookupMode.contains(LookupMode.COMMON_CONVERT) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				for (final Class<?> convert : collectRegisteredCompatibleTargetTypes(original)) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
-					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
+					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
@@ -188,10 +195,13 @@ public final class TypeUtils {
 			if (lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				for (final Class<?> convert : collectCompatibleTargetTypes(original)) {
 					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
-					generateCompatibleTypeLists(index + 1, lookupMode, typeLists, newTypeList);
+					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 		}
+		
+		CACHED_COMPATIBLE_TYPE_LISTS.put(arrayKey, typeLists);
+		return typeLists;
 	}
 	
 	@NotNull
@@ -291,6 +301,7 @@ public final class TypeUtils {
 	/**
 	 * @return Whether a given list of Annotation contains a certain annotation type.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public static boolean containsAnnotation(List<Annotation> myListOfAnnotations, Class<? extends Annotation> annotationClass) {
 		for (Annotation annotation : myListOfAnnotations) {
 			if (annotation.annotationType() == annotationClass) {
