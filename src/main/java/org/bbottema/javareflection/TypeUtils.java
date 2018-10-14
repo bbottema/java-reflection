@@ -10,11 +10,15 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.bbottema.javareflection.LookupCaches.CACHED_COMPATIBLE_TARGET_TYPES;
+import static org.bbottema.javareflection.LookupCaches.CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES;
+import static org.bbottema.javareflection.LookupCaches.addCompatiblesignaturesToCache;
+import static org.bbottema.javareflection.LookupCaches.getCachedCompatibleSignatures;
 
 /**
  * Utility functions that deal with type information, conversions and autoboxing.
@@ -55,15 +59,6 @@ public final class TypeUtils {
 		numSizes.put(Long.class, ++size);
 		numSizes.put(Float.class, ++size);
 		numSizes.put(Double.class, ++size);
-	}
-	
-	private static final Map<Class<?>, Set<Class<?>>> CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
-	private static final Map<Class<?>, Set<Class<?>>> CACHED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
-	private static final Map<ArrayKey, List<Class<?>[]>> CACHED_COMPATIBLE_TYPE_LISTS = new HashMap<>();
-	
-	public static void clearCaches() {
-		CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES.clear();
-		CACHED_COMPATIBLE_TARGET_TYPES.clear();
 	}
 	
 	/**
@@ -109,13 +104,17 @@ public final class TypeUtils {
 	 * Initializes the list with type-arrays and starts generating beginning from index 0. This method is used for (un)wrapping.
 	 *
 	 * @param lookupMode Flag indicating the search steps that need to be done.
-	 * @param typeList The list with original user specified types.
+	 * @param inputTypelist The list with original user specified types.
 	 * @return The list with converted type-arrays.
 	 */
 	@NotNull
 	@SuppressWarnings({"unused", "WeakerAccess"})
-	public static List<Class<?>[]> generateCompatibleTypeLists(final EnumSet<LookupMode> lookupMode, final Class<?>... typeList) {
-		return generateCompatibleTypeLists(0, lookupMode, typeList);
+	public static List<Class<?>[]> generateCompatibleTypeLists(final EnumSet<LookupMode> lookupMode, final Class<?>... inputTypelist) {
+		final ArrayKey arrayKey = new ArrayKey(inputTypelist);
+		final List<Class<?>[]> cachedResult = getCachedCompatibleSignatures(lookupMode, arrayKey);
+		return cachedResult != null
+				? cachedResult
+				: addCompatiblesignaturesToCache(lookupMode, arrayKey, generateCompatibleTypeLists(0, lookupMode, inputTypelist));
 	}
 	
 	/**
@@ -133,35 +132,28 @@ public final class TypeUtils {
 	 *
 	 * @param index The current index to start mutating from.
 	 * @param lookupMode Flag indicating the search steps that need to be done.
-	 * @param currentTypelist The list with current types, to mutate further upon.
+	 * @param inputTypelist The list with current types, to mutate further upon.
 	 */
-	private static List<Class<?>[]> generateCompatibleTypeLists(final int index, final EnumSet<LookupMode> lookupMode, final Class<?>... currentTypelist) {
-		final ArrayKey arrayKey = new ArrayKey(currentTypelist);
-		
-		final List<Class<?>[]> cachedResult = CACHED_COMPATIBLE_TYPE_LISTS.get(arrayKey);
-		if (cachedResult != null) {
-			//return cachedResult;
-		}
-		
-		final List<Class<?>[]> typeLists = new ArrayList<>();
+	private static List<Class<?>[]> generateCompatibleTypeLists(final int index, final EnumSet<LookupMode> lookupMode, final Class<?>... inputTypelist) {
+		final List<Class<?>[]> compatibleTypeLists = new ArrayList<>();
 		
 		// if new type array is completed
-		if (index == currentTypelist.length) {
-			typeLists.add(currentTypelist);
+		if (index == inputTypelist.length) {
+			compatibleTypeLists.add(inputTypelist);
 		} else {
 			// generate new array of types
-			final Class<?> original = currentTypelist[index];
+			final Class<?> original = inputTypelist[index];
 			
 			// 1. don't generate compatible list; just try the normal type first
 			// remember, in combinations types should be allowed to be converted)
-			typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, currentTypelist.clone()));
+			compatibleTypeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, inputTypelist.clone()));
 			
 			// 2. generate type in which the original can be (un)wrapped
 			if (lookupMode.contains(LookupMode.AUTOBOX) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				final Class<?> autoboxed = autobox(original);
 				if (autoboxed != null) {
-					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, autoboxed);
-					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
+					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, autoboxed);
+					compatibleTypeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
@@ -169,8 +161,8 @@ public final class TypeUtils {
 			if (lookupMode.contains(LookupMode.CAST_TO_INTERFACE)) {
 				// 3. generate implemented interfaces the original value could be converted (cast) into
 				for (final Class<?> iface : original.getInterfaces()) {
-					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, iface);
-					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
+					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, iface);
+					compatibleTypeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
@@ -178,30 +170,29 @@ public final class TypeUtils {
 				// 4. generate supertypes the original value could be converted (cast) into
 				Class<?> supertype = original;
 				while ((supertype = supertype.getSuperclass()) != null) {
-					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, supertype);
-					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
+					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, supertype);
+					compatibleTypeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
 			// 5. generate types the original value could be converted into
 			if (lookupMode.contains(LookupMode.COMMON_CONVERT) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				for (final Class<?> convert : collectRegisteredCompatibleTargetTypes(original)) {
-					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
-					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
+					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, convert);
+					compatibleTypeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 			
 			// 6. generate types the original value could be converted into with intermediary conversions
 			if (lookupMode.contains(LookupMode.SMART_CONVERT)) {
 				for (final Class<?> convert : collectCompatibleTargetTypes(original)) {
-					final Class<?>[] newTypeList = replaceInArray(currentTypelist.clone(), index, convert);
-					typeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
+					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, convert);
+					compatibleTypeLists.addAll(generateCompatibleTypeLists(index + 1, lookupMode, newTypeList));
 				}
 			}
 		}
 		
-		CACHED_COMPATIBLE_TYPE_LISTS.put(arrayKey, typeLists);
-		return typeLists;
+		return compatibleTypeLists;
 	}
 	
 	@NotNull

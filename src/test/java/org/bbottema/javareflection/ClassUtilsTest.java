@@ -28,7 +28,6 @@ public class ClassUtilsTest {
 	
 	@Before
 	public void resetStaticCaches() {
-		ClassUtils.resetCache();
 		ValueConversionHelper.resetDefaultConverters();
 	}
 	

@@ -13,7 +13,6 @@ import org.bbottema.javareflection.testmodel.Pear;
 import org.bbottema.javareflection.testmodel.Skree;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,8 +33,6 @@ public class MethodUtilsTest {
 	
 	@Before
 	public void resetStaticCaches() {
-		MethodUtils.resetCache();
-		ClassUtils.resetCache();
 		ValueConversionHelper.resetDefaultConverters();
 	}
 	

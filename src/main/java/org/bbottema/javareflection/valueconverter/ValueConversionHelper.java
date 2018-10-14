@@ -1,7 +1,7 @@
 package org.bbottema.javareflection.valueconverter;
 
 import lombok.experimental.UtilityClass;
-import org.bbottema.javareflection.TypeUtils;
+import org.bbottema.javareflection.LookupCaches;
 import org.bbottema.javareflection.util.MiscUtil;
 import org.bbottema.javareflection.util.graph.GraphHelper;
 import org.bbottema.javareflection.util.graph.Node;
@@ -92,7 +92,7 @@ public final class ValueConversionHelper {
 				MiscUtil.<ValueFunction<Object, Object>>trustedCast(userConverter));
 		
 		updateTypeGraph();
-		TypeUtils.clearCaches();
+		LookupCaches.resetCache();
 	}
 	
 	private static void updateTypeGraph() {

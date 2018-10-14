@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +35,8 @@ public final class MiscUtil {
 		return (T) o;
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "WeakerAccess"})
+	@Nonnull
 	public static <T> T requireNonNullOfType(Object o, Class<T> type) {
 		if (requireNonNull(o).getClass() != type) {
 			throw new AssertionError(format("got type %s, expected type %s", o.getClass(), type));

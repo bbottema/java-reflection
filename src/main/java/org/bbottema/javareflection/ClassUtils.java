@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.bbottema.javareflection.LookupCaches.CLASS_CACHE;
 import static org.bbottema.javareflection.util.MiscUtil.trustedNullableCast;
 
 /**
@@ -37,17 +38,6 @@ import static org.bbottema.javareflection.util.MiscUtil.trustedNullableCast;
 public final class ClassUtils {
 	
 	/**
-	 * {@link Class} cache optionally used when looking up classes with {@link #locateClass(String, boolean, ClassLoader)}.
-	 */
-	private final static Map<String, Class<?>> classCache = new HashMap<>();
-	
-	
-	@SuppressWarnings("WeakerAccess")
-	public static void resetCache() {
-		classCache.clear();
-	}
-	
-	/**
 	 * Searches the JVM and optionally all of its packages
 	 *
 	 * @param className The name of the class to locate.
@@ -59,8 +49,8 @@ public final class ClassUtils {
 	@SuppressWarnings("WeakerAccess")
 	public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ClassLoader classLoader) {
 		final String cacheKey = className + fullscan;
-		if (classCache.containsKey(cacheKey)) {
-			return classCache.get(cacheKey);
+		if (CLASS_CACHE.containsKey(cacheKey)) {
+			return CLASS_CACHE.get(cacheKey);
 		}
 		final Class<?> _class;
 		if (fullscan) {
@@ -69,7 +59,7 @@ public final class ClassUtils {
 			// try standard package used for most common classes
 			_class = locateClass(className, "java.lang", classLoader);
 		}
-		classCache.put(cacheKey, _class);
+		CLASS_CACHE.put(cacheKey, _class);
 		return _class;
 	}
 	
@@ -77,8 +67,8 @@ public final class ClassUtils {
 	@SuppressWarnings("WeakerAccess")
 	public static Class<?> locateClass(final String className, @Nullable final String inPackage, @Nullable final ClassLoader classLoader) {
 		final String cacheKey = className + inPackage;
-		if (classCache.containsKey(cacheKey)) {
-			return classCache.get(cacheKey);
+		if (CLASS_CACHE.containsKey(cacheKey)) {
+			return CLASS_CACHE.get(cacheKey);
 		}
 		
 		Class<?> _class = locateClass(className, classLoader);
@@ -87,7 +77,7 @@ public final class ClassUtils {
 			_class = PackageUtils.scanPackagesForClass(className, inPackage, classLoader);
 		}
 		
-		classCache.put(cacheKey, _class);
+		CLASS_CACHE.put(cacheKey, _class);
 		return _class;
 	}
 	

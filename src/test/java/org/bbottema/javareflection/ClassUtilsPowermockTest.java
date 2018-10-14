@@ -23,7 +23,6 @@ public class ClassUtilsPowermockTest {
 	
 	@Before
 	public void resetStaticCaches() {
-		ClassUtils.resetCache();
 		ValueConversionHelper.resetDefaultConverters();
 	}
 	

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.lang.String.format;
+import static org.bbottema.javareflection.LookupCaches.METHOD_CACHE;
 import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
 import static org.bbottema.javareflection.util.MiscUtil.trustedNullableCast;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -68,25 +69,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class MethodUtils {
 	
 	private static final Logger LOGGER = getLogger(MethodUtils.class);
-	
-	/**
-     * {@link Method} cache categorized by owning <code>Classes</code> (since several owners can have a method with the same name and signature).
-     * Methods are stored based on <code>Method</code> reference along with their unique signature (per owner), so multiple methods on one owner with
-     * the same name can coexist.<br />
-     * <br />
-     * This cache is being maintained to reduce lookup times when trying to find signature compatible Java methods. The possible signature
-     * combinations using autoboxing and/or automatic common conversions can become very large (7000+ with only three parameters) and can become a
-     * real problem. The more frequently a method is being called the larger the performance gain, especially for methods with long parameter lists
-     * 
-     * @see MethodUtils#addMethodToCache(Class, String, Set, Class[])
-     * @see MethodUtils#getMethodFromCache(Class, String, Class[])
-     */
-	private final static Map<Class<?>, Map<String, Map<Class<?>[], Set<InvokableObject>>>> methodCache = new LinkedHashMap<>();
-    
-    @SuppressWarnings({"WeakerAccess", "unused"})
-    public static void resetCache() {
-    	methodCache.clear();
-	}
 	
 	/**
      * Locates a method on an Object using serveral searchmodes for optimization. First of all a {@link Method} cache is being maintained to quickly
@@ -381,12 +363,12 @@ public final class MethodUtils {
      * @param method The name of the method that is being searched for.
      * @param signature The parameter list of the method we need to match if a method was found by name.
      * @return The <code>Method</code> found on the specified owner with matching name and signature.
-     * @see MethodUtils#methodCache
+     * @see LookupCaches#METHOD_CACHE
      * @see MethodUtils#addMethodToCache(Class, String, Set, Class[])
      */
     @Nullable
     private static <T> Set<InvokableObject> getInvokableObjectFromCache(final Class<T> datatype, final String method, final Class<?>... signature) {
-        final Map<String, Map<Class<?>[], Set<InvokableObject>>> owner = methodCache.get(datatype);
+        final Map<String, Map<Class<?>[], Set<InvokableObject>>> owner = METHOD_CACHE.get(datatype);
         // we know only methods with parameter list are stored in the cache
         if (signature.length > 0) {
             // get owner, its methods matching specified name and match their signatures
@@ -415,7 +397,7 @@ public final class MethodUtils {
      * @param method The <code>Method</code>'s name by which methods can be found on the specified owner.
      * @param methodInvocationCandidates The <code>Method</code> reference that's actually being stored in the cache.
      * @param signature The parameter list of the <code>Method</code> being stored.
-     * @see MethodUtils#methodCache
+     * @see LookupCaches#METHOD_CACHE
      * @see MethodUtils#getMethodFromCache(Class, String, Class...)
      */
 	private static <T extends InvokableObject<T2>, T2 extends AccessibleObject> Set<T> addMethodToCache(final Class<?> datatype, final String method,
@@ -423,7 +405,7 @@ public final class MethodUtils {
         // only store methods with a parameter list
         if (signature.length > 0) {
             // get or create owner entry
-            Map<String, Map<Class<?>[], Set<InvokableObject>>> owner = methodCache.get(datatype);
+            Map<String, Map<Class<?>[], Set<InvokableObject>>> owner = METHOD_CACHE.get(datatype);
             owner = owner != null ? owner : new LinkedHashMap<String, Map<Class<?>[], Set<InvokableObject>>>();
             // get or create list of methods with specified method name
             Map<Class<?>[], Set<InvokableObject>> methods = owner.get(method);
@@ -433,7 +415,7 @@ public final class MethodUtils {
             // finally shelve all the stuff back
             methods.put(signature, MiscUtil.<Set<InvokableObject>>trustedCast(methodInvocationCandidates));
             owner.put(method, methods);
-            methodCache.put(datatype, owner);
+            METHOD_CACHE.put(datatype, owner);
         }
         return methodInvocationCandidates;
     }
