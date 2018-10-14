@@ -14,7 +14,6 @@ public class ArrayKey {
 	private final int hashCode;
 	private final Class<?>[] array;
 	
-	@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Performance optmization")
 	public ArrayKey(Class<?>[] array) {
 		this.array = array.clone();
 		this.hashCode = Arrays.hashCode(this.array);
