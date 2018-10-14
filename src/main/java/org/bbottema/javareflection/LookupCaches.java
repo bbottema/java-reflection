@@ -67,8 +67,7 @@ public class LookupCaches {
 	static List<Class<?>[]> addCompatiblesignaturesToCache(EnumSet<LookupMode> lookupMode, ArrayKey arrayKey, List<Class<?>[]> compatibleTypeLists) {
 		Map<ArrayKey, List<Class<?>[]>> cachedCompatibleSignatures = CACHED_COMPATIBLE_TYPE_LISTS.get(lookupMode);
 		if (cachedCompatibleSignatures == null) {
-			cachedCompatibleSignatures = new HashMap<>();
-			CACHED_COMPATIBLE_TYPE_LISTS.put(lookupMode, cachedCompatibleSignatures);
+			CACHED_COMPATIBLE_TYPE_LISTS.put(lookupMode, cachedCompatibleSignatures = new HashMap<>());
 		}
 		cachedCompatibleSignatures.put(arrayKey, compatibleTypeLists);
 		return compatibleTypeLists;
