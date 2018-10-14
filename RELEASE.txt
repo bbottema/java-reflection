@@ -4,7 +4,7 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
-v3.8.1
+v3.8.1 - v3.8.2
 
 - Performance update: implemented cache for generateComptibleSignatureLists
 
