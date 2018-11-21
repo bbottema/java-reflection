@@ -127,7 +127,11 @@ public final class StringConverters {
 		@Override
 		public Byte apply(String value) {
 			if (NumberUtils.isNumber(value)) {
-				return Byte.parseByte(value);
+				try {
+					return Byte.parseByte(value);
+				} catch (NumberFormatException e) {
+					throw new IncompatibleTypeException(value, String.class, Byte.class, e);
+				}
 			}
 			throw new IncompatibleTypeException(value, String.class, Byte.class);
 		}
@@ -137,7 +141,11 @@ public final class StringConverters {
 		@Override
 		public Short apply(String value) {
 			if (NumberUtils.isNumber(value)) {
-				return Short.parseShort(value);
+				try {
+					return Short.parseShort(value);
+				} catch (NumberFormatException e) {
+					throw new IncompatibleTypeException(value, String.class, Short.class, e);
+				}
 			}
 			throw new IncompatibleTypeException(value, String.class, Short.class);
 		}
