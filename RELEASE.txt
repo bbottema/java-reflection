@@ -4,10 +4,11 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
-v3.8.1 - v3.8.3
+v3.8.1 - v3.8.4
 
 - Performance update: implemented cache for generateComptibleSignatureLists
 - Fixed Incompatible type exception if a number is outside of Byte or Short range
+- Incompatible type exceptions are now gathered in case a conversion ultimately failed
 
 
 v3.8.0
