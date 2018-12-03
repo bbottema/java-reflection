@@ -13,6 +13,7 @@ import org.bbottema.javareflection.valueconverter.converters.StringConverters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -256,6 +257,8 @@ public final class ValueConversionHelper {
 	private static <T> T convertWithConversionGraph(@NotNull Object fromValue, @NotNull Class<T> targetType) {
 		final Node<Class<?>> fromNode = converterGraph.get(fromValue.getClass());
 		
+		final List<IncompatibleTypeException> incompatibleTypeExceptions = new ArrayList<>();
+		
 		if (fromNode != null) {
 			for (Node<Class<?>> toNode : collectTypeCompatibleNodes(targetType)) {
 				for (List<Node<Class<?>>> conversionPathAscending : GraphHelper.findAllPathsAscending(fromNode, toNode)) {
@@ -268,13 +271,15 @@ public final class ValueConversionHelper {
 						}
 						return (T) evolvingValueToConvert;
 					} catch (IncompatibleTypeException e) {
+						incompatibleTypeExceptions.add(e);
 						// keep trying conversion paths...
 					}
 				}
 			}
 		}
+		
 		// conversion paths exhausted.
-		throw new IncompatibleTypeException(fromValue, fromValue.getClass(), targetType);
+		throw new IncompatibleTypeException(fromValue, fromValue.getClass(), targetType, incompatibleTypeExceptions);
 	}
 
 	@SuppressWarnings("unchecked")
