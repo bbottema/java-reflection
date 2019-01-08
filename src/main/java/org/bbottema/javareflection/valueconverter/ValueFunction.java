@@ -13,7 +13,7 @@ import org.bbottema.javareflection.util.Function;
 public interface ValueFunction<F, T> {
 	@NonNull Class<F> getFromType();
 	@NonNull Class<T> getTargetType();
-	@NonNull T convertValue(@NonNull F value);
+	@NonNull T convertValue(@NonNull F value) throws IncompatibleTypeException;
 	
 	/**
 	 * Helper class to quickly define a {@link ValueFunction} from a {@link Function}.
@@ -26,7 +26,7 @@ public interface ValueFunction<F, T> {
 		@NonNull @ToString.Include protected final Class<T> targetType;
 		@NonNull private final Function<F, T> converter;
 		@NonNull @Override
-		public final T convertValue(@NonNull F value) {
+		public final T convertValue(@NonNull F value) throws IncompatibleTypeException {
 			return converter.apply(value);
 		}
 	}

@@ -1,17 +1,21 @@
 package org.bbottema.javareflection.valueconverter;
 
+import org.bbottema.javareflection.util.Function;
 import org.bbottema.javareflection.util.graph.Node;
+import org.bbottema.javareflection.valueconverter.ValueFunction.ValueFunctionImpl;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -381,6 +385,20 @@ public class ValueConversionHelperTest {
 				new Node<Class<?>>(Car.class),
 				new Node<Class<?>>(Leon.class)
 		);
+	}
+	
+	@Test
+	public void testConversionOverInstanceForSameType() {
+		assertThat(ValueConversionHelper.convert("moo", String.class)).isEqualTo("moo");
+		
+		ValueConversionHelper.registerValueConverter(new ValueFunctionImpl<>(String.class, String.class, new Function<String, String>() {
+			@Override
+			public String apply(String value) {
+				return format("--%s--", value);
+			}
+		}));
+		
+		assertThat(ValueConversionHelper.convert("moo", String.class)).isEqualTo("--moo--");
 	}
 	
 	class Fruit{}

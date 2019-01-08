@@ -51,6 +51,9 @@ public final class ValueConversionHelper {
 	 * Contains all user-provided converters. User converters also act as intermediate converters, ie. if a user converter can go to <code>int</code>,
 	 * <code>double</code> is automatically supported as well as common conversion.
 	 */
+	// TODO make value converters name based instead of type based for lookups and naming in the conversion graph
+	// TODO once working by name, replace Map<from, Map<To, converter>> to Map<from, Map<To, Collection<converter>>>.
+	// The above enables us to have multiple converters for the same targetType
 	private static final Map<Class<?>, Map<Class<?>, ValueFunction<Object, Object>>> valueConverters = new HashMap<>();
 	
 	/**
@@ -244,12 +247,27 @@ public final class ValueConversionHelper {
 		if (fromValue == null) {
 			return null;
 		} else if (targetType.isAssignableFrom(fromValue.getClass())) {
-			return trustedCast(fromValue);
+			return convertWithoutConversionGraph(fromValue, targetType);
 		} else {
 			checkForAndRegisterEnumConverter(targetType);
 			checkForAndRegisterToStringConverter(fromValue.getClass());
 			return convertWithConversionGraph(fromValue, targetType);
 		}
+	}
+	
+	@NotNull
+	private static <T> T convertWithoutConversionGraph(@NotNull Object fromValue, Class<T> targetType) {
+		if (valueConverters.containsKey(fromValue.getClass())) {
+			Map<Class<?>, ValueFunction<Object, Object>> fromConverters = valueConverters.get(fromValue.getClass());
+			if (fromConverters.containsKey(targetType)) {
+				try {
+					return trustedCast(fromConverters.get(targetType).convertValue(fromValue));
+				} catch (IncompatibleTypeException e) {
+					// ignore
+				}
+			}
+		}
+		return trustedCast(fromValue);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -264,7 +282,7 @@ public final class ValueConversionHelper {
 				for (List<Node<Class<?>>> conversionPathAscending : GraphHelper.findAllPathsAscending(fromNode, toNode)) {
 					try {
 						Object evolvingValueToConvert = fromValue;
-						for (Node<Class<?>> nodeInConversionPath : conversionPathAscending) {
+							for (Node<Class<?>> nodeInConversionPath : conversionPathAscending) {
 							Class<?> currentFromType = evolvingValueToConvert.getClass();
 							Class<?> currentToType = nodeInConversionPath.getType();
 							evolvingValueToConvert = valueConverters.get(currentFromType).get(currentToType).convertValue(evolvingValueToConvert);
@@ -281,7 +299,8 @@ public final class ValueConversionHelper {
 		// conversion paths exhausted.
 		throw new IncompatibleTypeException(fromValue, fromValue.getClass(), targetType, incompatibleTypeExceptions);
 	}
-
+	
+	
 	@SuppressWarnings("unchecked")
 	private static <T extends Enum<T>> void checkForAndRegisterEnumConverter(Class<?> targetType) {
 		if (Enum.class.isAssignableFrom(targetType)) {
