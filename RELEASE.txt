@@ -4,6 +4,11 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.9.0
+
+- Added support for bean-like methods defined on interfaces
+
+
 v3.8.1 - v3.8.5
 
 - Added support for same-type converters
