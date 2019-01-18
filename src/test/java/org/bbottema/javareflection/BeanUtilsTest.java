@@ -354,4 +354,41 @@ public class BeanUtilsTest {
 			this.primitiveBoolean = primitiveBoolean;
 		}
 	}
+	
+	@Test
+	public void testMethodIsBeanlike() {
+		for (Method method : ValidBeanlikeMethods.class.getMethods()) {
+			assertThat(BeanUtils.methodIsBeanlike(method)).describedAs("method IS a beanlike: %s", method).isTrue();
+		}
+		for (Method method : InvalidBeanlikeMethods.class.getMethods()) {
+			assertThat(BeanUtils.methodIsBeanlike(method)).describedAs("method IS NOT beanlike: %s", method).isFalse();
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	public interface ValidBeanlikeMethods {
+		// valid beanlike setters
+		void setBooleanPrimitive(boolean b);
+		void setBooleanBoxed(Boolean b);
+		void setObject(Object b);
+		void setInteger(Integer b);
+		// valid beanlike getters
+		boolean isBooleanPrimitive();
+		Boolean getBooleanBoxed();
+		Object getObject();
+		Integer getInteger();
+	}
+	
+	@SuppressWarnings("unused")
+	public interface InvalidBeanlikeMethods {
+		// invalid beanlike setters
+		boolean setBooleanPrimitive(boolean b);
+		Object setBooleanBoxed(Boolean b);
+		void setBooleanBoxed(Boolean b, Boolean b2);
+		void setObject();
+		// invalid beanlike getters
+		Boolean isBooleanPrimitive();
+		Boolean getBooleanBoxed(boolean b);
+		void getObject();
+	}
 }

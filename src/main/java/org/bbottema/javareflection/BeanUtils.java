@@ -17,6 +17,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.compile;
 
 /**
  * A {@link Field} shorthand utility class used to collect fields from classes meeting Java Bean restrictions/requirements.
@@ -36,7 +39,7 @@ import java.util.Set;
  */
 @UtilityClass
 public final class BeanUtils {
-
+	
 	/**
 	 * Determines what visibility modifiers a field is allowed to have in {@link BeanUtils#collectFields(Class, Class, EnumSet, EnumSet)}.
 	 */
@@ -89,7 +92,11 @@ public final class BeanUtils {
 	}
 	
 	/**
-	 * Verifies is a given method occurs as setter or getter in the declaring class chain.
+	 * Verifies is a given method occurs as setter or getter in the declaring class chain. Lookup works by finding actual properties with
+	 * their respective getters/setters that follow bean convention.
+	 * <p>
+	 * Note that this is a strict lookup and interface methods are not considered bean methods. To include interfaces and their methods,
+	 * use {@link #isBeanMethod(Method, Class, EnumSet, boolean)} with <em>checkBeanLikeForInterfaces</em> set to {@code true}.
 	 * <p>
 	 * Lookup can be configured to check only against specific visibility.
 	 *
@@ -103,6 +110,20 @@ public final class BeanUtils {
 	@SuppressWarnings({"unused", "WeakerAccess"})
 	public static boolean isBeanMethod(final Method method, final Class<?> boundaryMarker,
 									   final EnumSet<Visibility> visibility) {
+		return isBeanMethod(method, boundaryMarker, visibility, false);
+	}
+	
+	/**
+	 * @return Same as {@link #isBeanMethod(Method, Class, EnumSet)}, but may consider methods declared on interfaces as well.
+	 */
+	private static boolean isBeanMethod(Method method, Class<?> boundaryMarker,
+										EnumSet<Visibility> visibility, boolean checkBeanLikeForInterfaces) {
+		return method.getDeclaringClass().isInterface()
+				? checkBeanLikeForInterfaces && methodIsBeanlike(method)
+				: isBeanMethodForField(method, boundaryMarker, visibility);
+	}
+	
+	private static boolean isBeanMethodForField(Method method, Class<?> boundaryMarker, EnumSet<Visibility> visibility) {
 		Map<Class<?>, List<FieldWrapper>> fields = collectFields(method.getDeclaringClass(), boundaryMarker, visibility,
 				EnumSet.noneOf(BeanRestriction.class));
 		for (List<FieldWrapper> fieldWrappers : fields.values()) {
@@ -114,7 +135,29 @@ public final class BeanUtils {
 		}
 		return false;
 	}
-
+	
+	/**
+	 * Determines if the method <em>could</em> be a bean method by looking just at its name, parameters and presence of return type.
+	 *
+	 * @return True, is the method starts with set/get/is, has exactly one parameter and in case of
+	 * a primitive boolean the method should start with "isAbc"
+	 */
+	@SuppressWarnings("WeakerAccess")
+	public static boolean methodIsBeanlike(Method method) {
+		final Pattern SET_PATTERN = compile("set[A-Z].*?");
+		final Pattern GET_PATTERN = compile("get[A-Z].*?");
+		final Pattern IS_PATTERN = compile("is[A-Z].*?");
+		
+		final String name = method.getName();
+		final int paramCount = method.getParameterTypes().length;
+		final Class<?> rt = method.getReturnType();
+		
+		return
+			(rt == boolean.class && IS_PATTERN.matcher(name).matches() && paramCount == 0) ||
+			(rt != void.class && rt != boolean.class && GET_PATTERN.matcher(name).matches() && paramCount == 0) ||
+			(rt == void.class && SET_PATTERN.matcher(name).matches() && paramCount == 1);
+	}
+	
 	/**
 	 * Returns a pool of {@link Field} wrappers including optional relevant setter/getter methods, collected from the given class tested
 	 * against the given visibility and Bean restriction requirements.
