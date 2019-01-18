@@ -116,7 +116,7 @@ public final class BeanUtils {
 	/**
 	 * @return Same as {@link #isBeanMethod(Method, Class, EnumSet)}, but may consider methods declared on interfaces as well.
 	 */
-	private static boolean isBeanMethod(Method method, Class<?> boundaryMarker,
+	public static boolean isBeanMethod(Method method, Class<?> boundaryMarker,
 										EnumSet<Visibility> visibility, boolean checkBeanLikeForInterfaces) {
 		return method.getDeclaringClass().isInterface()
 				? checkBeanLikeForInterfaces && methodIsBeanlike(method)
