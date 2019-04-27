@@ -13,10 +13,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.bbottema.javareflection.LookupCaches.CLASS_CACHE;
@@ -252,19 +253,31 @@ public final class ClassUtils {
 	 * @return The result of {@link #collectMethodsMappingToName(Class, Class, EnumSet)} filtered on method name.
 	 */
 	@SuppressWarnings("WeakerAccess")
-	public static Set<Method> collectMethodsByName(final Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers, final String methodName) {
+	public static List<Method> collectMethodsByName(final Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers, final String methodName) {
 		return collectMethodsMappingToName(type, boundaryMarker, methodModifiers).get(methodName);
+	}
+
+	/**
+	 * @return The first result of {@link #collectMethodsByName(Class, Class, EnumSet, String)}.
+	 * 			<strong>Note: </strong> methods are ordered in groups (see {@link #collectMethods(Class, Class, EnumSet)})).
+	 */
+	@Nullable
+	@SuppressWarnings("WeakerAccess")
+	public static Method findFirstMethodByName(final Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers, final String methodName) {
+		List<Method> methods = collectMethodsByName(type, boundaryMarker, methodModifiers, methodName);
+		return methods.isEmpty() ? null : methods.iterator().next();
 	}
 	
 	/**
-	 * @return The result of {@link #collectMethods(Class, Class, EnumSet)} filtered on method name.
+	 * @return The result of {@link #collectMethods(Class, Class, EnumSet)} filtered on method name,
+	 * 				ordered in groups (see {@link #collectMethods(Class, Class, EnumSet)})).
 	 */
 	@SuppressWarnings("WeakerAccess")
-	public static Map<String, Set<Method>> collectMethodsMappingToName(Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers) {
-		Map<String, Set<Method>> methodsMappedToName = new HashMap<>();
+	public static LinkedHashMap<String, List<Method>> collectMethodsMappingToName(Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers) {
+		LinkedHashMap<String, List<Method>> methodsMappedToName = new LinkedHashMap<>();
 		for (Method method : collectMethods(type, boundaryMarker, methodModifiers)) {
 			if (!methodsMappedToName.containsKey(method.getName())) {
-				methodsMappedToName.put(method.getName(), new HashSet<Method>());
+				methodsMappedToName.put(method.getName(), new ArrayList<Method>());
 			}
 			methodsMappedToName.get(method.getName()).add(method);
 		}
@@ -272,15 +285,19 @@ public final class ClassUtils {
 	}
 	
 	/**
-	 * Returns a list of names that represent the methods on an <code>Object</code>
+	 * Returns a list of names that represent the methods on an <code>Object</code>.
+	 * <p>
+	 * Methods are ordered by their declaring type in the inheritance chain, but unordered for methods of the same type.
+	 * In other words, considering type A, B and C each with methods 1, 2 and 3, the methods might be ordered as follows:
+	 * {@code [A2,A1,B1,B2,C2,C1]}.
 	 *
 	 * @param methodModifiers List of method modifiers that will match any method that has one of them.
 	 * @param boundaryMarker Optional type to limit (including) how far back up the inheritance chain we go for discovering methods.
 	 * @return Returns a list with methods, either {@link Method}s.
 	 */
 	@SuppressWarnings("WeakerAccess")
-	public static Set<Method> collectMethods(Class<?> dataType, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers) {
-		final Set<Method> allMethods = new HashSet<>();
+	public static List<Method> collectMethods(Class<?> dataType, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers) {
+		final List<Method> allMethods = new ArrayList<>();
 		
 		for (Method declaredMethod : dataType.getDeclaredMethods()) {
 			if (MethodModifier.meetsModifierRequirements(declaredMethod, methodModifiers)) {

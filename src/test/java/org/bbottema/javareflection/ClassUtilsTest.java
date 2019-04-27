@@ -15,8 +15,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.EnumSet.of;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,10 +116,10 @@ public class ClassUtilsTest {
 	
 	@Test
 	public void testCollectMethods() {
-		Set<Method> methodsOnC = ClassUtils.collectMethods(C.class, A.class, of(PUBLIC));
+		List<Method> methodsOnC = ClassUtils.collectMethods(C.class, A.class, of(PUBLIC));
 		assertThat(methodsOnC).extracting("name").containsExactlyInAnyOrder("foo", "bar", "updateNumberC", "updateNumber_privateC");
 	}
-	
+
 	@Test
 	public void testCollectMethodsByName() {
 		assertThat(ClassUtils.collectMethodsByName(C.class, C.class, MATCH_ANY, "foo"))
@@ -127,10 +127,18 @@ public class ClassUtilsTest {
 		assertThat(ClassUtils.collectMethodsByName(C.class, Object.class, MATCH_ANY, "protectedMethod"))
 				.extracting("name").containsExactlyInAnyOrder("protectedMethod", "protectedMethod", "protectedMethod");
 	}
+
+	@Test
+	public void testFindFirstMethodsByName() {
+		assertThat(ClassUtils.findFirstMethodByName(C.class, C.class, MATCH_ANY, "foo"))
+				.extracting("name").containsExactly("foo");
+		assertThat(ClassUtils.findFirstMethodByName(C.class, Object.class, MATCH_ANY, "protectedMethod"))
+				.extracting("name").containsExactly("protectedMethod");
+	}
 	
 	@Test
 	public void testCollectMethodsMappingToName() {
-		Map<String, Set<Method>> methodsByNames = ClassUtils.collectMethodsMappingToName(Moo.class, Shmoo.class, MATCH_ANY);
+		Map<String, List<Method>> methodsByNames = ClassUtils.collectMethodsMappingToName(Moo.class, Shmoo.class, MATCH_ANY);
 		
 		assertThat(methodsByNames).containsOnlyKeys("method1", "method2");
 		
