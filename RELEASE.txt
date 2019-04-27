@@ -4,6 +4,14 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.9.1
+
+- Added convencience method to return the first method for a specified name
+- Added method that returns an annotation of a specified type from a list
+- Added method that returns an annotation of a specified type from an array
+- Fixed visibility modifier on a public API
+
+
 v3.9.0
 
 - Added support for bean-like methods defined on interfaces
