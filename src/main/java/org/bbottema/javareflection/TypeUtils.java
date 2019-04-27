@@ -286,18 +286,28 @@ public final class TypeUtils {
 	public static boolean isPackage(final String name) {
 		return name.equals("java") || Package.getPackage(name) != null;
 	}
-	
+
 	/**
 	 * @return Whether a given list of Annotation contains a certain annotation type.
+	 * @see #findAnnotation(List, Class)
 	 */
 	@SuppressWarnings("WeakerAccess")
 	public static boolean containsAnnotation(List<Annotation> myListOfAnnotations, Class<? extends Annotation> annotationClass) {
+		return findAnnotation(myListOfAnnotations, annotationClass) != null;
+	}
+
+	/**
+	 * @return Whether a given list of Annotation contains a certain annotation type.
+	 */
+	@SuppressWarnings({"WeakerAccess", "unchecked"})
+	@Nullable
+	public static <T extends Annotation> T findAnnotation(List<Annotation> myListOfAnnotations, Class<T> annotationClass) {
 		for (Annotation annotation : myListOfAnnotations) {
 			if (annotation.annotationType() == annotationClass) {
-				return true;
+				return (T) annotation;
 			}
 		}
-		return false;
+		return null;
 	}
 	
 	/**
