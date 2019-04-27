@@ -298,17 +298,36 @@ public final class TypeUtils {
 
 	/**
 	 * @return Whether a given list of Annotation contains a certain annotation type.
+	 * @see #findAnnotation(Annotation[], Class)
 	 */
-	@SuppressWarnings({"WeakerAccess", "unchecked"})
-	@Nullable
-	public static <T extends Annotation> T findAnnotation(List<Annotation> myListOfAnnotations, Class<T> annotationClass) {
-		for (Annotation annotation : myListOfAnnotations) {
-			if (annotation.annotationType() == annotationClass) {
-				return (T) annotation;
-			}
-		}
-		return null;
+	@SuppressWarnings("WeakerAccess")
+	public static boolean containsAnnotation(Annotation[] myListOfAnnotations, Class<? extends Annotation> annotationClass) {
+		return findAnnotation(myListOfAnnotations, annotationClass) != null;
 	}
+
+    /**
+     * @return Whether a given list of Annotation contains a certain annotation type.
+	 * @see #findAnnotation(Annotation[], Class)
+	 */
+    @SuppressWarnings({"WeakerAccess"})
+    @Nullable
+    public static <T extends Annotation> T findAnnotation(List<Annotation> myListOfAnnotations, Class<T> annotationClass) {
+		return findAnnotation(myListOfAnnotations.toArray(new Annotation[0]), annotationClass);
+    }
+
+    /**
+     * @return Whether a given list of Annotation contains a certain annotation type.
+     */
+    @SuppressWarnings({"WeakerAccess", "unchecked"})
+    @Nullable
+    public static <T extends Annotation> T findAnnotation(Annotation[] myListOfAnnotations, Class<T> annotationClass) {
+        for (Annotation annotation : myListOfAnnotations) {
+            if (annotation.annotationType() == annotationClass) {
+                return (T) annotation;
+            }
+        }
+        return null;
+    }
 	
 	/**
 	 * Shortcut helper method that replaces an item in an array and returns the array itself.
