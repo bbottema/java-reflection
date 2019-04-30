@@ -69,7 +69,21 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class MethodUtils {
 	
 	private static final Logger LOGGER = getLogger(MethodUtils.class);
-	
+
+    @Nullable
+    @SuppressWarnings({"unchecked"})
+    public static <T> T invokeMethodSimple(final Method method, final Object subject, final Object... args) {
+        try {
+            return (T) method.invoke(subject, args);
+        } catch (SecurityException e) {
+            throw new RuntimeException("unable to invoke method; security problem", e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("unable to access method", e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException("unable to invoke method", e);
+        }
+    }
+
 	/**
      * Locates a method on an Object using serveral searchmodes for optimization. First of all a {@link Method} cache is being maintained to quickly
      * fetch heavily used methods. If not cached before and if a simple search (autoboxing and supertype casts) fails a more complex search is done

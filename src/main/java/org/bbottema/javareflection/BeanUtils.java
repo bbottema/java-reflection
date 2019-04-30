@@ -4,22 +4,22 @@ import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.util.commonslang25.StringUtils;
 import org.bbottema.javareflection.model.FieldWrapper;
 import org.bbottema.javareflection.model.InvokableObject;
+import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
+import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
+import static java.util.EnumSet.allOf;
+import static java.util.EnumSet.of;
 import static java.util.regex.Pattern.compile;
+import static org.bbottema.javareflection.BeanUtils.BeanRestriction.YES_SETTER;
+import static org.bbottema.javareflection.BeanUtils.BeanRestriction.YES_GETTER;
 
 /**
  * A {@link Field} shorthand utility class used to collect fields from classes meeting Java Bean restrictions/requirements.
@@ -177,9 +177,9 @@ public final class BeanUtils {
 	 */
 	@SuppressWarnings("WeakerAccess")
 	@NotNull
-	public static Map<Class<?>, List<FieldWrapper>> collectFields(final Class<?> _class, final Class<?> boundaryMarker,
+	public static LinkedHashMap<Class<?>, List<FieldWrapper>> collectFields(final Class<?> _class, final Class<?> boundaryMarker,
 																  final EnumSet<Visibility> visibility, final EnumSet<BeanRestriction> beanRestrictions) {
-		final Map<Class<?>, List<FieldWrapper>> fields = new HashMap<>();
+		final LinkedHashMap<Class<?>, List<FieldWrapper>> fields = new LinkedHashMap<>();
 		final Field[] allFields = _class.getDeclaredFields();
 		final List<FieldWrapper> filteredFields = new LinkedList<>();
 		for (final Field field : allFields) {
@@ -260,5 +260,50 @@ public final class BeanUtils {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Calls the setters for the first field that matches given fieldName. Attempts to convert the value in case the type is incorrect.
+	 *
+	 * @return The actual value used in the bean setter.
+	 */
+	@SuppressWarnings("ConstantConditions")
+	static public Object invokeBeanSetter(Object o, String fieldName, Object value) {
+		for (List<FieldWrapper> fieldWrappers : collectFields(o.getClass(), Object.class, allOf(Visibility.class), of(YES_SETTER)).values()) {
+			for (FieldWrapper fieldWrapper : fieldWrappers) {
+				if (fieldWrapper.getField().getName().equals(fieldName) ) {
+					Object assignedValue = value;
+					try {
+						MethodUtils.invokeMethodSimple(fieldWrapper.getSetter(), o, value);
+					} catch (final IllegalArgumentException ie) {
+						try {
+							assignedValue = ValueConversionHelper.convert(value, fieldWrapper.getField().getType());
+						} catch (IncompatibleTypeException e) {
+							throw new RuntimeException(new NoSuchMethodException(e.getMessage()));
+						}
+						MethodUtils.invokeMethodSimple(fieldWrapper.getSetter(), o, assignedValue);
+					}
+					return assignedValue;
+				}
+			}
+		}
+		throw new RuntimeException(new NoSuchMethodException("Bean setter for " + fieldName));
+	}
+
+	/**
+	 * Calls the setters for the first field that matches given fieldName. Attempts to convert the value in case the type is incorrect.
+	 *
+	 * @return The actual value used in the bean setter.
+	 */
+	@SuppressWarnings("ConstantConditions")
+	static public Object invokeBeanGetter(Object o, String fieldName) {
+		for (List<FieldWrapper> fieldWrappers : collectFields(o.getClass(), Object.class, allOf(Visibility.class), of(YES_GETTER)).values()) {
+			for (FieldWrapper fieldWrapper : fieldWrappers) {
+				if (fieldWrapper.getField().getName().equals(fieldName) ) {
+					return MethodUtils.invokeMethodSimple(fieldWrapper.getGetter(), o);
+				}
+			}
+		}
+		throw new RuntimeException(new NoSuchMethodException("Bean getter for " + fieldName));
 	}
 }

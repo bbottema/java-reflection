@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -319,6 +320,79 @@ public class BeanUtilsTest {
 			fail("IllegalArgumentException expected");
 		} catch (final IllegalArgumentException e) {
 			// ok
+		}
+	}
+
+	@Test
+	public void testInvokeBeanSetter_SimpleSuccess() {
+		BeanFields subject = new BeanFields();
+
+		assertThat(BeanUtils.invokeBeanSetter(subject, "withSetter", 123)).isEqualTo(123);
+		assertThat(BeanUtils.invokeBeanSetter(subject, "withGetterAndSetter", true)).isEqualTo(true);
+		assertThat(BeanUtils.invokeBeanSetter(subject, "primitiveBoolean", true)).isEqualTo(true);
+
+		assertThat(subject.withSetter).isEqualTo(123);
+		assertThat(subject.getWithGetterAndSetter()).isEqualTo(true);
+		assertThat(subject.isPrimitiveBoolean()).isTrue();
+	}
+
+	@Test
+	public void testInvokeBeanSetter_WithConversionSuccess() {
+		BeanFields subject = new BeanFields();
+
+		assertThat(BeanUtils.invokeBeanSetter(subject, "primitiveBoolean", "true")).isEqualTo(true);
+		assertThat(subject.isPrimitiveBoolean()).isTrue();
+		assertThat(BeanUtils.invokeBeanSetter(subject, "primitiveBoolean", "false")).isEqualTo(false);
+		assertThat(subject.isPrimitiveBoolean()).isFalse();
+	}
+
+	@Test
+	public void testInvokeBeanSetter_NoSetterForField() {
+		BeanFields subject = new BeanFields();
+
+		try {
+			BeanUtils.invokeBeanSetter(subject, "withGetter", 123);
+			fail("expected exception");
+		} catch (RuntimeException e) {
+			assertThat(e.getCause()).isInstanceOf(NoSuchMethodException.class);
+			assertThat(e.getCause().getMessage()).isEqualTo("Bean setter for withGetter");
+		}
+	}
+
+	@Test
+	public void testInvokeBeanSetter_NoSetterForFieldWithCorrectType() {
+		BeanFields subject = new BeanFields();
+
+		try {
+			BeanUtils.invokeBeanSetter(subject, "primitiveBoolean", new Thread());
+			fail("expected exception");
+		} catch (RuntimeException e) {
+			assertThat(e.getCause()).isInstanceOf(NoSuchMethodException.class);
+			assertThat(e.getCause().getMessage()).contains("error: unable to convert value");
+		}
+	}
+
+	@Test
+	public void testInvokeBeanGetter_SimpleSuccess() {
+		BeanFields subject = new BeanFields();
+		subject.setWithGetterAndSetter(true);
+		subject.setPrimitiveBoolean(true);
+
+		assertThat(BeanUtils.invokeBeanGetter(subject, "withGetterAndSetter")).isEqualTo(true);
+		assertThat(BeanUtils.invokeBeanGetter(subject, "primitiveBoolean")).isEqualTo(true);
+	}
+
+	@Test
+	public void testInvokeBeanGetter_NoGetterForField() {
+		BeanFields subject = new BeanFields();
+		subject.setWithSetter(true);
+
+		try {
+			BeanUtils.invokeBeanGetter(subject, "withSetter");
+			fail("expected exception");
+		} catch (RuntimeException e) {
+			assertThat(e.getCause()).isInstanceOf(NoSuchMethodException.class);
+			assertThat(e.getCause().getMessage()).contains("Bean getter for withSetter");
 		}
 	}
 	
