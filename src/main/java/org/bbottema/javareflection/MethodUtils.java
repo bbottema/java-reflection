@@ -69,7 +69,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class MethodUtils {
 	
 	private static final Logger LOGGER = getLogger(MethodUtils.class);
-
+	
+	/**
+	 * Delegates to {@link Method#invoke(Object, Object...)} while converting checked exceptions into runtime
+	 * exceptions.
+	 */
     @Nullable
     @SuppressWarnings({"unchecked"})
     public static <T> T invokeMethodSimple(final Method method, final Object subject, final Object... args) {

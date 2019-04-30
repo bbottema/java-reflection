@@ -263,7 +263,8 @@ public final class BeanUtils {
 	}
 
 	/**
-	 * Calls the setters for the first field that matches given fieldName. Attempts to convert the value in case the type is incorrect.
+	 * Calls the setter for the first field in the inheritance chain that matches given fieldName.
+	 * Attempts to convert the value in case the type is incorrect.
 	 *
 	 * @return The actual value used in the bean setter.
 	 */
@@ -291,9 +292,9 @@ public final class BeanUtils {
 	}
 
 	/**
-	 * Calls the setters for the first field that matches given fieldName. Attempts to convert the value in case the type is incorrect.
+	 * Calls the getter for the first field in the inheritance chain that matches given fieldName.
 	 *
-	 * @return The actual value used in the bean setter.
+	 * @see #collectFields(Class, Class, EnumSet, EnumSet)
 	 */
 	@SuppressWarnings("ConstantConditions")
 	static public Object invokeBeanGetter(Object o, String fieldName) {
