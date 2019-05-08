@@ -23,7 +23,7 @@ import static org.bbottema.javareflection.LookupCaches.getCachedCompatibleSignat
 /**
  * Utility functions that deal with type information, conversions and autoboxing.
  * <p>
- * Particularly of interest is {@link #generateCompatibleTypeLists(EnumSet, Class[])},
+ * Particularly of interest is {@link #generateCompatibleTypeLists(Set, Class[])},
  * which generates a collection of type lists which can be derived from the input type
  * list. This is usful for method matching, since Java reflection doesn't take into account
  * autoboxing, casting or auto widening, let alone type conversions.
@@ -83,7 +83,7 @@ public final class TypeUtils {
 	}
 	
 	@SuppressWarnings({"unused", "WeakerAccess"})
-	public static boolean isTypeListCompatible(Class<?>[] inputTypeList, Class<?>[] targetTypeList, EnumSet<LookupMode> lookupMode) {
+	public static boolean isTypeListCompatible(Class<?>[] inputTypeList, Class<?>[] targetTypeList, Set<LookupMode> lookupMode) {
 		List<Class<?>[]> derivableTypeLists = generateCompatibleTypeLists(lookupMode, inputTypeList);
 		
 		for (Class<?>[] derivableTypeList : derivableTypeLists) {
@@ -109,7 +109,7 @@ public final class TypeUtils {
 	 */
 	@NotNull
 	@SuppressWarnings({"unused", "WeakerAccess"})
-	public static List<Class<?>[]> generateCompatibleTypeLists(final EnumSet<LookupMode> lookupMode, final Class<?>... inputTypelist) {
+	public static List<Class<?>[]> generateCompatibleTypeLists(final Set<LookupMode> lookupMode, final Class<?>... inputTypelist) {
 		final ArrayKey arrayKey = new ArrayKey(inputTypelist);
 		final List<Class<?>[]> cachedResult = getCachedCompatibleSignatures(lookupMode, arrayKey);
 		return cachedResult != null
@@ -134,7 +134,7 @@ public final class TypeUtils {
 	 * @param lookupMode Flag indicating the search steps that need to be done.
 	 * @param inputTypelist The list with current types, to mutate further upon.
 	 */
-	private static List<Class<?>[]> generateCompatibleTypeLists(final int index, final EnumSet<LookupMode> lookupMode, final List<Class<?>[]> compatibleTypeLists, final Class<?>... inputTypelist) {
+	private static List<Class<?>[]> generateCompatibleTypeLists(final int index, final Set<LookupMode> lookupMode, final List<Class<?>[]> compatibleTypeLists, final Class<?>... inputTypelist) {
 		// if new type array is completed
 		if (index == inputTypelist.length) {
 			compatibleTypeLists.add(inputTypelist);

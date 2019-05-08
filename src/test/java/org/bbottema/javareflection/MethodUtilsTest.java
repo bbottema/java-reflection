@@ -1,31 +1,34 @@
 package org.bbottema.javareflection;
 
+import lombok.AllArgsConstructor;
 import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
-import org.bbottema.javareflection.testmodel.A;
-import org.bbottema.javareflection.testmodel.B;
-import org.bbottema.javareflection.testmodel.C;
-import org.bbottema.javareflection.testmodel.Foo;
-import org.bbottema.javareflection.testmodel.Fruit;
-import org.bbottema.javareflection.testmodel.Meta;
-import org.bbottema.javareflection.testmodel.Moo;
-import org.bbottema.javareflection.testmodel.Pear;
-import org.bbottema.javareflection.testmodel.Skree;
+import org.bbottema.javareflection.model.MethodModifier;
+import org.bbottema.javareflection.model.MethodParameter;
+import org.bbottema.javareflection.testmodel.*;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Calendar;
-import java.util.EnumSet;
-import java.util.Set;
+import java.lang.reflect.Type;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.EnumSet.allOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.util.Lists.newArrayList;
 import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
 import static org.bbottema.javareflection.model.MethodModifier.MATCH_ANY;
 
@@ -40,7 +43,7 @@ public class MethodUtilsTest {
 	public void testFindCompatibleMethod()
 			throws NoSuchMethodException {
 		// find method through interface on superclass, using autoboxing, class casting and an auto convert
-		final EnumSet<LookupMode> allButSmartLookup = EnumSet.allOf(LookupMode.class);
+		Set<LookupMode> allButSmartLookup = new HashSet<>(LookupMode.FULL);
 		allButSmartLookup.remove(LookupMode.SMART_CONVERT);
 		
 		Set<InvokableObject<Method>> m = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
@@ -76,7 +79,7 @@ public class MethodUtilsTest {
 		} catch (NoSuchMethodException e) {
 			// OK
 		}
-		Set<InvokableObject<Method>> result = MethodUtils.findCompatibleMethod(B.class, "foo", EnumSet.allOf(LookupMode.class), double.class, Fruit.class, Math.class);
+		Set<InvokableObject<Method>> result = MethodUtils.findCompatibleMethod(B.class, "foo", LookupMode.FULL, double.class, Fruit.class, Math.class);
 		assertThat(result).isNotEmpty();
 	}
 	
@@ -84,22 +87,22 @@ public class MethodUtilsTest {
 	public void testFindCompatibleConstructor()
 			throws NoSuchMethodException {
 		// find constructor on superclass, using autoboxing
-		Set<InvokableObject<Constructor>> m = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Fruit.class);
+		Set<InvokableObject<Constructor>> m = MethodUtils.findCompatibleConstructor(B.class, LookupMode.FULL, Fruit.class);
 		assertThat(m).isNotEmpty();
 		assertThat(m.iterator().next().getMethod()).isEqualTo(B.class.getConstructor(Fruit.class));
-		Set<InvokableObject<Constructor>> m2 = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Fruit.class);
+		Set<InvokableObject<Constructor>> m2 = MethodUtils.findCompatibleConstructor(B.class, LookupMode.FULL, Fruit.class);
 		assertThat(m2).isNotEmpty();
 		assertThat(m2).isEqualTo(m);
 		// find constructor on superclass, using autoboxing and class casting
-		m = MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), Pear.class);
+		m = MethodUtils.findCompatibleConstructor(B.class, LookupMode.FULL, Pear.class);
 		assertThat(m).isNotEmpty();
 		assertThat(m.iterator().next().getMethod()).isEqualTo(B.class.getConstructor(Fruit.class));
 		// still find constructor on superclass
-		m = MethodUtils.findCompatibleConstructor(C.class, EnumSet.allOf(LookupMode.class), Fruit.class);
+		m = MethodUtils.findCompatibleConstructor(C.class, LookupMode.FULL, Fruit.class);
 		assertThat(m).isNotEmpty();
 		assertThat(m.iterator().next().getMethod()).isEqualTo(C.class.getConstructor(Fruit.class));
 		// still find constructor on subclass
-		m = MethodUtils.findCompatibleConstructor(C.class, EnumSet.allOf(LookupMode.class), Pear.class);
+		m = MethodUtils.findCompatibleConstructor(C.class, LookupMode.FULL, Pear.class);
 		assertThat(m).isNotEmpty();
 		assertThat(m.iterator().next().getMethod()).isEqualTo(C.class.getConstructor(Pear.class));
 		// find a String constructor
@@ -108,13 +111,13 @@ public class MethodUtilsTest {
 		assertThat(m.iterator().next().getMethod()).isEqualTo(String.class.getConstructor(String.class));
 		// shouldn't be able to find the following methods
 		try {
-			MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), double.class);
+			MethodUtils.findCompatibleConstructor(B.class, LookupMode.FULL, double.class);
 			fail("NoSuchMethodException expected");
 		} catch (NoSuchMethodException e) {
 			// OK
 		}
 		try {
-			MethodUtils.findCompatibleConstructor(B.class, EnumSet.allOf(LookupMode.class), String.class);
+			MethodUtils.findCompatibleConstructor(B.class, LookupMode.FULL, String.class);
 			fail("NoSuchMethodException expected");
 		} catch (NoSuchMethodException e) {
 			// OK
@@ -177,7 +180,7 @@ public class MethodUtilsTest {
 	
 	@Test
 	public void testIsMethodCompatible_Simple() throws NoSuchMethodException {
-		EnumSet<LookupMode> lookupModes = EnumSet.noneOf(LookupMode.class);
+		Set<LookupMode> lookupModes = EnumSet.noneOf(LookupMode.class);
 		
 		Method m = Math.class.getMethod("min", int.class, int.class);
 		assertThat(MethodUtils.isMethodCompatible(m, lookupModes, int.class, int.class)).isTrue();
@@ -191,11 +194,11 @@ public class MethodUtilsTest {
 	
 	@Test
 	public void testIsMethodCompatible_TestLookupModes() throws NoSuchMethodException {
-		EnumSet<LookupMode> noConversions = EnumSet.noneOf(LookupMode.class);
-		EnumSet<LookupMode> commonConversions = EnumSet.of(LookupMode.COMMON_CONVERT);
-		EnumSet<LookupMode> castConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.CAST_TO_INTERFACE);
-		EnumSet<LookupMode> castThenCommonsConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.COMMON_CONVERT);
-		EnumSet<LookupMode> smartConversions = EnumSet.of(LookupMode.SMART_CONVERT);
+		Set<LookupMode> noConversions = EnumSet.noneOf(LookupMode.class);
+		Set<LookupMode> commonConversions = EnumSet.of(LookupMode.COMMON_CONVERT);
+		Set<LookupMode> castConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.CAST_TO_INTERFACE);
+		Set<LookupMode> castThenCommonsConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.COMMON_CONVERT);
+		Set<LookupMode> smartConversions = EnumSet.of(LookupMode.SMART_CONVERT);
 		
 		Method m = Math.class.getMethod("min", int.class, int.class);
 		assertThat(MethodUtils.isMethodCompatible(m, noConversions, int.class, boolean.class)).isFalse();
@@ -256,6 +259,29 @@ public class MethodUtilsTest {
 				.extracting(new MetaAnnotationExtractor<>(Meta.class))
 				.extractingResultOf("value")
 				.containsExactlyInAnyOrder("Moo.method1-C");
+	}
+
+	@Test
+	public void testZipParametersAndArguments() {
+		Method testMethod = ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, allOf(MethodModifier.class), "testMethod");
+		LinkedHashMap<MethodParameter, Object> result = MethodUtils.zipParametersAndArguments(testMethod, 5, new ArrayList(), new HashSet<Double>());
+
+		Annotation[] p1 = testMethod.getParameterAnnotations()[0];
+		Annotation[] p2 = testMethod.getParameterAnnotations()[1];
+		Annotation[] p3 = testMethod.getParameterAnnotations()[2];
+
+		// verify annotations, which means the result assertions also saw these annotations
+		assertThat(p1).isEmpty();
+		assertThat(p2).extractingResultOf("annotationType").containsExactly(Nullable.class);
+		assertThat(p3).extractingResultOf("annotationType").containsExactly(Nonnull.class);
+
+		ParameterizedTypeImpl parameterizedHashSet = ParameterizedTypeImpl.make(HashSet.class, new Type[]{Double.class}, null);
+
+		assertThat(result).containsExactly(
+				new SimpleEntry<>(new MethodParameter(0, Integer.class, Integer.class, asList(p1)), 5),
+				new SimpleEntry<>(new MethodParameter(1, List.class, List.class, asList(p2)), new ArrayList()),
+				new SimpleEntry<>(new MethodParameter(2, HashSet.class, parameterizedHashSet, asList(p3)), new HashSet<Double>())
+		);
 	}
 	
 	@Test

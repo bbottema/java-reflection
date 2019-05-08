@@ -40,7 +40,7 @@ public class LookupCaches {
 	
 	static final Map<Class<?>, Set<Class<?>>> CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
 	static final Map<Class<?>, Set<Class<?>>> CACHED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
-	static final Map<EnumSet<LookupMode>, Map<ArrayKey, List<Class<?>[]>>> CACHED_COMPATIBLE_TYPE_LISTS = new HashMap<>();
+	static final Map<Set<LookupMode>, Map<ArrayKey, List<Class<?>[]>>> CACHED_COMPATIBLE_TYPE_LISTS = new HashMap<>();
 	
 	@SuppressWarnings({"WeakerAccess", "unused"})
 	public static void resetCache() {
@@ -52,7 +52,7 @@ public class LookupCaches {
 	}
 	
 	@Nullable
-	static List<Class<?>[]> getCachedCompatibleSignatures(EnumSet<LookupMode> lookupMode, ArrayKey arrayKey) {
+	static List<Class<?>[]> getCachedCompatibleSignatures(Set<LookupMode> lookupMode, ArrayKey arrayKey) {
 		final Map<ArrayKey, List<Class<?>[]>> cachedCompatibleSignatures = CACHED_COMPATIBLE_TYPE_LISTS.get(lookupMode);
 		if (cachedCompatibleSignatures != null) {
 			final List<Class<?>[]> cachedResult = cachedCompatibleSignatures.get(arrayKey);
@@ -64,7 +64,7 @@ public class LookupCaches {
 	}
 	
 	@NotNull
-	static List<Class<?>[]> addCompatiblesignaturesToCache(EnumSet<LookupMode> lookupMode, ArrayKey arrayKey, List<Class<?>[]> compatibleTypeLists) {
+	static List<Class<?>[]> addCompatiblesignaturesToCache(Set<LookupMode> lookupMode, ArrayKey arrayKey, List<Class<?>[]> compatibleTypeLists) {
 		Map<ArrayKey, List<Class<?>[]>> cachedCompatibleSignatures = CACHED_COMPATIBLE_TYPE_LISTS.get(lookupMode);
 		if (cachedCompatibleSignatures == null) {
 			CACHED_COMPATIBLE_TYPE_LISTS.put(lookupMode, cachedCompatibleSignatures = new HashMap<>());

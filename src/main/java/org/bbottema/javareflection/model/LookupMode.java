@@ -2,6 +2,12 @@ package org.bbottema.javareflection.model;
 
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
+import static java.util.EnumSet.allOf;
+import static java.util.EnumSet.of;
+
 /**
  * Defines lookup modes for matching Java methods and constructors. Each time a lookup failed on signature type, a less strict lookup
  * is performed, in the following order (signature means: the list of parameters defined for a method or constructor):
@@ -45,5 +51,15 @@ public enum LookupMode {
 	 *     <li>Boolean -> Character -> long. This simply works out of the box, resulting in 0 or 1.</li>
 	 * </ul>
 	 */
-	SMART_CONVERT
+	SMART_CONVERT;
+
+	/**
+	 * Defines a simple method lookup configuration that goes as far as casting and autoboxing, but no actual conversions are done to the values.
+	 */
+	public static final Set<LookupMode> SIMPLE = of(AUTOBOX, CAST_TO_SUPER, CAST_TO_INTERFACE);
+
+	/**
+	 * Defines a complete method lookup configuration that combines all possible lookup modes.
+	 */
+	public static final Set<LookupMode> FULL = unmodifiableSet(allOf(LookupMode.class));
 }

@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
 import org.bbottema.javareflection.model.MethodModifier;
+import org.bbottema.javareflection.model.MethodParameter;
 import org.bbottema.javareflection.util.MiscUtil;
 import org.bbottema.javareflection.valueconverter.IncompatibleTypeException;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
@@ -15,13 +16,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.lang.String.format;
 import static org.bbottema.javareflection.LookupCaches.METHOD_CACHE;
@@ -99,7 +94,7 @@ public final class MethodUtils {
      * @param identifier The name of the method to locate.
      * @param args A list of [non-formal] arguments.
      * @return The return value of the invoke method, if successful.
-     * @throws NoSuchMethodException Thrown by {@link #findCompatibleMethod(Class, String, EnumSet, Class...)}.
+     * @throws NoSuchMethodException Thrown by {@link #findCompatibleMethod(Class, String, Set, Class...)}.
      * @throws IllegalArgumentException Thrown by {@link Method#invoke(Object, Object...)}.
      * @throws IllegalAccessException Thrown by {@link Method#invoke(Object, Object...)}.
      * @throws InvocationTargetException Thrown by {@link Method#invoke(Object, Object...)}.
@@ -112,7 +107,7 @@ public final class MethodUtils {
         final Class<?>[] parameterSignature = TypeUtils.collectTypes(args);
 
         // setup lookup procedure starting with simple search mode
-        EnumSet<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
+        Set<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
 		Set<InvokableObject<Method>> iMethods;
 
         // try to find a compatible Java method using various lookup modes
@@ -184,7 +179,7 @@ public final class MethodUtils {
      * @throws IllegalAccessException Thrown by {@link Constructor#newInstance(Object...)}.
      * @throws InvocationTargetException Thrown by {@link Constructor#newInstance(Object...)}.
      * @throws InstantiationException Thrown by {@link Constructor#newInstance(Object...)}.
-     * @throws NoSuchMethodException Thrown by {@link #findCompatibleConstructor(Class, EnumSet, Class...)}.
+     * @throws NoSuchMethodException Thrown by {@link #findCompatibleConstructor(Class, Set, Class...)}.
      * @see java.lang.reflect.Constructor#newInstance(Object[])
      */
     @SuppressWarnings("WeakerAccess")
@@ -192,7 +187,7 @@ public final class MethodUtils {
     public static <T> T invokeConstructor(final Class<T> datatype, final Class<?>[] parameterSignature, final Object[] args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
         // setup lookup procedure
-        EnumSet<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
+        Set<LookupMode> lookupMode = EnumSet.of(LookupMode.AUTOBOX, LookupMode.CAST_TO_SUPER);
         Set<InvokableObject<Constructor>> iConstructors;
 
         // try to find a compatible Java constructor
@@ -240,7 +235,7 @@ public final class MethodUtils {
      *                conversions.
      */
     @SuppressWarnings({"WeakerAccess"})
-	public static <T> Set<InvokableObject<Constructor>> findCompatibleConstructor(final Class<T> datatype, final EnumSet<LookupMode> lookupMode, final Class<?>... signature)
+	public static <T> Set<InvokableObject<Constructor>> findCompatibleConstructor(final Class<T> datatype, final Set<LookupMode> lookupMode, final Class<?>... signature)
             throws NoSuchMethodException {
         // first try to find the constructor in the method cache
         Set<InvokableObject<Constructor>> iConstructors = getConstructorFromCache(datatype, datatype.getName(), signature);
@@ -271,14 +266,14 @@ public final class MethodUtils {
     }
 
     /**
-     * Delegates to {@link #findCompatibleMethod(Class, String, EnumSet, Class...)}, using strict lookupmode (no autoboxing, casting etc.) and
+     * Delegates to {@link #findCompatibleMethod(Class, String, Set, Class...)}, using strict lookupmode (no autoboxing, casting etc.) and
      * optional signature parameters.
      * 
      * @param datatype The class to get the constructor from.
      * @param methodName The name of the method to retrieve from the class.
      * @param signature The list of types as specified by the user.
      * @return <code>null</code> in case of a <code>NoSuchMethodException</code> exception.
-     * @see #findCompatibleMethod(Class, String, EnumSet, Class...)
+     * @see #findCompatibleMethod(Class, String, Set, Class...)
      */
     @NotNull
     @SuppressWarnings("WeakerAccess")
@@ -304,7 +299,7 @@ public final class MethodUtils {
      */
     @NotNull
     @SuppressWarnings("WeakerAccess")
-    public static Set<InvokableObject<Method>> findCompatibleMethod(final Class<?> datatype, final String methodName, final EnumSet<LookupMode> lookupMode,
+    public static Set<InvokableObject<Method>> findCompatibleMethod(final Class<?> datatype, final String methodName, final Set<LookupMode> lookupMode,
 															   final Class<?>... signature) throws NoSuchMethodException {
         // first try to find the method in the method cache
         Set<InvokableObject<Method>> iMethods = getMethodFromCache(datatype, methodName, signature);
@@ -365,14 +360,61 @@ public final class MethodUtils {
         }
     }
     
+    /**
+     * Tests if a list of classes is compatible with the signature of the given method, allowing for {@link LookupMode#SIMPLE} lookup mode.
+     */
+    @SuppressWarnings({"unused"})
+    public static boolean isMethodCompatible(Method method, final Object... signature) {
+        return isMethodCompatible(method, LookupMode.SIMPLE, signature);
+    }
+
+    /**
+     * Tests if a list of classes is compatible with the signature of the given method, allowing for the given lookup modes.
+     */
+    @SuppressWarnings({"unused"})
+    public static boolean isMethodCompatible(Method method, Set<LookupMode> lookupMode, final Object... signature) {
+        return isMethodCompatible(method, lookupMode, TypeUtils.collectTypes(signature));
+    }
+
+    /**
+     * Tests if a list of arguments is compatible with the signature of the given method, allowing for {@link LookupMode#SIMPLE} lookup mode.
+     */
+    @SuppressWarnings({"unused"})
+    public static boolean isMethodCompatible(Method method, final Class<?>... signature) {
+        return isMethodCompatible(method, LookupMode.SIMPLE, signature);
+    }
+
+    /**
+     * Tests if a list of arguments is compatible with the signature of the given method, allowing for the given lookup modes.
+     */
     @SuppressWarnings({"unused", "WeakerAccess"})
-    public static boolean isMethodCompatible(Method method, EnumSet<LookupMode> lookupMode, final Class<?>... signature) {
+    public static boolean isMethodCompatible(Method method, Set<LookupMode> lookupMode, final Class<?>... signature) {
 		final Class<?>[] targetSignature = method.getParameterTypes();
 		if (signature.length != targetSignature.length) {
 			return false;
 		}
 		return TypeUtils.isTypeListCompatible(signature, targetSignature, lookupMode);
 	}
+
+    /**
+     * Given a method and a list of arguments, return a map of parameters matching their arguments.
+     * If the arguments are not compatible, return null instead.
+     */
+    @SuppressWarnings({"unused"})
+    @Nullable
+    public static LinkedHashMap<MethodParameter, Object> zipParametersAndArguments(Method method, Object... arguments) {
+        if (isMethodCompatible(method, arguments)) {
+            final LinkedHashMap<MethodParameter, Object> result = new LinkedHashMap<>();
+            for (int i = 0; i < method.getParameterTypes().length; i++) {
+                result.put(new MethodParameter(i,
+                        method.getParameterTypes()[i],
+                        method.getGenericParameterTypes()[i],
+                        Arrays.asList(method.getParameterAnnotations()[i])), arguments[i]);
+            }
+            return result;
+        }
+        return null;
+    }
 
     /**
      * Retrieves a {@link Method} from a cache.
