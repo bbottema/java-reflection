@@ -8,17 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static org.bbottema.javareflection.LookupCaches.CACHED_COMPATIBLE_TARGET_TYPES;
-import static org.bbottema.javareflection.LookupCaches.CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES;
-import static org.bbottema.javareflection.LookupCaches.addCompatiblesignaturesToCache;
-import static org.bbottema.javareflection.LookupCaches.getCachedCompatibleSignatures;
+import static org.bbottema.javareflection.LookupCaches.*;
 
 /**
  * Utility functions that deal with type information, conversions and autoboxing.
@@ -289,7 +281,7 @@ public final class TypeUtils {
 
 	/**
 	 * @return Whether a given list of Annotation contains a certain annotation type.
-	 * @see #findAnnotation(List, Class)
+	 * @see #findAnnotation(Collection, Class)
 	 */
 	@SuppressWarnings("WeakerAccess")
 	public static boolean containsAnnotation(List<Annotation> myListOfAnnotations, Class<? extends Annotation> annotationClass) {
@@ -300,7 +292,6 @@ public final class TypeUtils {
 	 * @return Whether a given list of Annotation contains a certain annotation type.
 	 * @see #findAnnotation(Annotation[], Class)
 	 */
-	@SuppressWarnings("WeakerAccess")
 	public static boolean containsAnnotation(Annotation[] myListOfAnnotations, Class<? extends Annotation> annotationClass) {
 		return findAnnotation(myListOfAnnotations, annotationClass) != null;
 	}
@@ -311,7 +302,7 @@ public final class TypeUtils {
 	 */
     @SuppressWarnings({"WeakerAccess"})
     @Nullable
-    public static <T extends Annotation> T findAnnotation(List<Annotation> myListOfAnnotations, Class<T> annotationClass) {
+    public static <T extends Annotation> T findAnnotation(Collection<Annotation> myListOfAnnotations, Class<T> annotationClass) {
 		return findAnnotation(myListOfAnnotations.toArray(new Annotation[0]), annotationClass);
     }
 
