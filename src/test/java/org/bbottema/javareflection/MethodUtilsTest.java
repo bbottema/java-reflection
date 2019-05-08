@@ -1,6 +1,5 @@
 package org.bbottema.javareflection;
 
-import lombok.AllArgsConstructor;
 import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
 import org.bbottema.javareflection.model.MethodModifier;
@@ -8,8 +7,6 @@ import org.bbottema.javareflection.model.MethodParameter;
 import org.bbottema.javareflection.testmodel.*;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
@@ -30,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
+import static org.bbottema.javareflection.MethodUtils.onlyMethod;
 import static org.bbottema.javareflection.model.MethodModifier.MATCH_ANY;
 
 public class MethodUtilsTest {
@@ -47,19 +45,19 @@ public class MethodUtilsTest {
 		allButSmartLookup.remove(LookupMode.SMART_CONVERT);
 		
 		Set<InvokableObject<Method>> m = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
-		assertThat(m).isNotEmpty();
-		assertThat(m.iterator().next().getMethod()).isEqualTo(Foo.class.getMethod("foo", Double.class, Fruit.class, char.class));
+		assertThat(m).hasSize(1);
+		assertThat(onlyMethod(m)).isEqualTo(Foo.class.getMethod("foo", Double.class, Fruit.class, char.class));
 		Set<InvokableObject<Method>> m2 = MethodUtils.findCompatibleMethod(B.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
-		assertThat(m2).isNotEmpty();
+		assertThat(m2).hasSize(1);
 		assertThat(m2).isEqualTo(m);
 		// find the same method, but now the first implementation on C should be returned
 		m = MethodUtils.findCompatibleMethod(C.class, "foo", allButSmartLookup, double.class, Pear.class, String.class);
-		assertThat(m).isNotEmpty();
-		assertThat(m.iterator().next().getMethod()).isEqualTo(C.class.getMethod("foo", Double.class, Fruit.class, char.class));
+		assertThat(m).hasSize(1);
+		assertThat(onlyMethod(m)).isEqualTo(C.class.getMethod("foo", Double.class, Fruit.class, char.class));
 		// find a String method
 		m = MethodUtils.findCompatibleMethod(String.class, "concat", EnumSet.noneOf(LookupMode.class), String.class);
-		assertThat(m).isNotEmpty();
-		assertThat(m.iterator().next().getMethod()).isEqualTo(String.class.getMethod("concat", String.class));
+		assertThat(m).hasSize(1);
+		assertThat(onlyMethod(m)).isEqualTo(String.class.getMethod("concat", String.class));
 		// shouldn't be able to find the following methods
 		try {
 			MethodUtils.findCompatibleMethod(B.class, "foos", allButSmartLookup, double.class, Pear.class, String.class);
@@ -80,7 +78,7 @@ public class MethodUtilsTest {
 			// OK
 		}
 		Set<InvokableObject<Method>> result = MethodUtils.findCompatibleMethod(B.class, "foo", LookupMode.FULL, double.class, Fruit.class, Math.class);
-		assertThat(result).isNotEmpty();
+		assertThat(result).hasSize(1);
 	}
 	
 	@Test

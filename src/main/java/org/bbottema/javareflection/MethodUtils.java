@@ -286,6 +286,14 @@ public final class MethodUtils {
     }
 
     /**
+     * Delegates to {@link #findCompatibleMethod(Class, String, Set, Class[])}, with the types of the given arguments extracted using {@link TypeUtils#collectTypes(Object[])}.
+     */
+    public static Set<InvokableObject<Method>> findCompatibleMethod(final Class<?> datatype, final String methodName, final Set<LookupMode> lookupMode,
+                                                                    final Object... args) throws NoSuchMethodException {
+        return findCompatibleMethod(datatype, methodName, lookupMode, TypeUtils.collectTypes(args));
+    }
+
+    /**
      * Same as <code>getConstructor()</code>, except for getting a {@link Method} of a classtype, using the name to indicate which method should be
      * located.
      * 
@@ -543,4 +551,14 @@ public final class MethodUtils {
 		}
 		return false;
 	}
+
+	public static Method onlyMethod(Set<InvokableObject<Method>> methods) {
+        if (methods.size() == 0) {
+            return null;
+        } else if (methods.size() == 1) {
+            return methods.iterator().next().getMethod();
+        } else {
+            throw new AssertionError("Expected 1 or less methods, but found more than 1 methods: " + methods);
+        }
+    }
 }
