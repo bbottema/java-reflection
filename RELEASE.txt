@@ -4,6 +4,14 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.9.3
+
+- Added API for checking method compatibility based on actual arguments rather than by types only
+- Added helper method to zip method parameters with their respective actual arguments
+- Made the LookupMode arguments of type Set rather than EnumSet, so they can be made unmodifiable
+- Added convenience method for returning the verify and return the only method in a findMethods result
+
+
 v3.9.2
 
 - Added API to easily invoke bean setters / getters or methods
