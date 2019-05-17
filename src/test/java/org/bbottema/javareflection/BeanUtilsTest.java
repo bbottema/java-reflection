@@ -327,6 +327,7 @@ public class BeanUtilsTest {
 	public void testInvokeBeanSetter_SimpleSuccess() {
 		BeanFields subject = new BeanFields();
 
+		assertThat(BeanUtils.invokeBeanSetter(subject, "withSetter", null)).isEqualTo(null);
 		assertThat(BeanUtils.invokeBeanSetter(subject, "withSetter", 123)).isEqualTo(123);
 		assertThat(BeanUtils.invokeBeanSetter(subject, "withGetterAndSetter", true)).isEqualTo(true);
 		assertThat(BeanUtils.invokeBeanSetter(subject, "primitiveBoolean", true)).isEqualTo(true);
@@ -369,6 +370,13 @@ public class BeanUtilsTest {
 		} catch (RuntimeException e) {
 			assertThat(e.getCause()).isInstanceOf(NoSuchMethodException.class);
 			assertThat(e.getCause().getMessage()).contains("error: unable to convert value");
+		}
+
+		try {
+			BeanUtils.invokeBeanSetter(subject, "primitiveBoolean", null);
+			fail("expected exception");
+		} catch (RuntimeException e) {
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
 		}
 	}
 
