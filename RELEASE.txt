@@ -4,6 +4,11 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.9.4
+
+- Allow null-values when invoking setter
+
+
 v3.9.3
 
 - Added API for checking method compatibility based on actual arguments rather than by types only
