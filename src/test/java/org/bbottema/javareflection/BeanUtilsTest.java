@@ -3,6 +3,7 @@ package org.bbottema.javareflection;
 import org.bbottema.javareflection.BeanUtils.BeanRestriction;
 import org.bbottema.javareflection.BeanUtils.Visibility;
 import org.bbottema.javareflection.model.FieldWrapper;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -424,7 +425,7 @@ public class BeanUtilsTest {
 			return withGetter;
 		}
 
-		public void setWithSetter(final Object withSetter) {
+		public void setWithSetter(@Nullable final Object withSetter) {
 			this.withSetter = withSetter;
 		}
 
