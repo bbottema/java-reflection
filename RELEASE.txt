@@ -4,6 +4,11 @@ http://code.google.com/p/java-reflection/
 RELEASE NOTES Java Reflection
 
 
+v3.9.5
+
+- Added method to check if a class has a method with a given name
+
+
 v3.9.4
 
 - Allow null-values when invoking setter
