@@ -258,6 +258,15 @@ public final class ClassUtils {
 	}
 
 	/**
+	 * @return Whether {@link #collectMethodsMappingToName(Class, Class, EnumSet)} contains a method with the given name.
+	 */
+	@SuppressWarnings("WeakerAccess")
+	public static boolean hasMethodByName(final Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers, final String methodName) {
+		LinkedHashMap<String, List<Method>> methodsByName = collectMethodsMappingToName(type, boundaryMarker, methodModifiers);
+		return methodsByName.containsKey(methodName) && !methodsByName.get(methodName).isEmpty();
+	}
+
+	/**
 	 * @return The first result of {@link #collectMethodsByName(Class, Class, EnumSet, String)}.
 	 * 			<strong>Note: </strong> methods are ordered in groups (see {@link #collectMethods(Class, Class, EnumSet)})).
 	 */

@@ -135,6 +135,13 @@ public class ClassUtilsTest {
 		assertThat(ClassUtils.findFirstMethodByName(C.class, Object.class, MATCH_ANY, "protectedMethod"))
 				.extracting("name").containsExactly("protectedMethod");
 	}
+
+	@Test
+	public void testHasMethodByName() {
+		assertThat(ClassUtils.hasMethodByName(C.class, C.class, MATCH_ANY, "foo")).isTrue();
+		assertThat(ClassUtils.hasMethodByName(C.class, Object.class, MATCH_ANY, "protectedMethod")).isTrue();
+		assertThat(ClassUtils.hasMethodByName(C.class, Object.class, MATCH_ANY, "lalala")).isFalse();
+	}
 	
 	@Test
 	public void testCollectMethodsMappingToName() {
