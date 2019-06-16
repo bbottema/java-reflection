@@ -269,7 +269,8 @@ public final class BeanUtils {
 	 * @return The actual value used in the bean setter.
 	 */
 	@SuppressWarnings("ConstantConditions")
-	static public Object invokeBeanSetter(Object o, String fieldName, Object value) {
+	@Nullable
+	static public Object invokeBeanSetter(Object o, String fieldName, @Nullable Object value) {
 		for (List<FieldWrapper> fieldWrappers : collectFields(o.getClass(), Object.class, allOf(Visibility.class), of(YES_SETTER)).values()) {
 			for (FieldWrapper fieldWrapper : fieldWrappers) {
 				if (fieldWrapper.getField().getName().equals(fieldName) ) {
