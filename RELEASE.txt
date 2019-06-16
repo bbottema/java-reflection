@@ -1,4 +1,4 @@
-http://code.google.com/p/java-reflection/
+https://github.com/bbottema/java-reflection
 
 
 RELEASE NOTES Java Reflection
