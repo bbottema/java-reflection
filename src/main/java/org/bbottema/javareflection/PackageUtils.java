@@ -3,6 +3,7 @@ package org.bbottema.javareflection;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("WeakerAccess")
 @UtilityClass
 public final class PackageUtils {
 	

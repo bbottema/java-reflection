@@ -30,6 +30,6 @@ public class StringUtils {
 		if (str == null || str.length() == 0) {
 			return str;
 		}
-		return String.valueOf(Character.toTitleCase(str.charAt(0))) + str.substring(1);
+		return Character.toTitleCase(str.charAt(0)) + str.substring(1);
 	}
 }

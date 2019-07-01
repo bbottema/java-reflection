@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,16 +32,16 @@ public class LookupCaches {
 	 * combinations using autoboxing and/or automatic common conversions can become very large (7000+ with only three parameters) and can become a
 	 * real problem. The more frequently a method is being called the larger the performance gain, especially for methods with long parameter lists
 	 *
-	 * @see MethodUtils#addMethodToCache(Class, String, Set, Class[])
-	 * @see MethodUtils#getMethodFromCache(Class, String, Class[])
+	 * @see "MethodUtils.addMethodToCache(Class, String, Set, Class[])"
+	 * @see "MethodUtils#getMethodFromCache(Class, String, Class[])"
 	 */
 	final static Map<Class<?>, Map<String, Map<Class<?>[], Set<InvokableObject>>>> METHOD_CACHE = new LinkedHashMap<>();
 	
 	static final Map<Class<?>, Set<Class<?>>> CACHED_REGISTERED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
 	static final Map<Class<?>, Set<Class<?>>> CACHED_COMPATIBLE_TARGET_TYPES = new HashMap<>();
-	static final Map<Set<LookupMode>, Map<ArrayKey, List<Class<?>[]>>> CACHED_COMPATIBLE_TYPE_LISTS = new HashMap<>();
+	private static final Map<Set<LookupMode>, Map<ArrayKey, List<Class<?>[]>>> CACHED_COMPATIBLE_TYPE_LISTS = new HashMap<>();
 	
-	@SuppressWarnings({"WeakerAccess", "unused"})
+	@SuppressWarnings({"unused"})
 	public static void resetCache() {
 		CLASS_CACHE.clear();
 		METHOD_CACHE.clear();
@@ -55,10 +54,7 @@ public class LookupCaches {
 	static List<Class<?>[]> getCachedCompatibleSignatures(Set<LookupMode> lookupMode, ArrayKey arrayKey) {
 		final Map<ArrayKey, List<Class<?>[]>> cachedCompatibleSignatures = CACHED_COMPATIBLE_TYPE_LISTS.get(lookupMode);
 		if (cachedCompatibleSignatures != null) {
-			final List<Class<?>[]> cachedResult = cachedCompatibleSignatures.get(arrayKey);
-			if (cachedResult != null) {
-				return cachedResult;
-			}
+			return cachedCompatibleSignatures.get(arrayKey);
 		}
 		return null;
 	}

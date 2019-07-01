@@ -12,7 +12,7 @@ import java.util.Map;
 public class ReflectionUtils {
 
 	@SuppressWarnings("FieldCanBeLocal")
-	private static String INVALID_GENERIC_TYPE_DEFINITION = "Unable to determine generic type, probably due to type erasure. Make sure the type is part of a class signature (it can not be a field or variable, or a nested generic type such as List<NestedType>)";
+	private static final String INVALID_GENERIC_TYPE_DEFINITION = "Unable to determine generic type, probably due to type erasure. Make sure the type is part of a class signature (it can not be a field or variable, or a nested generic type such as List<NestedType>)";
 
 	/**
 	 * Inspects a inheritance chain of classes until the <em>classOfInterest</em> is found and then will look for the Generic type declared for the given (zero-based) index.

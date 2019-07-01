@@ -168,7 +168,7 @@ public final class ExternalClassLoader extends ClassLoader {
 		// get data from file
 		final File f = new File(classPath);
 		final int size = (int) f.length();
-		final byte buff[] = new byte[size];
+		final byte[] buff = new byte[size];
 		final DataInputStream dis = new DataInputStream(new FileInputStream(f));
 		dis.readFully(buff);
 		dis.close();
