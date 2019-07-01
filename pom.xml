@@ -280,6 +280,42 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+					<properties>
+						<owner>Benny Bottema</owner>
+						<year>2019</year>
+						<email>benny@bennybottema.com</email>
+					</properties>
+					<mapping>
+						<java>SLASHSTAR_STYLE</java>
+					</mapping>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>clean-remove</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>remove</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>compile-format</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
