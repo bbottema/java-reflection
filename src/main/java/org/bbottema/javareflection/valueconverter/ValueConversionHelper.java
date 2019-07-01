@@ -256,7 +256,7 @@ public final class ValueConversionHelper {
 	}
 	
 	@NotNull
-	private static <T> T convertWithoutConversionGraph(@NotNull Object fromValue, Class<T> targetType) {
+	private static <T> T convertWithoutConversionGraph(final Object fromValue, final Class<T> targetType) {
 		if (valueConverters.containsKey(fromValue.getClass())) {
 			Map<Class<?>, ValueFunction<Object, Object>> fromConverters = valueConverters.get(fromValue.getClass());
 			if (fromConverters.containsKey(targetType)) {
@@ -272,7 +272,7 @@ public final class ValueConversionHelper {
 	
 	@SuppressWarnings("unchecked")
 	@NotNull
-	private static <T> T convertWithConversionGraph(@NotNull Object fromValue, @NotNull Class<T> targetType) {
+	private static <T> T convertWithConversionGraph(final Object fromValue, final Class<T> targetType) {
 		final Node<Class<?>> fromNode = converterGraph.get(fromValue.getClass());
 		
 		final List<IncompatibleTypeException> incompatibleTypeExceptions = new ArrayList<>();

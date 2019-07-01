@@ -24,7 +24,7 @@ public final class MiscUtil {
 	
 	@SuppressWarnings("unchecked")
 	@NotNull
-	public static <T> T trustedCast(@NotNull Object o) {
+	public static <T> T trustedCast(Object o) {
 		return (T) o;
 	}
 	

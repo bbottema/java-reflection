@@ -434,7 +434,7 @@ public class ValueConversionHelperTest {
 		
 		@NotNull
 		@Override
-		public Class<Object> convertValue(@NotNull Object value) {
+		public Class<Object> convertValue(Object value) {
 			throw new AssertionError("This method should not be used");
 		}
 	}
