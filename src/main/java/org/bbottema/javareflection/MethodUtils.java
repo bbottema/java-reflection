@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -20,6 +21,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static org.bbottema.javareflection.LookupCaches.METHOD_CACHE;
+import static org.bbottema.javareflection.TypeUtils.containsAnnotation;
 import static org.bbottema.javareflection.util.MiscUtil.trustedCast;
 import static org.bbottema.javareflection.util.MiscUtil.trustedNullableCast;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -560,5 +562,27 @@ public final class MethodUtils {
         } else {
             throw new AssertionError("Expected 1 or less methods, but found more than 1 methods: " + methods);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static <T extends Annotation, Target> Target firstParameterArgumentByAnnotation(Method method, Object[] arguments, Class<T> annotationClass) {
+        if (isMethodCompatible(method, arguments)) {
+            for (int i = 0; i < method.getParameterTypes().length; i++) {
+                if (containsAnnotation(method.getParameterAnnotations()[i], annotationClass)) {
+                    return (Target) arguments[i];
+                }
+            }
+        }
+        return null;
+    }
+
+    public static <T extends Annotation> int firstParameterIndexByAnnotation(Method method, Class<T> annotationClass) {
+        for (int i = 0; i < method.getParameterTypes().length; i++) {
+            if (containsAnnotation(method.getParameterAnnotations()[i], annotationClass)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

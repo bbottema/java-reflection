@@ -44,7 +44,7 @@ public class TypeUtilsTest {
 	
 	@Test
 	public void testCollectTypes() {
-		final Class<?>[] expectedTypeList = new Class<?>[]{Pear.class, String.class, Object.class, Double.class};
+		final Class<?>[] expectedTypeList = new Class<?>[]{Pear.class, String.class, null, Double.class};
 		final Object[] objectList = new Object[]{new Pear(), "foo", null, 4d};
 		assertThat(TypeUtils.collectTypes(objectList)).isEqualTo(expectedTypeList);
 	}

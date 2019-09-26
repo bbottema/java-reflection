@@ -4,7 +4,16 @@ import org.bbottema.javareflection.model.InvokableObject;
 import org.bbottema.javareflection.model.LookupMode;
 import org.bbottema.javareflection.model.MethodModifier;
 import org.bbottema.javareflection.model.MethodParameter;
-import org.bbottema.javareflection.testmodel.*;
+import org.bbottema.javareflection.testmodel.A;
+import org.bbottema.javareflection.testmodel.B;
+import org.bbottema.javareflection.testmodel.C;
+import org.bbottema.javareflection.testmodel.Foo;
+import org.bbottema.javareflection.testmodel.Fruit;
+import org.bbottema.javareflection.testmodel.Kraa;
+import org.bbottema.javareflection.testmodel.Meta;
+import org.bbottema.javareflection.testmodel.Moo;
+import org.bbottema.javareflection.testmodel.Pear;
+import org.bbottema.javareflection.testmodel.Skree;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
@@ -19,13 +28,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.EnumSet.allOf;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.util.Lists.newArrayList;
 import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
 import static org.bbottema.javareflection.MethodUtils.onlyMethod;
 import static org.bbottema.javareflection.model.MethodModifier.MATCH_ANY;
@@ -297,5 +312,26 @@ public class MethodUtilsTest {
 	
 	private Method findSkreeMethod(String methodName) {
 		return collectMethodsByName(Skree.class, Skree.class, MATCH_ANY, methodName).iterator().next();
+	}
+
+	@Test
+	public void testFirstParameterArgumentByAnnotation() {
+		final Method testMethod = requireNonNull(ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, MATCH_ANY, "testMethod"));
+		final int argOne = 2;
+		final List argTwo = null;
+		final HashSet argThree = new HashSet();
+		final Object[] arguments = {argOne, argTwo, argThree};
+		assertThat(MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Nullable.class)).isSameAs(argTwo);
+		assertThat(MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Nonnull.class)).isSameAs(argThree);
+		assertThat(MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Meta.class)).isNull();
+	}
+
+	@Test
+	public void testFirstParameterIndexByAnnotation() {
+		final Method testMethod = requireNonNull(ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, MATCH_ANY, "testMethod"));
+
+		assertThat(MethodUtils.firstParameterIndexByAnnotation(testMethod, Nullable.class)).isEqualTo(1);
+		assertThat(MethodUtils.firstParameterIndexByAnnotation(testMethod, Nonnull.class)).isEqualTo(2);
+		assertThat(MethodUtils.firstParameterIndexByAnnotation(testMethod, Meta.class)).isEqualTo(-1);
 	}
 }

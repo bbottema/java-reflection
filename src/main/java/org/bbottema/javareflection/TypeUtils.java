@@ -69,7 +69,7 @@ public final class TypeUtils {
 		final Class<?>[] types = new Class<?>[objects.length];
 		for (int i = 0; i < objects.length; i++) {
 			final Object o = objects[i];
-			types[i] = o != null ? o.getClass() : Object.class;
+			types[i] = o != null ? o.getClass() : null;
 		}
 		return types;
 	}
@@ -81,7 +81,7 @@ public final class TypeUtils {
 		for (Class<?>[] derivableTypeList : derivableTypeLists) {
 			boolean currentTypeListCompatible = true;
 			for (int i = 0; i < derivableTypeList.length && currentTypeListCompatible; i++) {
-				if (!derivableTypeList[i].equals(targetTypeList[i])) {
+				if (derivableTypeList[i] != null && !derivableTypeList[i].equals(targetTypeList[i])) {
 					currentTypeListCompatible = false;
 				}
 			}
@@ -137,47 +137,49 @@ public final class TypeUtils {
 			// 1. don't generate compatible list; just try the normal type first
 			// remember, in combinations types should be allowed to be converted)
 			generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, inputTypelist.clone());
-			
-			// 2. generate type in which the original can be (un)wrapped
-			if (lookupMode.contains(LookupMode.AUTOBOX) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
-				final Class<?> autoboxed = autobox(original);
-				if (autoboxed != null) {
-					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, autoboxed);
-					generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+
+			if (original != null) {
+				// 2. generate type in which the original can be (un)wrapped
+				if (lookupMode.contains(LookupMode.AUTOBOX) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
+					final Class<?> autoboxed = autobox(original);
+					if (autoboxed != null) {
+						final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, autoboxed);
+						generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+					}
 				}
-			}
-			
-			// autocast to supertype or interface?
-			if (lookupMode.contains(LookupMode.CAST_TO_INTERFACE)) {
-				// 3. generate implemented interfaces the original value could be converted (cast) into
-				for (final Class<?> iface : original.getInterfaces()) {
-					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, iface);
-					generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+
+				// autocast to supertype or interface?
+				if (lookupMode.contains(LookupMode.CAST_TO_INTERFACE)) {
+					// 3. generate implemented interfaces the original value could be converted (cast) into
+					for (final Class<?> iface : original.getInterfaces()) {
+						final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, iface);
+						generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+					}
 				}
-			}
-			
-			if (lookupMode.contains(LookupMode.CAST_TO_SUPER)) {
-				// 4. generate supertypes the original value could be converted (cast) into
-				Class<?> supertype = original;
-				while ((supertype = supertype.getSuperclass()) != null) {
-					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, supertype);
-					generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+
+				if (lookupMode.contains(LookupMode.CAST_TO_SUPER)) {
+					// 4. generate supertypes the original value could be converted (cast) into
+					Class<?> supertype = original;
+					while ((supertype = supertype.getSuperclass()) != null) {
+						final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, supertype);
+						generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+					}
 				}
-			}
-			
-			// 5. generate types the original value could be converted into
-			if (lookupMode.contains(LookupMode.COMMON_CONVERT) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
-				for (final Class<?> convert : collectRegisteredCompatibleTargetTypes(original)) {
-					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, convert);
-					generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+
+				// 5. generate types the original value could be converted into
+				if (lookupMode.contains(LookupMode.COMMON_CONVERT) && !lookupMode.contains(LookupMode.SMART_CONVERT)) {
+					for (final Class<?> convert : collectRegisteredCompatibleTargetTypes(original)) {
+						final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, convert);
+						generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+					}
 				}
-			}
-			
-			// 6. generate types the original value could be converted into with intermediary conversions
-			if (lookupMode.contains(LookupMode.SMART_CONVERT)) {
-				for (final Class<?> convert : collectCompatibleTargetTypes(original)) {
-					final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, convert);
-					generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+
+				// 6. generate types the original value could be converted into with intermediary conversions
+				if (lookupMode.contains(LookupMode.SMART_CONVERT)) {
+					for (final Class<?> convert : collectCompatibleTargetTypes(original)) {
+						final Class<?>[] newTypeList = replaceInArray(inputTypelist.clone(), index, convert);
+						generateCompatibleTypeLists(index + 1, lookupMode, compatibleTypeLists, newTypeList);
+					}
 				}
 			}
 		}
