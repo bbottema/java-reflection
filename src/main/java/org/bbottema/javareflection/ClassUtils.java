@@ -62,11 +62,11 @@ public final class ClassUtils {
 	 * @return The <code>Class</code> reference if found or <code>null</code> otherwise.
 	 */
 	@Nullable
-	@SuppressWarnings("WeakerAccess")
-	public static Class<?> locateClass(final String className, final boolean fullscan, @Nullable final ClassLoader classLoader) {
+	@SuppressWarnings({"WeakerAccess", "unchecked"})
+	public static <T> Class<T> locateClass(final String className, final boolean fullscan, @Nullable final ClassLoader classLoader) {
 		final String cacheKey = className + fullscan;
 		if (CLASS_CACHE.containsKey(cacheKey)) {
-			return CLASS_CACHE.get(cacheKey);
+			return (Class<T>) CLASS_CACHE.get(cacheKey);
 		}
 		final Class<?> _class;
 		if (fullscan) {
@@ -76,15 +76,15 @@ public final class ClassUtils {
 			_class = locateClass(className, "java.lang", classLoader);
 		}
 		CLASS_CACHE.put(cacheKey, _class);
-		return _class;
+		return (Class<T>) _class;
 	}
 	
 	@Nullable
-	@SuppressWarnings("WeakerAccess")
-	public static Class<?> locateClass(final String className, @Nullable final String inPackage, @Nullable final ClassLoader classLoader) {
+	@SuppressWarnings({"WeakerAccess", "unchecked"})
+	public static <T> Class<T> locateClass(final String className, @Nullable final String inPackage, @Nullable final ClassLoader classLoader) {
 		final String cacheKey = className + inPackage;
 		if (CLASS_CACHE.containsKey(cacheKey)) {
-			return CLASS_CACHE.get(cacheKey);
+			return (Class<T>) CLASS_CACHE.get(cacheKey);
 		}
 		
 		Class<?> _class = locateClass(className, classLoader);
@@ -94,7 +94,7 @@ public final class ClassUtils {
 		}
 		
 		CLASS_CACHE.put(cacheKey, _class);
-		return _class;
+		return (Class<T>) _class;
 	}
 	
 	/**
@@ -105,9 +105,9 @@ public final class ClassUtils {
 	 * @param classLoader Optional user-provided classloader.
 	 * @return The {@code Class} object found from cache or VM.
 	 */
-	@SuppressWarnings("WeakerAccess")
+	@SuppressWarnings({"WeakerAccess", "unchecked"})
 	@Nullable
-	public static Class<?> locateClass(final String fullClassName, @Nullable final ClassLoader classLoader) {
+	public static <T> Class<T> locateClass(final String fullClassName, @Nullable final ClassLoader classLoader) {
 		try {
 			Class<?> _class = null;
 			if (classLoader != null) {
@@ -116,7 +116,7 @@ public final class ClassUtils {
 			if (_class == null) {
 				_class = Class.forName(fullClassName);
 			}
-			return _class;
+			return (Class<T>) _class;
 		} catch (final ClassNotFoundException e) {
 			return null;
 		}
