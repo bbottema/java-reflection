@@ -4,6 +4,20 @@ https://github.com/bbottema/java-reflection
 RELEASE NOTES Java Reflection
 
 
+v3.10.1
+
+- Made locateClass a little bit more user friendly by deferring return type T
+
+
+v3.10.0
+
+- Added methods for finding parameters by annotations type
+- Moved to Intellij @Nullability annotations
+- Added license boilerplate code in Maven build script
+- Solved a bunch of static anlayses warnings
+- Improved how compatibility work when passing null-arguments as argument lists for locating constructors/methods
+
+
 v3.9.5
 
 - Added method to check if a class has a method with a given name
