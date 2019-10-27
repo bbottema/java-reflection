@@ -23,12 +23,12 @@ import org.junit.Before;
 import org.junit.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -273,6 +273,8 @@ public class ValueConversionHelperTest {
 		assertThat(ValueConversionHelper.convert("h", String.class)).isEqualTo("h");
 		assertThat(ValueConversionHelper.convert("ONE", TestEnum.class)).isEqualTo(TestEnum.ONE);
 		assertThat(ValueConversionHelper.convert("h", Boolean.class)).isTrue();
+		final UUID uuid = UUID.randomUUID();
+		assertThat(ValueConversionHelper.convert(uuid.toString(), UUID.class)).isEqualTo(uuid);
 		try {
 			ValueConversionHelper.convert("falsef", Boolean.class);
 			fail("should not be able to convert value");
@@ -293,6 +295,24 @@ public class ValueConversionHelperTest {
 		}
 		try {
 			ValueConversionHelper.convert("", int.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConversionHelper.convert("", UUID.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConversionHelper.convert("s", UUID.class);
+			fail("should not be able to convert value");
+		} catch (IncompatibleTypeException e) {
+			// OK
+		}
+		try {
+			ValueConversionHelper.convert("s-s-s-s-s", UUID.class);
 			fail("should not be able to convert value");
 		} catch (IncompatibleTypeException e) {
 			// OK

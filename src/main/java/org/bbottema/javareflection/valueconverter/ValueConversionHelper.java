@@ -25,6 +25,7 @@ import org.bbottema.javareflection.valueconverter.converters.CharacterConverters
 import org.bbottema.javareflection.valueconverter.converters.FileConverters;
 import org.bbottema.javareflection.valueconverter.converters.NumberConverters;
 import org.bbottema.javareflection.valueconverter.converters.StringConverters;
+import org.bbottema.javareflection.valueconverter.converters.UUIDConverters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,6 +92,7 @@ public final class ValueConversionHelper {
 		defaultConverters.addAll(BooleanConverters.BOOLEAN_CONVERTERS);
 		defaultConverters.addAll(CharacterConverters.CHARACTER_CONVERTERS);
 		defaultConverters.addAll(StringConverters.STRING_CONVERTERS);
+		defaultConverters.addAll(UUIDConverters.UUID_CONVERTERS);
 		defaultConverters.addAll(FileConverters.FILE_CONVERTERS);
 		
 		for (ValueFunction<?, ?> numberConverter : defaultConverters) {

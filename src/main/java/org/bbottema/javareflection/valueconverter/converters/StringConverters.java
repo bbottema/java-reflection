@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -50,6 +51,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * <li><strong>Double (or primitive double)</strong>: <code>Double.parseDouble(value)</code></li>
  * <li><strong>BigInteger</strong>: <code>BigInteger.valueOf(Long.parseLong(value))</code></li>
  * <li><strong>BigDecimal</strong>: <code>new BigDecimal(value)</code></li>
+ * <li><strong>UUID</strong>: <code>UUID.fromString(value)</code></li>
  * </ol>
  */
 @Nullable
@@ -72,6 +74,7 @@ public final class StringConverters {
 		converters.add(new ValueFunctionImpl<>(String.class, BigInteger.class, new StringToBigIntegerFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, BigDecimal.class, new StringToBigDecimalFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, File.class, new StringToFileFunction()));
+		converters.add(new ValueFunctionImpl<>(String.class, UUID.class, new StringToUUIDFunction()));
 		return converters;
 	}
 	
@@ -228,6 +231,17 @@ public final class StringConverters {
 				throw new IncompatibleTypeException(value, String.class, File.class);
 			}
 			return file;
+		}
+	}
+	
+	private static class StringToUUIDFunction implements Function<String, UUID> {
+		@Override
+		public UUID apply(String value) {
+			try {
+				return UUID.fromString(value);
+			} catch (IllegalArgumentException e) {
+				throw new IncompatibleTypeException(value, String.class, UUID.class);
+			}
 		}
 	}
 }
