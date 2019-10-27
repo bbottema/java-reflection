@@ -4,6 +4,12 @@ https://github.com/bbottema/java-reflection
 RELEASE NOTES Java Reflection
 
 
+v3.11.0
+
+- Added support for UUID conversion
+- The Jakarta Activation framework is now an explicit dependency
+
+
 v3.10.1
 
 - Made locateClass a little bit more user friendly by deferring return type T
