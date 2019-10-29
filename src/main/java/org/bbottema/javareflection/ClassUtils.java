@@ -313,6 +313,10 @@ public final class ClassUtils {
 				allMethods.add(declaredMethod);
 			}
 		}
+
+		for (Class<?> implementedInterface : dataType.getInterfaces()) {
+			allMethods.addAll(collectMethods(implementedInterface, boundaryMarker, methodModifiers));
+		}
 		
 		if (dataType != boundaryMarker && dataType.getSuperclass() != null) {
 			allMethods.addAll(collectMethods(dataType.getSuperclass(), boundaryMarker, methodModifiers));

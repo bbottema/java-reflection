@@ -117,7 +117,8 @@ public class ClassUtilsTest {
 	@Test
 	public void testCollectMethods() {
 		List<Method> methodsOnC = ClassUtils.collectMethods(C.class, A.class, of(PUBLIC));
-		assertThat(methodsOnC).extracting("name").containsExactlyInAnyOrder("foo", "bar", "updateNumberC", "updateNumber_privateC");
+		// the second foo and bar occurrence come from the interface Foo that A implements (Foo extends Bar)
+		assertThat(methodsOnC).extracting("name").containsExactlyInAnyOrder("foo", "foo", "bar", "bar", "updateNumberC", "updateNumber_privateC");
 	}
 
 	@Test
