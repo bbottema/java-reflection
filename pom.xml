@@ -9,7 +9,8 @@
 	<name>Java Reflection</name>
 	<version>3.11.1</version>
 	<description>Java Reflection provides a small package with nifty reflection features that will help with finding constructors, methods and value conversions</description>
-	<url>http:///github.com/bbottema/java-reflection</url>
+	<url>https://github.com/bbottema/java-reflection</url>
+	<inceptionYear>2011</inceptionYear>
 
 	<licenses>
 		<license>
@@ -314,8 +315,8 @@
 						</goals>
 					</execution>
 					<execution>
-						<id>compile-format</id>
-						<phase>compile</phase>
+						<id>before-compile-format</id>
+						<phase>process-sources</phase>
 						<goals>
 							<goal>format</goal>
 						</goals>
