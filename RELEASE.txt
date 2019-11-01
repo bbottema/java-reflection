@@ -4,10 +4,11 @@ https://github.com/bbottema/java-reflection
 RELEASE NOTES Java Reflection
 
 
-v3.11.1 - v3.11.2
+v3.11.1 - v3.11.3
 
-- 3.11.1: ClassUtils.collectMethods now returns methods define on implemented interfaces as well
+- 3.11.3: Solved an NullPointerException in a collectMethods method
 - 3.11.2: recompiled so the line numbers are correct with the released sources (due to license boilerplate added at the wrong time)
+- 3.11.1: ClassUtils.collectMethods now returns methods define on implemented interfaces as well
 
 
 v3.11.0

@@ -127,6 +127,7 @@ public class ClassUtilsTest {
 				.extracting("name").containsExactlyInAnyOrder("foo");
 		assertThat(ClassUtils.collectMethodsByName(C.class, Object.class, MATCH_ANY, "protectedMethod"))
 				.extracting("name").containsExactlyInAnyOrder("protectedMethod", "protectedMethod", "protectedMethod");
+		assertThat(ClassUtils.collectMethodsByName(C.class, C.class, MATCH_ANY, "nonexistantMethod")).isEmpty();
 	}
 
 	@Test

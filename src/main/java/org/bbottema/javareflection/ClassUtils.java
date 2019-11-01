@@ -254,7 +254,8 @@ public final class ClassUtils {
 	 */
 	@SuppressWarnings("WeakerAccess")
 	public static List<Method> collectMethodsByName(final Class<?> type, Class<?> boundaryMarker, EnumSet<MethodModifier> methodModifiers, final String methodName) {
-		return collectMethodsMappingToName(type, boundaryMarker, methodModifiers).get(methodName);
+		LinkedHashMap<String, List<Method>> methodsByName = collectMethodsMappingToName(type, boundaryMarker, methodModifiers);
+		return methodsByName.containsKey(methodName) ? methodsByName.get(methodName) : new ArrayList<Method>();
 	}
 
 	/**
