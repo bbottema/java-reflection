@@ -15,9 +15,14 @@ through multiple converters if a direct one is not available. It contains many b
 <dependency>
   <groupId>com.github.bbottema</groupId>
   <artifactId>java-reflection</artifactId>
-  <version>3.11.3</version>
+  <version>3.12.0</version>
 </dependency>
 ```
+
+v3.12.0 (4-November-2019)
+
+- For simple class lookups, In addition to java.lang, also try the packages java.util and java.math
+
 
 v3.11.1 - v3.11.3 (29-October-2019 - 1-November-2019)
 
