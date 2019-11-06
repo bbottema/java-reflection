@@ -18,6 +18,7 @@ import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.internal.util.collections.Iterables;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import javax.annotation.Nonnull;
@@ -38,12 +39,14 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.EnumSet.allOf;
+import static java.util.EnumSet.of;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
 import static org.bbottema.javareflection.MethodUtils.onlyMethod;
 import static org.bbottema.javareflection.model.MethodModifier.MATCH_ANY;
+import static org.bbottema.javareflection.model.MethodModifier.PUBLIC;
 
 public class MethodUtilsTest {
 	
@@ -208,10 +211,10 @@ public class MethodUtilsTest {
 	@Test
 	public void testIsMethodCompatible_TestLookupModes() throws NoSuchMethodException {
 		Set<LookupMode> noConversions = EnumSet.noneOf(LookupMode.class);
-		Set<LookupMode> commonConversions = EnumSet.of(LookupMode.COMMON_CONVERT);
-		Set<LookupMode> castConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.CAST_TO_INTERFACE);
-		Set<LookupMode> castThenCommonsConvert = EnumSet.of(LookupMode.CAST_TO_SUPER, LookupMode.COMMON_CONVERT);
-		Set<LookupMode> smartConversions = EnumSet.of(LookupMode.SMART_CONVERT);
+		Set<LookupMode> commonConversions = of(LookupMode.COMMON_CONVERT);
+		Set<LookupMode> castConvert = of(LookupMode.CAST_TO_SUPER, LookupMode.CAST_TO_INTERFACE);
+		Set<LookupMode> castThenCommonsConvert = of(LookupMode.CAST_TO_SUPER, LookupMode.COMMON_CONVERT);
+		Set<LookupMode> smartConversions = of(LookupMode.SMART_CONVERT);
 		
 		Method m = Math.class.getMethod("min", int.class, int.class);
 		assertThat(MethodUtils.isMethodCompatible(m, noConversions, int.class, boolean.class)).isFalse();
@@ -333,5 +336,14 @@ public class MethodUtilsTest {
 		assertThat(MethodUtils.firstParameterIndexByAnnotation(testMethod, Nullable.class)).isEqualTo(1);
 		assertThat(MethodUtils.firstParameterIndexByAnnotation(testMethod, Nonnull.class)).isEqualTo(2);
 		assertThat(MethodUtils.firstParameterIndexByAnnotation(testMethod, Meta.class)).isEqualTo(-1);
+	}
+
+	@Test
+	public void testInvokeMethodSimple() {
+		Set<InvokableObject<Method>> valueOf = MethodUtils.findSimpleCompatibleMethod(String.class, "valueOf", boolean.class);
+		Method valueOfBoolean = Iterables.firstOf(valueOf).getMethod();
+
+		assertThat(MethodUtils.invokeMethodSimple(valueOfBoolean, null, true)).isEqualTo("true");
+		assertThat(MethodUtils.invokeMethodSimple(valueOfBoolean, null, false)).isEqualTo("false");
 	}
 }

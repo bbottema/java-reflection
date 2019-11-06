@@ -73,7 +73,7 @@ public final class MethodUtils {
 	 */
     @Nullable
     @SuppressWarnings({"unchecked"})
-    public static <T> T invokeMethodSimple(final Method method, final Object subject, final Object... args) {
+    public static <T> T invokeMethodSimple(final Method method, @Nullable final Object subject, final Object... args) {
         try {
             return (T) method.invoke(subject, args);
         } catch (SecurityException e) {

@@ -36,6 +36,7 @@ import static org.bbottema.javareflection.util.MiscUtil.trustedNullableCast;
  * </ul>
  */
 @UtilityClass
+@SuppressWarnings("WeakerAccess")
 public final class ClassUtils {
 	
 	/**
@@ -53,12 +54,18 @@ public final class ClassUtils {
 		if (CLASS_CACHE.containsKey(cacheKey)) {
 			return (Class<T>) CLASS_CACHE.get(cacheKey);
 		}
-		final Class<?> _class;
+		Class<?> _class;
 		if (fullscan) {
 			_class = locateClass(className, null, classLoader);
 		} else {
 			// try standard package used for most common classes
 			_class = locateClass(className, "java.lang", classLoader);
+			if (_class == null) {
+				_class = locateClass(className, "java.util", classLoader);
+			}
+			if (_class == null) {
+				_class = locateClass(className, "java.math", classLoader);
+			}
 		}
 		CLASS_CACHE.put(cacheKey, _class);
 		return (Class<T>) _class;

@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static java.util.EnumSet.of;
@@ -33,6 +34,7 @@ public class ClassUtilsTest {
 	
 	@Test
 	public void testLocateClass() {
+		assertThat(ClassUtils.locateClass("Locale", false, null)).isEqualTo(Locale.class);
 		assertThat(ClassUtils.locateClass("Math", false, null)).isEqualTo(Math.class);
 		assertThat(ClassUtils.locateClass("Mathh", false, null)).isNull();
 		assertThat(ClassUtils.locateClass("ClassUtils", false, null)).isNull();
