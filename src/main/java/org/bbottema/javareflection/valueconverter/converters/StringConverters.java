@@ -237,18 +237,19 @@ public final class StringConverters {
 	
 	static class StringToDateFunction implements Function<String, Date> {
 		
-		// Quoted "Z" to indicate UTC, no timezone offset
-		private static final DateFormat DATETIME_FORMAT_SIMPLE = new SimpleDateFormat("yyyy-MM-dd");
-		private static final DateFormat DATETIME_FORMAT_ISO8601 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		private static ThreadLocal<DateFormat> DATETIME_FORMAT_SIMPLE =
+				new ThreadLocal<DateFormat>() { public DateFormat initialValue() { return new SimpleDateFormat("yyyy-MM-dd"); } };
+		private static ThreadLocal<DateFormat> DATETIME_FORMAT_ISO8601 =
+				new ThreadLocal<DateFormat>() { public DateFormat initialValue() { return new SimpleDateFormat("yyyy-MM-dd HH:mm"); } };
 		private IllegalArgumentException INCOMPATIBLE_EXCEPTION = new IllegalArgumentException("not compatible with yyyy-MM-dd or yyyy-MM-dd HH:mm");
 		
 		@Override
 		public Date apply(String value) {
 			try {
-				return DATETIME_FORMAT_ISO8601.parse(value);
+				return DATETIME_FORMAT_ISO8601.get().parse(value);
 			} catch (IllegalArgumentException | ParseException e1) {
 				try {
-					return DATETIME_FORMAT_SIMPLE.parse(value);
+					return DATETIME_FORMAT_SIMPLE.get().parse(value);
 				} catch (IllegalArgumentException | ParseException e2) {
 					throw new IncompatibleTypeException(value, String.class, Date.class, INCOMPATIBLE_EXCEPTION);
 				}
