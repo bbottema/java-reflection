@@ -15,8 +15,12 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.UUID;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -60,6 +64,7 @@ public final class StringConverters {
 		converters.add(new ValueFunctionImpl<>(String.class, BigDecimal.class, new StringToBigDecimalFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, File.class, new StringToFileFunction()));
 		converters.add(new ValueFunctionImpl<>(String.class, UUID.class, new StringToUUIDFunction()));
+		converters.add(new ValueFunctionImpl<>(String.class, Date.class, new StringToDateFunction()));
 		return converters;
 	}
 	
@@ -226,6 +231,27 @@ public final class StringConverters {
 				return UUID.fromString(value);
 			} catch (IllegalArgumentException e) {
 				throw new IncompatibleTypeException(value, String.class, UUID.class);
+			}
+		}
+	}
+	
+	static class StringToDateFunction implements Function<String, Date> {
+		
+		// Quoted "Z" to indicate UTC, no timezone offset
+		private static final DateFormat DATETIME_FORMAT_SIMPLE = new SimpleDateFormat("yyyy-MM-dd");
+		private static final DateFormat DATETIME_FORMAT_ISO8601 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		private IllegalArgumentException INCOMPATIBLE_EXCEPTION = new IllegalArgumentException("not compatible with yyyy-MM-dd or yyyy-MM-dd HH:mm");
+		
+		@Override
+		public Date apply(String value) {
+			try {
+				return DATETIME_FORMAT_ISO8601.parse(value);
+			} catch (IllegalArgumentException | ParseException e1) {
+				try {
+					return DATETIME_FORMAT_SIMPLE.parse(value);
+				} catch (IllegalArgumentException | ParseException e2) {
+					throw new IncompatibleTypeException(value, String.class, Date.class, INCOMPATIBLE_EXCEPTION);
+				}
 			}
 		}
 	}
