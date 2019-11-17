@@ -15,9 +15,14 @@ through multiple converters if a direct one is not available. It contains many b
 <dependency>
   <groupId>com.github.bbottema</groupId>
   <artifactId>java-reflection</artifactId>
-  <version>3.12.0</version>
+  <version>3.13.0</version>
 </dependency>
 ```
+
+v3.13.0 (17-November-2019)
+
+- Added converter support for String to Date yyyy-MM-dd[ HH:mm]
+
 
 v3.12.0 (4-November-2019)
 
