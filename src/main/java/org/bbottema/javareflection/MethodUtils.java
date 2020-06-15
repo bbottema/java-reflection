@@ -405,26 +405,38 @@ public final class MethodUtils {
 		}
 		return TypeUtils.isTypeListCompatible(signature, targetSignature, lookupMode);
 	}
-
-    /**
-     * Given a method and a list of arguments, return a map of parameters matching their arguments.
-     * If the arguments are not compatible, return null instead.
-     */
-    @SuppressWarnings({"unused"})
-    @Nullable
-    public static LinkedHashMap<MethodParameter, Object> zipParametersAndArguments(Method method, Object... arguments) {
-        if (isMethodCompatible(method, arguments)) {
-            final LinkedHashMap<MethodParameter, Object> result = new LinkedHashMap<>();
-            for (int i = 0; i < method.getParameterTypes().length; i++) {
-                result.put(new MethodParameter(i,
-                        method.getParameterTypes()[i],
-                        method.getGenericParameterTypes()[i],
-                        Arrays.asList(method.getParameterAnnotations()[i])), arguments[i]);
-            }
-            return result;
-        }
-        return null;
-    }
+	
+	/**
+	 * Delegates to {@link #zipParametersAndArguments(boolean, Method, Object...)} with strict type checking.
+	 */
+	@SuppressWarnings({"unused"})
+	@Nullable
+	public static LinkedHashMap<MethodParameter, Object> zipParametersAndArguments(Method method, Object... arguments) {
+		return zipParametersAndArguments(true, method, arguments);
+	}
+	
+	/**
+	 * Given a method and a list of arguments, return a map of parameters matching their arguments.
+	 *
+	 * @param strictTypeChecking Indicates whether the parameters types should be checked for compatibility with the
+	 *                           arguments provided. If true and the signature doesn't match, return {@code null}, or else
+	 *                           zip values as given using the lowest length.
+	 */
+	@SuppressWarnings({"unused"})
+	@Nullable
+	public static LinkedHashMap<MethodParameter, Object> zipParametersAndArguments(boolean strictTypeChecking, Method method, Object... arguments) {
+		if (!strictTypeChecking || isMethodCompatible(method, arguments)) {
+			final LinkedHashMap<MethodParameter, Object> result = new LinkedHashMap<>();
+			for (int i = 0; i < Math.min(method.getParameterTypes().length, arguments.length); i++) {
+				result.put(new MethodParameter(i,
+						method.getParameterTypes()[i],
+						method.getGenericParameterTypes()[i],
+						Arrays.asList(method.getParameterAnnotations()[i])), arguments[i]);
+			}
+			return result;
+		}
+		return null;
+	}
 
     /**
      * Retrieves a {@link Method} from a cache.

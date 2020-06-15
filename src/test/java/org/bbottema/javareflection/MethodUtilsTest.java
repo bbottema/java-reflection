@@ -276,27 +276,94 @@ public class MethodUtilsTest {
 				.extractingResultOf("value")
 				.containsExactlyInAnyOrder("Moo.method1-C");
 	}
-
+	
 	@Test
-	public void testZipParametersAndArguments() {
+	public void testZipParametersAndArguments_SignatureMatches() {
 		Method testMethod = ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, allOf(MethodModifier.class), "testMethod");
 		LinkedHashMap<MethodParameter, Object> result = MethodUtils.zipParametersAndArguments(testMethod, 5, new ArrayList(), new HashSet<Double>());
-
+		
 		Annotation[] p1 = testMethod.getParameterAnnotations()[0];
 		Annotation[] p2 = testMethod.getParameterAnnotations()[1];
 		Annotation[] p3 = testMethod.getParameterAnnotations()[2];
-
+		
 		// verify annotations, which means the result assertions also saw these annotations
 		assertThat(p1).isEmpty();
 		assertThat(p2).extractingResultOf("annotationType").containsExactly(Nullable.class);
 		assertThat(p3).extractingResultOf("annotationType").containsExactly(Nonnull.class);
-
+		
 		ParameterizedTypeImpl parameterizedHashSet = ParameterizedTypeImpl.make(HashSet.class, new Type[]{Double.class}, null);
-
+		
 		assertThat(result).containsExactly(
 				new SimpleEntry<>(new MethodParameter(0, Integer.class, Integer.class, asList(p1)), 5),
 				new SimpleEntry<>(new MethodParameter(1, List.class, List.class, asList(p2)), new ArrayList()),
 				new SimpleEntry<>(new MethodParameter(2, HashSet.class, parameterizedHashSet, asList(p3)), new HashSet<Double>())
+		);
+	}
+	
+	@Test
+	public void testZipParametersAndArguments_SignatureDoesntMatch_OnLength() {
+		Method testMethod = ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, allOf(MethodModifier.class), "testMethod");
+		LinkedHashMap<MethodParameter, Object> result = MethodUtils.zipParametersAndArguments(testMethod, 5, "moo", new ArrayList(), new HashSet<Double>());
+		
+		assertThat(result).isNull();
+	}
+	
+	@Test
+	public void testZipParametersAndArguments_SignatureDoesntMatch_OnType() {
+		Method testMethod = ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, allOf(MethodModifier.class), "testMethod");
+		LinkedHashMap<MethodParameter, Object> result = MethodUtils.zipParametersAndArguments(testMethod, new Kraa(), new ArrayList(), new HashSet<Double>());
+		
+		assertThat(result).isNull();
+	}
+	
+	@Test
+	public void testZipParametersAndArguments_SignatureDoesntMatch_OnType_ButDontCheck() {
+		final Kraa kraa = new Kraa();
+		Method testMethod = ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, allOf(MethodModifier.class), "testMethod");
+		LinkedHashMap<MethodParameter, Object> result = MethodUtils.zipParametersAndArguments(false, testMethod, kraa, new ArrayList(), new HashSet<Double>());
+		
+		Annotation[] p1 = testMethod.getParameterAnnotations()[0];
+		Annotation[] p2 = testMethod.getParameterAnnotations()[1];
+		Annotation[] p3 = testMethod.getParameterAnnotations()[2];
+		
+		ParameterizedTypeImpl parameterizedHashSet = ParameterizedTypeImpl.make(HashSet.class, new Type[]{Double.class}, null);
+		
+		assertThat(result).containsExactly(
+				new SimpleEntry<>(new MethodParameter(0, Integer.class, Integer.class, asList(p1)), kraa),
+				new SimpleEntry<>(new MethodParameter(1, List.class, List.class, asList(p2)), new ArrayList()),
+				new SimpleEntry<>(new MethodParameter(2, HashSet.class, parameterizedHashSet, asList(p3)), new HashSet<Double>())
+		);
+	}
+	
+	@Test
+	public void testZipParametersAndArguments_SignatureDoesntMatch_TooManyArguments_ButDontCheck() {
+		Method testMethod = ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, allOf(MethodModifier.class), "testMethod");
+		LinkedHashMap<MethodParameter, Object> result = MethodUtils.zipParametersAndArguments(false, testMethod, 5, "moo", new ArrayList(), new HashSet<Double>());
+		
+		Annotation[] p1 = testMethod.getParameterAnnotations()[0];
+		Annotation[] p2 = testMethod.getParameterAnnotations()[1];
+		Annotation[] p3 = testMethod.getParameterAnnotations()[2];
+		
+		ParameterizedTypeImpl parameterizedHashSet = ParameterizedTypeImpl.make(HashSet.class, new Type[]{Double.class}, null);
+		
+		assertThat(result).containsExactly(
+				new SimpleEntry<>(new MethodParameter(0, Integer.class, Integer.class, asList(p1)), 5),
+				new SimpleEntry<>(new MethodParameter(1, List.class, List.class, asList(p2)), "moo"),
+				new SimpleEntry<>(new MethodParameter(2, HashSet.class, parameterizedHashSet, asList(p3)), new ArrayList())
+		);
+	}
+	
+	@Test
+	public void testZipParametersAndArguments_SignatureDoesntMatch_TooFewArguments_ButDontCheck() {
+		Method testMethod = ClassUtils.findFirstMethodByName(Kraa.class, Kraa.class, allOf(MethodModifier.class), "testMethod");
+		LinkedHashMap<MethodParameter, Object> result = MethodUtils.zipParametersAndArguments(false, testMethod, new ArrayList(), new HashSet<Double>());
+		
+		Annotation[] p1 = testMethod.getParameterAnnotations()[0];
+		Annotation[] p2 = testMethod.getParameterAnnotations()[1];
+		
+		assertThat(result).containsExactly(
+				new SimpleEntry<>(new MethodParameter(0, Integer.class, Integer.class, asList(p1)), new ArrayList()),
+				new SimpleEntry<>(new MethodParameter(1, List.class, List.class, asList(p2)), new HashSet<Double>())
 		);
 	}
 	
