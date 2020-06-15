@@ -15,9 +15,14 @@ through multiple converters if a direct one is not available. It contains many b
 <dependency>
   <groupId>com.github.bbottema</groupId>
   <artifactId>java-reflection</artifactId>
-  <version>3.13.0</version>
+  <version>3.13.1</version>
 </dependency>
 ```
+
+v3.13.1 (15-June-2020)
+
+- Made zipping method parameters and arguments more flexible
+
 
 v3.13.0 (17-November-2019)
 
