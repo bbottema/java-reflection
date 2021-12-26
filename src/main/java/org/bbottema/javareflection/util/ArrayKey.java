@@ -23,7 +23,7 @@ public class ArrayKey {
 	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
 	public boolean equals(Object o) {
-		return Arrays.equals(array, requireNonNullOfType(o, ArrayKey.class).array);
+		return o != null && Arrays.equals(array, requireNonNullOfType(o, ArrayKey.class).array);
 	}
 	
 	@Override
