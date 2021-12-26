@@ -7,8 +7,8 @@ import org.bbottema.javareflection.valueconverter.ValueFunction;
 import org.bbottema.javareflection.valueconverter.ValueFunction.ValueFunctionImpl;
 import org.jetbrains.annotations.Nullable;
 
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
+import jakarta.activation.DataSource;
+import jakarta.activation.FileDataSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
