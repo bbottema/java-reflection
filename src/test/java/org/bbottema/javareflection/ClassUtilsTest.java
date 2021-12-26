@@ -58,13 +58,13 @@ public class ClassUtilsTest {
 
 	@Test
 	public void testSolveFieldValue() {
-		assertThat(ClassUtils.solveFieldValue(Integer.class, "MAX_VALUE")).isEqualTo(Integer.MAX_VALUE);
+		assertThat(ClassUtils.<Integer>solveFieldValue(Integer.class, "MAX_VALUE")).isEqualTo(Integer.MAX_VALUE);
 		final C instance = new C(new Pear());
-		assertThat(ClassUtils.solveFieldValue(instance, "numberC")).isNull();
+		assertThat(ClassUtils.<Integer>solveFieldValue(instance, "numberC")).isNull();
 		instance.updateNumberC(100);
-		assertThat(ClassUtils.solveFieldValue(instance, "numberC")).isEqualTo(100);
+		assertThat(ClassUtils.<Integer>solveFieldValue(instance, "numberC")).isEqualTo(100);
 		instance.updateNumber_privateC(1234);
-		assertThat(ClassUtils.solveFieldValue(instance, "number_privateC")).isEqualTo(1234);
+		assertThat(ClassUtils.<Integer>solveFieldValue(instance, "number_privateC")).isEqualTo(1234);
 	}
 	
 	@Test

@@ -239,10 +239,10 @@ public class MethodUtilsTest {
 	@Test
 	public void testInvokeCompatibleMethod_VariousAccessLevels() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final C c = new C(new Pear());
-		assertThat(MethodUtils.invokeCompatibleMethod(c, A.class, "privateMethod")).isEqualTo("private 1");
-		assertThat(MethodUtils.invokeCompatibleMethod(c, B.class, "protectedMethod")).isEqualTo("protected 2");
-		assertThat(MethodUtils.invokeCompatibleMethod(c, C.class, "privateMethod")).isEqualTo("private 2");
-		assertThat(MethodUtils.invokeCompatibleMethod(c, C.class, "protectedMethod")).isEqualTo("protected 2");
+		assertThat(MethodUtils.<String>invokeCompatibleMethod(c, A.class, "privateMethod")).isEqualTo("private 1");
+		assertThat(MethodUtils.<String>invokeCompatibleMethod(c, B.class, "protectedMethod")).isEqualTo("protected 2");
+		assertThat(MethodUtils.<String>invokeCompatibleMethod(c, C.class, "privateMethod")).isEqualTo("private 2");
+		assertThat(MethodUtils.<String>invokeCompatibleMethod(c, C.class, "protectedMethod")).isEqualTo("protected 2");
 		
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", 1, true)).intValue()).isEqualTo(1);
 		assertThat(((Number) MethodUtils.invokeCompatibleMethod(null, Math.class, "min", 1, false)).intValue()).isEqualTo(0);
@@ -391,9 +391,9 @@ public class MethodUtilsTest {
 		final List argTwo = null;
 		final HashSet argThree = new HashSet();
 		final Object[] arguments = {argOne, argTwo, argThree};
-		assertThat(MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Nullable.class)).isSameAs(argTwo);
-		assertThat(MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Nonnull.class)).isSameAs(argThree);
-		assertThat(MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Meta.class)).isNull();
+		assertThat((Object) MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Nullable.class)).isSameAs(argTwo);
+		assertThat((Object) MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Nonnull.class)).isSameAs(argThree);
+		assertThat((Object) MethodUtils.firstParameterArgumentByAnnotation(testMethod, arguments, Meta.class)).isNull();
 	}
 
 	@Test
@@ -410,7 +410,7 @@ public class MethodUtilsTest {
 		Set<InvokableObject<Method>> valueOf = MethodUtils.findSimpleCompatibleMethod(String.class, "valueOf", boolean.class);
 		Method valueOfBoolean = Iterables.firstOf(valueOf).getMethod();
 
-		assertThat(MethodUtils.invokeMethodSimple(valueOfBoolean, null, true)).isEqualTo("true");
-		assertThat(MethodUtils.invokeMethodSimple(valueOfBoolean, null, false)).isEqualTo("false");
+		assertThat(MethodUtils.<String>invokeMethodSimple(valueOfBoolean, null, true)).isEqualTo("true");
+		assertThat(MethodUtils.<String>invokeMethodSimple(valueOfBoolean, null, false)).isEqualTo("false");
 	}
 }
