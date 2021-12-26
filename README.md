@@ -15,9 +15,15 @@ through multiple converters if a direct one is not available. It contains many b
 <dependency>
   <groupId>com.github.bbottema</groupId>
   <artifactId>java-reflection</artifactId>
-  <version>3.13.1</version>
+  <version>4.0.0</version>
 </dependency>
 ```
+
+v4.0.0 (26-December-2021)
+
+- Updated to Java 8 and fixed recent log4j security issue
+- Updated to Jakarta 2.0.1
+
 
 v3.13.1 (15-June-2020)
 
