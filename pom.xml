@@ -12,7 +12,7 @@
 	<artifactId>java-reflection</artifactId>
 	<packaging>jar</packaging>
 	<name>Java Reflection</name>
-	<version>3.13.1</version>
+	<version>4.0.0</version>
 	<description>Java Reflection provides a small package with nifty reflection features that will help with finding constructors, methods and value conversions</description>
 	<url>https://github.com/bbottema/java-reflection</url>
 	<inceptionYear>2011</inceptionYear>
