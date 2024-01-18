@@ -15,9 +15,14 @@ through multiple converters if a direct one is not available. It contains many b
 <dependency>
   <groupId>com.github.bbottema</groupId>
   <artifactId>java-reflection</artifactId>
-  <version>4.0.0</version>
+  <version>4.1.0</version>
 </dependency>
 ```
+
+v4.1.0 (18-January-2024 )
+
+- Updated Jakarta Activation to Angus Activation package
+
 
 v4.0.0 (26-December-2021)
 
