@@ -95,6 +95,7 @@
 										org.bbottema.javareflection.util.commonslang25;
 										org.bbottema.javareflection.util.graph;
 										org.bbottema.javareflection.valueconverter;
+										org.bbottema.javareflection.valueconverter.converters;
 									</exports>
 								</moduleInfo>
 							</module>
