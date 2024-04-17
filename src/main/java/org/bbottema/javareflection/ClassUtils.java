@@ -8,6 +8,7 @@ import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -125,7 +126,7 @@ public final class ClassUtils {
 	@SuppressWarnings("WeakerAccess")
 	public static <T> T newInstanceSimple(final Class<T> _class) {
 		try {
-			return _class.getConstructor().newInstance();
+			return ConstructorFactory.obtainConstructor(_class).newInstance();
 		} catch (SecurityException e) {
 			throw new RuntimeException("unable to invoke parameterless constructor; security problem", e);
 		} catch (InstantiationException e) {
@@ -136,6 +137,13 @@ public final class ClassUtils {
 			throw new RuntimeException("unable to invoke parameterless constructor", e);
 		} catch (NoSuchMethodException e) {
 			throw new RuntimeException("unable to find parameterless constructor (not public?)", e);
+		}
+	}
+
+	// Workaround: mockito does not support mocking Class.class, so getConstructor() cannot be mocked and we mock this factory method instead.
+	static class ConstructorFactory {
+		static <T> Constructor<T> obtainConstructor(Class<T> _class) throws NoSuchMethodException {
+			return _class.getConstructor();
 		}
 	}
 

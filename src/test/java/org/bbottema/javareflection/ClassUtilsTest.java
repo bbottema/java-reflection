@@ -8,8 +8,8 @@ import org.bbottema.javareflection.testmodel.Pear;
 import org.bbottema.javareflection.testmodel.Shmoo;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ import static org.bbottema.javareflection.model.MethodModifier.PUBLIC;
 
 public class ClassUtilsTest {
 	
-	@Before
+	@BeforeEach
 	public void resetStaticCaches() {
 		ValueConversionHelper.resetDefaultConverters();
 	}
@@ -135,9 +135,9 @@ public class ClassUtilsTest {
 	@Test
 	public void testFindFirstMethodsByName() {
 		assertThat(ClassUtils.findFirstMethodByName(C.class, C.class, MATCH_ANY, "foo"))
-				.extracting("name").containsExactly("foo");
+				.extracting("name").isEqualTo("foo");
 		assertThat(ClassUtils.findFirstMethodByName(C.class, Object.class, MATCH_ANY, "protectedMethod"))
-				.extracting("name").containsExactly("protectedMethod");
+				.extracting("name").isEqualTo("protectedMethod");
 	}
 
 	@Test

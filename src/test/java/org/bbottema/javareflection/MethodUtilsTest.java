@@ -16,8 +16,8 @@ import org.bbottema.javareflection.testmodel.Pear;
 import org.bbottema.javareflection.testmodel.Skree;
 import org.bbottema.javareflection.util.MetaAnnotationExtractor;
 import org.bbottema.javareflection.valueconverter.ValueConversionHelper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.collections.Iterables;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -46,11 +46,10 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
 import static org.bbottema.javareflection.MethodUtils.onlyMethod;
 import static org.bbottema.javareflection.model.MethodModifier.MATCH_ANY;
-import static org.bbottema.javareflection.model.MethodModifier.PUBLIC;
 
 public class MethodUtilsTest {
 	
-	@Before
+	@BeforeEach
 	public void resetStaticCaches() {
 		ValueConversionHelper.resetDefaultConverters();
 	}

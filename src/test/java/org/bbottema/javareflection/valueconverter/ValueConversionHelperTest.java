@@ -4,8 +4,8 @@ import org.bbottema.javareflection.util.Function;
 import org.bbottema.javareflection.util.graph.Node;
 import org.bbottema.javareflection.valueconverter.ValueFunction.ValueFunctionImpl;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigDecimal;
@@ -32,7 +32,7 @@ public class ValueConversionHelperTest {
 		ONE, TWO, THREE
 	}
 	
-	@Before
+	@BeforeEach
 	public void clearRuntimeTypes() {
 		ValueConversionHelper.resetDefaultConverters();
 	}

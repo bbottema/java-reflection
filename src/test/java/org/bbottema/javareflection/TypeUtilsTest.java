@@ -7,7 +7,7 @@ import org.bbottema.javareflection.testmodel.Fruit;
 import org.bbottema.javareflection.testmodel.Pear;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -17,7 +17,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.bbottema.javareflection.ClassUtils.collectMethodsByName;
 import static org.bbottema.javareflection.model.MethodModifier.MATCH_ANY;
-import static org.bbottema.javareflection.testmodel.AnnotationsHelper.*;
+import static org.bbottema.javareflection.testmodel.AnnotationsHelper.ParamAnnotation1;
+import static org.bbottema.javareflection.testmodel.AnnotationsHelper.ParamAnnotation2;
 
 public class TypeUtilsTest {
 	
@@ -79,7 +80,7 @@ public class TypeUtilsTest {
 		assertThat(TypeUtils.isPackage("java.util")).isTrue();
 		assertThat(TypeUtils.isPackage("org.bbottema.javareflection")).isTrue();
 		assertThat(TypeUtils.isPackage("java.lang.reflect")).isTrue();
-		assertThat(TypeUtils.isPackage("org.junit")).isTrue();
+		assertThat(TypeUtils.isPackage("org.junit.jupiter.api")).isTrue();
 		assertThat(TypeUtils.isPackage("donkey.cake")).isFalse();
 		assertThat(TypeUtils.isPackage("org.bbottema")).isFalse();
 	}

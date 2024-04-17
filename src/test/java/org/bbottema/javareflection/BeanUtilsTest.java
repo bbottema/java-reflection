@@ -4,11 +4,10 @@ import org.bbottema.javareflection.BeanUtils.BeanRestriction;
 import org.bbottema.javareflection.BeanUtils.Visibility;
 import org.bbottema.javareflection.model.FieldWrapper;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;

@@ -2,7 +2,7 @@ package org.bbottema.javareflection;
 
 import org.bbottema.javareflection.testmodel.reflectionutils.Bob;
 import org.bbottema.javareflection.testmodel.reflectionutils.Moo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
