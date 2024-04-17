@@ -29,13 +29,6 @@
 	</issueManagement>
 
 	<dependencies>
-		<dependency><!-- Gives us @NotNull and @Nullable -->
-			<groupId>org.jetbrains</groupId>
-			<artifactId>annotations</artifactId>
-			<version>23.1.0</version>
-			<scope>provided</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>org.eclipse.angus</groupId>
 			<artifactId>angus-activation</artifactId>
@@ -44,7 +37,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.32</version>
+			<version>1.18.2</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -62,48 +55,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.moditect</groupId>
-				<artifactId>moditect-maven-plugin</artifactId>
-				<version>1.0.0.Final</version>
-				<executions>
-					<execution>
-						<id>add-module-infos</id>
-						<goals>
-							<goal>add-module-info</goal>
-						</goals>
-						<phase>package</phase>
-						<configuration>
-							<jvmVersion>9</jvmVersion>
-							<module>
-								<moduleInfo>
-									<name>org.bbottema.javareflection</name>
-									<requires>
-										static org.jetbrains.annotations;
-										static com.github.spotbugs.annotations;
-										static lombok;
-										jakarta.activation;
-										slf4j.api;
-									</requires>
-									<exports>
-										org.bbottema.javareflection;
-										org.bbottema.javareflection.model;
-										org.bbottema.javareflection.util;
-										org.bbottema.javareflection.util.commonslang25;
-										org.bbottema.javareflection.util.graph;
-										org.bbottema.javareflection.valueconverter;
-										org.bbottema.javareflection.valueconverter.converters;
-									</exports>
-								</moduleInfo>
-							</module>
-							<overwriteExistingFiles>true</overwriteExistingFiles>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
 </project>
