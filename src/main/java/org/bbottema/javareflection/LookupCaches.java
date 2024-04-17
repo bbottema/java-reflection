@@ -26,8 +26,8 @@ public class LookupCaches {
 	/**
 	 * {@link Method} cache categorized by owning <code>Classes</code> (since several owners can have a method with the same name and signature).
 	 * Methods are stored based on <code>Method</code> reference along with their unique signature (per owner), so multiple methods on one owner with
-	 * the same name can coexist.<br />
-	 * <br />
+	 * the same name can coexist.<br>
+	 * <br>
 	 * This cache is being maintained to reduce lookup times when trying to find signature compatible Java methods. The possible signature
 	 * combinations using autoboxing and/or automatic common conversions can become very large (7000+ with only three parameters) and can become a
 	 * real problem. The more frequently a method is being called the larger the performance gain, especially for methods with long parameter lists

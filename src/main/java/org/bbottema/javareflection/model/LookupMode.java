@@ -46,9 +46,9 @@ public enum LookupMode {
 	 * <p>
 	 * Examples:
 	 * <ul>
-	 *     <li>Joda date object -> String -> Java8 date object. This would require only the toJava8 date object converter to work</li>
-	 *     <li>Calendar -> String -> char. Calendar is compatible with String and String with char, but conversion will fail of course.</li>
-	 *     <li>Boolean -> Character -> long. This simply works out of the box, resulting in 0 or 1.</li>
+	 *     <li>Joda date object -&gt; String -&gt; Java8 date object. This would require only the toJava8 date object converter to work</li>
+	 *     <li>Calendar -&gt; String -&gt; char. Calendar is compatible with String and String with char, but conversion will fail of course.</li>
+	 *     <li>Boolean -&gt; Character -&gt; long. This simply works out of the box, resulting in 0 or 1.</li>
 	 * </ul>
 	 */
 	SMART_CONVERT;

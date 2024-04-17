@@ -13,8 +13,8 @@ import java.util.Map;
 /**
  * A toolkit that can read and compile .java sourcefiles on the fly in runtime. This <code>class loader</code> caches loaded classes for
  * repeated requests. Also, if a .class file already exists for a specific .java sourcefile, the classloader will compare dates and see if
- * the .java needs recompiling. <br />
- * <br />
+ * the .java needs recompiling. <br>
+ * <br>
  * A basepath can be specified for the classloader to look in for sourcefiles.
  */
 public final class ExternalClassLoader extends ClassLoader {

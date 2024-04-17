@@ -230,8 +230,8 @@ public final class ValueConversionHelper {
 
 	/**
 	 * Converts a single value into a target output datatype. Only input/output pairs should be passed in here according to the possible
-	 * conversions as determined by {@link #collectRegisteredCompatibleTargetTypes(Class)}.<br />
-	 * <br />
+	 * conversions as determined by {@link #collectRegisteredCompatibleTargetTypes(Class)}.<br>
+	 * <br>
 	 * First checks if the input and output types aren't the same. Then the conversions are checked for and done in the following order:
 	 * <ol>
 	 * <li>conversion to <code>String</code> (value.toString())</li>

@@ -224,7 +224,7 @@ public final class MethodUtils {
     }
 
     /**
-     * Tries to find a {@link Constructor} of a given type, with a given typelist, where types do not match due to formal types <!=> simple types.
+     * Tries to find a {@link Constructor} of a given type, with a given typelist, where types do not match due to formal types.
      * This expanded version tries a simple call first and when it fails, it generates a list of type arrays with all possible (un)wraps of any type
      * in the original list possible, and combinations thereof.
      * 
@@ -340,8 +340,8 @@ public final class MethodUtils {
 
     /**
      * Searches a specific class object for a {@link Method} using java reflect using a specific signature. This method will first search all
-     * implemented interfaces for the method to avoid visibility problems.<br />
-     * <br />
+     * implemented interfaces for the method to avoid visibility problems.<br>
+     * <br>
      * An example of such a problem is the <code>Iterator</code> as implemented by the <code>ArrayList</code>. The Iterator is implemented as a
      * private innerclass and as such not accessible by java reflect (even though the implemented methods are declared <i>public</i>), unlike the
      * interface's definition.

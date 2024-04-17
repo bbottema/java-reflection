@@ -112,8 +112,8 @@ public final class TypeUtils {
 	
 	/**
 	 * Recursively generates a complete list of all possible (un)wraps (autoboxing), supertypes, implemented interfaces, type conversions and any
-	 * combination thereof with the specified typeLists's elements (the individual parameter types).<br />
-	 * <br />
+	 * combination thereof with the specified typeLists's elements (the individual parameter types).<br>
+	 * <br>
 	 * The combination typeLists are generated in the following order:
 	 * <ol>
 	 * <li>no conversion; highest priority as it comes closest to user's requirement/specification</li>

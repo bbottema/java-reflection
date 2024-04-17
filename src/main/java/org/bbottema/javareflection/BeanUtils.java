@@ -26,7 +26,7 @@ import static org.bbottema.javareflection.BeanUtils.BeanRestriction.YES_GETTER;
  * <p>
  * With this utility class you can perform field lookups, by combining lookup restriction criteria.
  * <p>
- * <strong>Example</strong><br />
+ * <strong>Example</strong><br>
  * "find all fields on a class <em>Apple</em>, not looking at its super classes, which should be protected, have a getter method, but not a setter
  * method"
  * 
@@ -101,7 +101,7 @@ public final class BeanUtils {
 	 * Lookup can be configured to check only against specific visibility.
 	 *
 	 * @param method The method to match against getters/setters of a certain visibility
-	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that methods are matched against. Can
+	 * @param boundaryMarker The last <code>class</code> or <code>interface</code> implementing class that methods are matched against. Can
 	 *            be used to prevent matching methods on a super class.
 	 * @param visibility A set of visibility requirements (ie. {@link Visibility#PROTECTED} indicates a *field* for which getter/setter are checked
 	 *                      is allowed to have <code>protected</code> visibility). Note: the visibility modifiers for methods are ignored.
@@ -167,7 +167,7 @@ public final class BeanUtils {
 	 * name.
 	 * 
 	 * @param _class The class (and chain) to harvest fields from.
-	 * @param boundaryMarker The last <code>class></code> or <code>interface</code> implementing class that fields are collected from. Can
+	 * @param boundaryMarker The last <code>class</code> or <code>interface</code> implementing class that fields are collected from. Can
 	 *            be used to prevent finding fields on a super class.
 	 * @param visibility A set of visibility requirements (ie. {@link Visibility#PROTECTED} indicates a field is allowed to have
 	 *            <code>protected</code> visibility).

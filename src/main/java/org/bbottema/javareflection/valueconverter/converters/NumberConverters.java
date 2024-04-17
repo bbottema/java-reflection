@@ -31,13 +31,13 @@ import static org.bbottema.javareflection.util.MiscUtil.newArrayList;
  * <ol>
  * <li><strong>String</strong>: <code>value.toString()</code></li>
  * <li><strong>Integer</strong>: <code>value.intValue()</code></li>
- * <li><strong>Boolean</strong>: <code>value.intValue() > 0</code></li>
+ * <li><strong>Boolean</strong>: <code>value.intValue() &gt; 0</code></li>
  * <li><strong>Float</strong>: <code>value.floatValue()</code></li>
  * <li><strong>Double</strong>: <code>value.doubleValue()</code></li>
  * <li><strong>Long</strong>: <code>value.longValue()</code></li>
  * <li><strong>Byte</strong>: <code>value.byteValue()</code></li>
  * <li><strong>Short</strong>: <code>value.shortValue()</code></li>
- * <li><strong>Character</strong>: <code>Character.forDigit(value, 10)</code> ({@link Character#forDigit(int, int)})</code></li>
+ * <li><strong>Character</strong>: <code>Character.forDigit(value, 10)</code> ({@link Character#forDigit(int, int)})</li>
  * </ol>
  */
 @UtilityClass
