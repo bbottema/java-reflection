@@ -29,6 +29,13 @@
 	</issueManagement>
 
 	<dependencies>
+		<dependency><!-- Gives us @NotNull and @Nullable -->
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations</artifactId>
+			<version>23.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.eclipse.angus</groupId>
 			<artifactId>angus-activation</artifactId>
@@ -37,7 +44,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.2</version>
+			<version>1.18.32</version>
 			<scope>provided</scope>
 		</dependency>
 
