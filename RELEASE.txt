@@ -3,8 +3,11 @@ https://github.com/bbottema/java-reflection
 
 RELEASE NOTES Java Reflection
 
+v4.1.1 (05-March-2025)
 
-v4.1.0 (18-January-2024 )
+- some confusion in the release history, but this is now the correct version number
+
+v4.1.0 (18-January-2024)
 
 - Updated Jakarta Activation to Angus Activation package
 

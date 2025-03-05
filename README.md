@@ -15,9 +15,14 @@ through multiple converters if a direct one is not available. It contains many b
 <dependency>
   <groupId>com.github.bbottema</groupId>
   <artifactId>java-reflection</artifactId>
-  <version>4.1.0</version>
+  <version>4.1.1</version>
 </dependency>
 ```
+
+v4.1.1 (05-March-2025)
+
+- some confusion in the release history, but this is now the correct version number
+
 
 v4.1.0 (18-January-2024 )
 
